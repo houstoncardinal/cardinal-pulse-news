@@ -1,0 +1,193 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { trendingTopicId } = await req.json();
+    
+    console.log('Generating article for trending topic:', trendingTopicId);
+
+    // Fetch the trending topic
+    const { data: topic, error: topicError } = await supabaseClient
+      .from('trending_topics')
+      .select('*')
+      .eq('id', trendingTopicId)
+      .single();
+
+    if (topicError || !topic) {
+      throw new Error('Trending topic not found');
+    }
+
+    // Generate article using Lovable AI
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a professional news journalist for Cardinal News. Write compelling, accurate, SEO-optimized news articles based on trending topics. 
+            
+            Your output MUST be valid JSON with this exact structure:
+            {
+              "title": "Compelling headline under 60 characters",
+              "excerpt": "Brief summary under 160 characters",
+              "content": "Full article content in markdown format (800-1200 words). Include proper paragraphs, quotes if relevant, and factual information. Write in an engaging, professional journalistic style.",
+              "metaTitle": "SEO-optimized title under 60 characters",
+              "metaDescription": "SEO description under 160 characters",
+              "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+              "tags": ["tag1", "tag2", "tag3"],
+              "category": "one of: world, business, technology, sports, entertainment, science, politics, ai_innovation, lifestyle"
+            }
+            
+            Guidelines:
+            - Write factual, unbiased content
+            - Use engaging headlines that attract clicks
+            - Include relevant context and background
+            - Cite credible sources when making claims
+            - Optimize for search engines naturally
+            - Make it newsworthy and timely`
+          },
+          {
+            role: 'user',
+            content: `Write a professional news article about this trending topic: "${topic.topic}". 
+            ${topic.trend_data ? `Additional context: ${JSON.stringify(topic.trend_data)}` : ''}
+            
+            Make it comprehensive, engaging, and SEO-optimized. Return ONLY valid JSON, no additional text.`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      throw new Error(`AI generation failed: ${errorText}`);
+    }
+
+    const aiData = await aiResponse.json();
+    const generatedContent = aiData.choices[0].message.content;
+    
+    console.log('AI generated content:', generatedContent);
+
+    // Parse the JSON response
+    let articleData;
+    try {
+      articleData = JSON.parse(generatedContent);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', generatedContent);
+      throw new Error('AI did not return valid JSON');
+    }
+
+    // Generate slug
+    const slug = articleData.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50) + '-' + Math.random().toString(36).substring(2, 8);
+
+    // Calculate read time
+    const wordCount = articleData.content.split(/\s+/).length;
+    const readTime = `${Math.max(1, Math.round(wordCount / 200))} min read`;
+
+    // Generate schema markup for SEO
+    const schemaMarkup = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": articleData.title,
+      "description": articleData.excerpt,
+      "author": {
+        "@type": "Organization",
+        "name": "Cardinal News"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Cardinal News",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://cardinalnews.com/logo.png"
+        }
+      },
+      "datePublished": new Date().toISOString(),
+      "keywords": articleData.metaKeywords?.join(', '),
+    };
+
+    // Insert article into database
+    const { data: article, error: insertError } = await supabaseClient
+      .from('articles')
+      .insert({
+        title: articleData.title,
+        slug: slug,
+        excerpt: articleData.excerpt,
+        content: articleData.content,
+        category: articleData.category || 'world',
+        author: 'Cardinal AI',
+        tags: articleData.tags || [],
+        meta_title: articleData.metaTitle,
+        meta_description: articleData.metaDescription,
+        meta_keywords: articleData.metaKeywords || [],
+        schema_markup: schemaMarkup,
+        og_title: articleData.metaTitle,
+        og_description: articleData.metaDescription,
+        trending_topic_id: trendingTopicId,
+        status: 'pending_review',
+        read_time: readTime,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      throw insertError;
+    }
+
+    // Mark topic as processed
+    await supabaseClient
+      .from('trending_topics')
+      .update({ processed: true })
+      .eq('id', trendingTopicId);
+
+    console.log('Article generated successfully:', article.id);
+
+    return new Response(
+      JSON.stringify({ success: true, article }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in generate-article function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+});

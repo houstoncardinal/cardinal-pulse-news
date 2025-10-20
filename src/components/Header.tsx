@@ -1,7 +1,8 @@
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search, Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Link } from "react-router-dom";
 
 const categories = [
   "World",
@@ -25,9 +26,12 @@ export const Header = () => {
             <span className="text-primary">• LIVE</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
-              Subscribe
-            </Button>
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+                <Settings className="h-3 w-3" />
+                Admin
+              </Button>
+            </Link>
             <Button variant="ghost" size="icon" className="h-7 w-7">
               <Bell className="h-3 w-3" />
             </Button>
@@ -61,7 +65,7 @@ export const Header = () => {
           </Sheet>
 
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <div className="w-4 h-4 bg-primary-foreground rounded-full" />
             </div>
@@ -69,7 +73,7 @@ export const Header = () => {
               <span className="text-primary">Cardinal</span>{" "}
               <span className="text-foreground">News</span>
             </h1>
-          </div>
+          </Link>
 
           {/* Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">

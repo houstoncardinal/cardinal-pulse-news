@@ -4,17 +4,8 @@ import { TrendingTicker } from "@/components/TrendingTicker";
 import { NewsCard } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-
-const featuredNews = {
-  title: "Artificial Intelligence Transforms Global Healthcare Systems",
-  excerpt:
-    "Revolutionary AI technology is reshaping how medical professionals diagnose and treat patients worldwide, marking a new era in healthcare delivery and patient outcomes.",
-  category: "AI & Innovation",
-  image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070",
-  author: "Cardinal AI",
-  readTime: "8 min read",
-  views: "2.4M",
-};
+import { useArticles } from "@/hooks/useArticles";
+import { Loader2 } from "lucide-react";
 
 const newsArticles = [
   {
@@ -80,6 +71,31 @@ const newsArticles = [
 ];
 
 const Index = () => {
+  const { data: publishedArticles, isLoading } = useArticles();
+
+  // Use published articles if available, otherwise fall back to mock data
+  const articlesToDisplay = publishedArticles && publishedArticles.length > 0 
+    ? publishedArticles.slice(0, 6).map(article => ({
+        title: article.title,
+        excerpt: article.excerpt || '',
+        category: article.category,
+        image: article.featured_image || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070",
+        author: article.author || 'Cardinal AI',
+        readTime: article.read_time || '5 min read',
+        views: `${(article.views_count || 0).toLocaleString()}`,
+      }))
+    : newsArticles;
+
+  const featured = articlesToDisplay[0];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -88,32 +104,46 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
-        {/* Featured Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-4xl font-bold">Featured Stories</h2>
-            <Button variant="outline">View All</Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <NewsCard {...featuredNews} featured />
-            {newsArticles.slice(0, 2).map((article, i) => (
-              <NewsCard key={i} {...article} />
-            ))}
-          </div>
-        </section>
+        {articlesToDisplay.length > 0 ? (
+          <>
+            {/* Featured Section */}
+            <section className="mb-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-display text-4xl font-bold">Featured Stories</h2>
+                <Button variant="outline">View All</Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <NewsCard {...featured} featured />
+                {articlesToDisplay.slice(1, 3).map((article, i) => (
+                  <NewsCard key={i} {...article} />
+                ))}
+              </div>
+            </section>
 
-        {/* Latest News */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-4xl font-bold">Latest News</h2>
-            <Button variant="outline">View All</Button>
+            {/* Latest News */}
+            <section className="mb-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-display text-4xl font-bold">Latest News</h2>
+                <Button variant="outline">View All</Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {articlesToDisplay.slice(3).map((article, i) => (
+                  <NewsCard key={i} {...article} />
+                ))}
+              </div>
+            </section>
+          </>
+        ) : (
+          <div className="text-center py-20">
+            <h2 className="text-3xl font-display font-bold mb-4">No Articles Yet</h2>
+            <p className="text-muted-foreground mb-6">
+              Visit the Admin Dashboard to generate your first AI-powered articles
+            </p>
+            <Button asChild>
+              <a href="/admin">Go to Admin Dashboard</a>
+            </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {newsArticles.slice(2).map((article, i) => (
-              <NewsCard key={i} {...article} />
-            ))}
-          </div>
-        </section>
+        )}
 
         {/* Categories Preview */}
         <section>
