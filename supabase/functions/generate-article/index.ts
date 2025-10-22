@@ -98,14 +98,22 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const generatedContent = aiData.choices[0].message.content;
+    let generatedContent = aiData.choices[0].message.content;
     
     console.log('AI generated content:', generatedContent);
+
+    // Strip markdown code blocks if present
+    generatedContent = generatedContent.trim();
+    if (generatedContent.startsWith('```json')) {
+      generatedContent = generatedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (generatedContent.startsWith('```')) {
+      generatedContent = generatedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
 
     // Parse the JSON response
     let articleData;
     try {
-      articleData = JSON.parse(generatedContent);
+      articleData = JSON.parse(generatedContent.trim());
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', generatedContent);
       throw new Error('AI did not return valid JSON');
