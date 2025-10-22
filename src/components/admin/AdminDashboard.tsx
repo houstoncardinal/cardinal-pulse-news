@@ -83,32 +83,60 @@ export const AdminDashboard = () => {
   const { toast } = useToast();
 
   const fetchData = async () => {
-    // Fetch articles
-    const { data: articlesData } = await supabase
-      .from('articles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
+    try {
+      setLoading(true);
+      
+      // Fetch articles
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-    if (articlesData) setArticles(articlesData);
+      if (articlesError) {
+        console.error('Error fetching articles:', articlesError);
+        toast({
+          title: "Error fetching articles",
+          description: articlesError.message,
+          variant: "destructive",
+        });
+      } else if (articlesData) {
+        setArticles(articlesData);
+      }
 
-    // Fetch trending topics with filters
-    let query = supabase
-      .from('trending_topics')
-      .select('*')
-      .order('trend_strength', { ascending: false });
+      // Fetch trending topics with filters
+      let query = supabase
+        .from('trending_topics')
+        .select('*')
+        .order('trend_strength', { ascending: false })
+        .limit(100);
 
-    if (selectedRegion !== 'all') {
-      query = query.or(`region.eq.${selectedRegion},region.eq.global`);
+      if (selectedRegion !== 'all') {
+        query = query.or(`region.eq.${selectedRegion},region.eq.global`);
+      }
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory as any);
+      }
+
+      const { data: topicsData, error: topicsError } = await query;
+
+      if (topicsError) {
+        console.error('Error fetching topics:', topicsError);
+        toast({
+          title: "Error fetching trends",
+          description: topicsError.message,
+          variant: "destructive",
+        });
+      } else if (topicsData) {
+        console.log('Fetched topics:', topicsData.length);
+        setTopics(topicsData);
+      }
+    } catch (error) {
+      console.error('Error in fetchData:', error);
+    } finally {
+      setLoading(false);
     }
-
-    if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory as any);
-    }
-
-    const { data: topicsData } = await query.limit(100);
-
-    if (topicsData) setTopics(topicsData);
   };
 
   useEffect(() => {
