@@ -23,6 +23,8 @@ export type Database = {
           excerpt: string | null
           featured_image: string | null
           id: string
+          image_credit: string | null
+          image_url: string | null
           meta_description: string | null
           meta_keywords: string[] | null
           meta_title: string | null
@@ -34,12 +36,14 @@ export type Database = {
           read_time: string | null
           schema_markup: Json | null
           slug: string
+          sources: Json | null
           status: Database["public"]["Enums"]["article_status"] | null
           tags: string[] | null
           title: string
           trending_topic_id: string | null
           updated_at: string | null
           views_count: number | null
+          word_count: number | null
         }
         Insert: {
           author?: string | null
@@ -49,6 +53,8 @@ export type Database = {
           excerpt?: string | null
           featured_image?: string | null
           id?: string
+          image_credit?: string | null
+          image_url?: string | null
           meta_description?: string | null
           meta_keywords?: string[] | null
           meta_title?: string | null
@@ -60,12 +66,14 @@ export type Database = {
           read_time?: string | null
           schema_markup?: Json | null
           slug: string
+          sources?: Json | null
           status?: Database["public"]["Enums"]["article_status"] | null
           tags?: string[] | null
           title: string
           trending_topic_id?: string | null
           updated_at?: string | null
           views_count?: number | null
+          word_count?: number | null
         }
         Update: {
           author?: string | null
@@ -75,6 +83,8 @@ export type Database = {
           excerpt?: string | null
           featured_image?: string | null
           id?: string
+          image_credit?: string | null
+          image_url?: string | null
           meta_description?: string | null
           meta_keywords?: string[] | null
           meta_title?: string | null
@@ -86,12 +96,14 @@ export type Database = {
           read_time?: string | null
           schema_markup?: Json | null
           slug?: string
+          sources?: Json | null
           status?: Database["public"]["Enums"]["article_status"] | null
           tags?: string[] | null
           title?: string
           trending_topic_id?: string | null
           updated_at?: string | null
           views_count?: number | null
+          word_count?: number | null
         }
         Relationships: [
           {
@@ -144,39 +156,60 @@ export type Database = {
           created_at: string | null
           fetched_at: string | null
           id: string
+          keywords: string[] | null
           processed: boolean | null
           region: string | null
+          related_queries: string[] | null
           search_volume: number | null
+          source_url: string | null
           topic: string
           trend_data: Json | null
+          trend_strength: number | null
         }
         Insert: {
           category?: Database["public"]["Enums"]["news_category"] | null
           created_at?: string | null
           fetched_at?: string | null
           id?: string
+          keywords?: string[] | null
           processed?: boolean | null
           region?: string | null
+          related_queries?: string[] | null
           search_volume?: number | null
+          source_url?: string | null
           topic: string
           trend_data?: Json | null
+          trend_strength?: number | null
         }
         Update: {
           category?: Database["public"]["Enums"]["news_category"] | null
           created_at?: string | null
           fetched_at?: string | null
           id?: string
+          keywords?: string[] | null
           processed?: boolean | null
           region?: string | null
+          related_queries?: string[] | null
           search_volume?: number | null
+          source_url?: string | null
           topic?: string
           trend_data?: Json | null
+          trend_strength?: number | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      trending_analytics: {
+        Row: {
+          avg_strength: number | null
+          category: Database["public"]["Enums"]["news_category"] | null
+          processed_count: number | null
+          region: string | null
+          total_trends: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_read_time: {

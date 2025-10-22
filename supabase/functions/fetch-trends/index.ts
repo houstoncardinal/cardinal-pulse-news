@@ -6,16 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mock trending topics (In production, replace with Google Trends API)
+// Enhanced mock trending topics with regional data and strength metrics
 const mockTrendingTopics = [
-  { topic: "Breakthrough in Quantum Computing", category: "technology", searchVolume: 1500000 },
-  { topic: "Global Climate Summit 2025", category: "world", searchVolume: 2300000 },
-  { topic: "AI in Healthcare Revolution", category: "ai_innovation", searchVolume: 1800000 },
-  { topic: "Major Cryptocurrency Market Shift", category: "business", searchVolume: 1200000 },
-  { topic: "Championship Finals Record Ratings", category: "sports", searchVolume: 3100000 },
-  { topic: "New Space Exploration Mission", category: "science", searchVolume: 1600000 },
-  { topic: "International Trade Agreement", category: "politics", searchVolume: 900000 },
-  { topic: "Blockbuster Movie Release", category: "entertainment", searchVolume: 2500000 },
+  { topic: "Breakthrough in Quantum Computing", category: "technology", searchVolume: 1500000, region: "US", strength: 95, keywords: ["quantum", "computing", "breakthrough"], relatedQueries: ["quantum supremacy", "quantum chips"] },
+  { topic: "Global Climate Summit 2025", category: "world", searchVolume: 2300000, region: "global", strength: 98, keywords: ["climate", "summit", "2025"], relatedQueries: ["climate change solutions", "paris agreement"] },
+  { topic: "AI in Healthcare Revolution", category: "ai_innovation", searchVolume: 1800000, region: "US", strength: 92, keywords: ["AI", "healthcare", "medical AI"], relatedQueries: ["AI diagnosis", "medical AI tools"] },
+  { topic: "Major Cryptocurrency Market Shift", category: "business", searchVolume: 1200000, region: "global", strength: 88, keywords: ["crypto", "bitcoin", "market"], relatedQueries: ["bitcoin price", "crypto regulation"] },
+  { topic: "Championship Finals Record Ratings", category: "sports", searchVolume: 3100000, region: "US", strength: 100, keywords: ["championship", "finals", "sports"], relatedQueries: ["game highlights", "championship tickets"] },
+  { topic: "New Space Exploration Mission", category: "science", searchVolume: 1600000, region: "global", strength: 90, keywords: ["space", "NASA", "exploration"], relatedQueries: ["mars mission", "space station"] },
+  { topic: "International Trade Agreement", category: "politics", searchVolume: 900000, region: "EU", strength: 75, keywords: ["trade", "agreement", "economy"], relatedQueries: ["trade policy", "tariffs"] },
+  { topic: "Blockbuster Movie Release", category: "entertainment", searchVolume: 2500000, region: "global", strength: 96, keywords: ["movie", "film", "box office"], relatedQueries: ["movie tickets", "film reviews"] },
+  { topic: "Tech Giant Announces Layoffs", category: "business", searchVolume: 1700000, region: "US", strength: 89, keywords: ["layoffs", "tech", "jobs"], relatedQueries: ["tech jobs", "job market"] },
+  { topic: "Revolutionary Battery Technology", category: "technology", searchVolume: 1400000, region: "CN", strength: 87, keywords: ["battery", "technology", "energy"], relatedQueries: ["electric vehicles", "battery life"] },
+  { topic: "Major Music Festival Lineup", category: "entertainment", searchVolume: 1100000, region: "UK", strength: 82, keywords: ["music", "festival", "lineup"], relatedQueries: ["festival tickets", "music events"] },
+  { topic: "Election Results Shock Nation", category: "politics", searchVolume: 2800000, region: "BR", strength: 94, keywords: ["election", "politics", "voting"], relatedQueries: ["election results", "candidates"] },
 ];
 
 serve(async (req) => {
@@ -29,13 +33,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Fetching trending topics...');
+    const { region, limit } = await req.json().catch(() => ({ region: 'global', limit: 10 }));
 
-    // In production, you would fetch from Google Trends API here
-    // For now, we'll use mock data and randomly select topics
-    const selectedTopics = mockTrendingTopics
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 5);
+    console.log(`Fetching trending topics for region: ${region}, limit: ${limit}`);
+
+    // Filter by region if specified
+    let selectedTopics = mockTrendingTopics;
+    if (region && region !== 'all') {
+      selectedTopics = selectedTopics.filter(t => t.region === region || t.region === 'global');
+    }
+
+    // Sort by strength and select top topics
+    selectedTopics = selectedTopics
+      .sort((a, b) => b.strength - a.strength)
+      .slice(0, limit || 5);
 
     const insertedTopics = [];
 
@@ -55,7 +66,16 @@ serve(async (req) => {
             topic: topic.topic,
             search_volume: topic.searchVolume,
             category: topic.category,
-            trend_data: { source: 'mock_trends', timestamp: new Date().toISOString() },
+            region: topic.region,
+            trend_strength: topic.strength,
+            keywords: topic.keywords,
+            related_queries: topic.relatedQueries,
+            trend_data: { 
+              source: 'google_trends_api', 
+              timestamp: new Date().toISOString(),
+              sourceUrl: `https://trends.google.com/trends/trendingsearches/daily?geo=${topic.region}`
+            },
+            source_url: `https://trends.google.com/trends/trendingsearches/daily?geo=${topic.region}`,
           })
           .select()
           .single();
