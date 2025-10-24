@@ -25,6 +25,8 @@ import {
 interface Article {
   id: string;
   title: string;
+  excerpt?: string;
+  slug?: string;
   category: string;
   status: string;
   created_at: string;
@@ -44,6 +46,7 @@ interface TrendingTopic {
   region: string;
   trend_strength: number;
   keywords?: string[];
+  related_queries?: string[];
   source_url?: string;
 }
 
@@ -154,20 +157,43 @@ export const AdminDashboard = () => {
       
       toast({
         title: "🚀 Automation Triggered!",
-        description: `${data.topicsAdded} trending topics found. AI is generating powerful articles with images...`,
+        description: `${data.topicsAdded} trending topics found. Generating articles...`,
       });
       
       setTimeout(() => {
         fetchData();
-        setLoading(false);
-      }, 3000);
+      }, 2000);
     } catch (error) {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to trigger automation",
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
+    }
+  };
+
+  const generateSingleArticle = async (topicId: string, topicName: string) => {
+    try {
+      await supabase.functions.invoke('generate-article', {
+        body: { trendingTopicId: topicId }
+      });
+      
+      toast({
+        title: "✨ Generating Article!",
+        description: `Creating powerful article for "${topicName}"...`,
+      });
+
+      setTimeout(() => {
+        fetchData();
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate article",
+        variant: "destructive",
+      });
     }
   };
 
@@ -402,110 +428,169 @@ export const AdminDashboard = () => {
 
         <TabsContent value="trends">
           <div className="space-y-4">
-            {unprocessedTopics.map((topic) => (
-              <Card 
-                key={topic.id} 
-                className={`luxury-card p-6 cursor-pointer transition-all ${
-                  selectedTopics.has(topic.id) ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => toggleTopicSelection(topic.id)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Badge variant={selectedTopics.has(topic.id) ? "default" : "secondary"}>
-                        {selectedTopics.has(topic.id) ? 'Selected' : 'Available'}
-                      </Badge>
-                      <Badge variant="outline">{topic.category}</Badge>
-                      <Badge variant="outline" className="gap-1">
-                        <Globe className="h-3 w-3" />
-                        {topic.region}
-                      </Badge>
-                      <Badge className="bg-gradient-to-r from-primary to-red-400">
-                        Strength: {topic.trend_strength}%
-                      </Badge>
-                    </div>
-                    <h3 className="text-xl font-display font-bold mb-2">{topic.topic}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                      <span>{new Date(topic.created_at).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1">
-                        <TrendingUp className="h-4 w-4" />
-                        {topic.search_volume?.toLocaleString()} searches
-                      </span>
-                    </div>
-                    {topic.keywords && topic.keywords.length > 0 && (
-                      <div className="flex gap-2 flex-wrap">
-                        {topic.keywords.map((kw, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {kw}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+            {unprocessedTopics.length === 0 ? (
+              <Card className="luxury-card p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <TrendingUp className="h-16 w-16 text-muted-foreground opacity-50" />
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">No Unprocessed Trends</h3>
+                    <p className="text-muted-foreground">Click "Scan Trends Now" to fetch trending topics</p>
                   </div>
-                  {topic.source_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={topic.source_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  )}
                 </div>
               </Card>
-            ))}
+            ) : (
+              unprocessedTopics.map((topic) => (
+                <Card 
+                  key={topic.id} 
+                  className={`luxury-card p-6 transition-all ${
+                    selectedTopics.has(topic.id) ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Badge variant={selectedTopics.has(topic.id) ? "default" : "secondary"}>
+                          {selectedTopics.has(topic.id) ? '✓ Selected' : 'Available'}
+                        </Badge>
+                        <Badge variant="outline">{topic.category}</Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <Globe className="h-3 w-3" />
+                          {topic.region}
+                        </Badge>
+                        <Badge className="bg-gradient-to-r from-primary to-red-400 text-white">
+                          {topic.trend_strength}% Strength
+                        </Badge>
+                      </div>
+                      <h3 className="text-xl font-display font-bold mb-2">{topic.topic}</h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <span>{new Date(topic.created_at).toLocaleDateString()}</span>
+                        <span className="flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4" />
+                          {topic.search_volume?.toLocaleString()} searches
+                        </span>
+                      </div>
+                      {topic.keywords && topic.keywords.length > 0 && (
+                        <div className="flex gap-2 flex-wrap mb-3">
+                          {topic.keywords.map((kw, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              #{kw}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      {topic.related_queries && topic.related_queries.length > 0 && (
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-semibold">Related:</span> {topic.related_queries.slice(0, 3).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        onClick={() => generateSingleArticle(topic.id, topic.topic)}
+                        disabled={loading}
+                        className="gap-2"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Generate Article
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleTopicSelection(topic.id)}
+                      >
+                        {selectedTopics.has(topic.id) ? 'Deselect' : 'Select'}
+                      </Button>
+                      {topic.source_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={topic.source_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="articles">
           <div className="space-y-4">
-            {articles.map((article) => (
-              <Card key={article.id} className="luxury-card p-6">
-                <div className="flex items-start justify-between gap-4">
-                  {article.image_url && (
-                    <img 
-                      src={article.image_url} 
-                      alt={article.title}
-                      className="w-32 h-24 object-cover rounded-lg"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Badge className={getStatusColor(article.status)}>
-                        {article.status.replace('_', ' ')}
-                      </Badge>
-                      <Badge variant="outline">{article.category}</Badge>
-                      {article.word_count && (
-                        <Badge variant="secondary">
-                          {article.word_count.toLocaleString()} words
+            {articles.length === 0 ? (
+              <Card className="luxury-card p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <FileText className="h-16 w-16 text-muted-foreground opacity-50" />
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">No Articles Yet</h3>
+                    <p className="text-muted-foreground">Generate articles from trending topics to see them here</p>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              articles.map((article) => (
+                <Card key={article.id} className="luxury-card p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    {article.image_url && (
+                      <img 
+                        src={article.image_url} 
+                        alt={article.title}
+                        className="w-40 h-32 object-cover rounded-lg shadow-lg"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge className={getStatusColor(article.status) + " text-white"}>
+                          {article.status.replace('_', ' ').toUpperCase()}
                         </Badge>
+                        <Badge variant="outline">{article.category}</Badge>
+                        {article.word_count && (
+                          <Badge variant="secondary">
+                            {article.word_count.toLocaleString()} words
+                          </Badge>
+                        )}
+                        {article.image_url && (
+                          <Badge variant="secondary" className="gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            AI Generated
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-display font-bold mb-2">{article.title}</h3>
+                      {article.excerpt && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{article.excerpt}</p>
                       )}
-                      {article.image_url && (
-                        <Badge variant="secondary" className="gap-1">
-                          <ImageIcon className="h-3 w-3" />
-                          AI Image
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>{new Date(article.created_at).toLocaleDateString()}</span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" />
+                          {article.views_count.toLocaleString()} views
+                        </span>
+                        {article.sources && Array.isArray(article.sources) && article.sources.length > 0 && (
+                          <span className="font-semibold">{article.sources.length} sources cited</span>
+                        )}
+                      </div>
                     </div>
-                    <h3 className="text-xl font-display font-bold mb-2">{article.title}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{new Date(article.created_at).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        {article.views_count.toLocaleString()} views
-                      </span>
-                      {article.sources && Array.isArray(article.sources) && article.sources.length > 0 && (
-                        <span>{article.sources.length} sources cited</span>
+                    <div className="flex flex-col gap-2">
+                      {article.status === 'pending_review' && (
+                        <Button onClick={() => publishArticle(article.id)} className="gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Publish
+                        </Button>
+                      )}
+                      {article.status === 'published' && (
+                        <Button variant="outline" asChild>
+                          <a href={`/article/${article.slug}`} target="_blank">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Live
+                          </a>
+                        </Button>
                       )}
                     </div>
                   </div>
-                  {article.status === 'pending_review' && (
-                    <Button onClick={() => publishArticle(article.id)}>
-                      Publish Now
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
