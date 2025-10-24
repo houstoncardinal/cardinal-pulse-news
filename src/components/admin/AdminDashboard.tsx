@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { ArticleEditor } from "@/components/admin/ArticleEditor";
 import { 
   TrendingUp, 
   FileText, 
@@ -19,21 +20,29 @@ import {
   Download,
   Zap,
   Image as ImageIcon,
-  ExternalLink
+  ExternalLink,
+  Edit
 } from "lucide-react";
 
 interface Article {
   id: string;
   title: string;
   excerpt?: string;
+  content?: string;
   slug?: string;
   category: string;
   status: string;
   created_at: string;
   views_count: number;
   image_url?: string;
+  image_credit?: string;
   word_count?: number;
   sources?: any;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string[];
+  tags?: string[];
+  author?: string;
 }
 
 interface TrendingTopic {
@@ -83,6 +92,7 @@ export const AdminDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [batchSize, setBatchSize] = useState(10);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -572,6 +582,14 @@ export const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
+                      <Button 
+                        variant="outline"
+                        onClick={() => setEditingArticle(article)}
+                        className="gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Button>
                       {article.status === 'pending_review' && (
                         <Button onClick={() => publishArticle(article.id)} className="gap-2">
                           <CheckCircle className="h-4 w-4" />
@@ -623,6 +641,18 @@ export const AdminDashboard = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {editingArticle && (
+        <ArticleEditor
+          article={editingArticle}
+          isOpen={!!editingArticle}
+          onClose={() => setEditingArticle(null)}
+          onSave={() => {
+            fetchData();
+            setEditingArticle(null);
+          }}
+        />
+      )}
     </div>
   );
 };

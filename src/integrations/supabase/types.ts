@@ -212,14 +212,8 @@ export type Database = {
       }
     }
     Functions: {
-      calculate_read_time: {
-        Args: { content: string }
-        Returns: string
-      }
-      generate_slug: {
-        Args: { title: string }
-        Returns: string
-      }
+      calculate_read_time: { Args: { content: string }; Returns: string }
+      generate_slug: { Args: { title: string }; Returns: string }
     }
     Enums: {
       article_status: "draft" | "pending_review" | "published" | "archived"
