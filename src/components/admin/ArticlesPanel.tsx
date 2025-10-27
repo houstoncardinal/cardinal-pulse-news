@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Eye, Edit, CheckCircle } from "lucide-react";
 import { useArticles } from "@/hooks/useArticles";
 import { useState } from "react";
-import { ArticleEditor } from "./ArticleEditor";
+import { AdvancedArticleEditor } from "./AdvancedArticleEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -94,7 +94,7 @@ export const ArticlesPanel = () => {
       </div>
 
       {editingArticle && (
-        <ArticleEditor
+        <AdvancedArticleEditor
           article={editingArticle}
           isOpen={!!editingArticle}
           onClose={() => setEditingArticle(null)}

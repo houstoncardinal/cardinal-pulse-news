@@ -135,4 +135,108 @@ All colors MUST be HSL.
     background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(0 0% 8%) 100%);
     box-shadow: var(--luxury-shadow);
   }
+
+  .font-display {
+    font-family: "Playfair Display", serif;
+  }
+
+  /* Rich Text Editor Styles */
+  .ql-container {
+    @apply border-none !important;
+  }
+
+  .ql-editor {
+    @apply min-h-[400px] text-base leading-relaxed !important;
+  }
+
+  .ql-toolbar {
+    @apply border-b border-border bg-muted/30 rounded-t-lg !important;
+  }
+
+  .ql-stroke {
+    @apply stroke-foreground !important;
+  }
+
+  .ql-fill {
+    @apply fill-foreground !important;
+  }
+
+  .ql-picker-label {
+    @apply text-foreground !important;
+  }
+
+  .ql-editor.ql-blank::before {
+    @apply text-muted-foreground italic !important;
+  }
+
+  .ql-editor h1,
+  .ql-editor h2,
+  .ql-editor h3 {
+    @apply font-display font-bold !important;
+  }
+
+  .ql-editor h1 {
+    @apply text-3xl mb-4 !important;
+  }
+
+  .ql-editor h2 {
+    @apply text-2xl mb-3 !important;
+  }
+
+  .ql-editor h3 {
+    @apply text-xl mb-2 !important;
+  }
+
+  .ql-editor p {
+    @apply mb-4 !important;
+  }
+
+  .ql-editor ul,
+  .ql-editor ol {
+    @apply pl-6 mb-4 !important;
+  }
+
+  .ql-editor blockquote {
+    @apply border-l-4 border-primary pl-4 italic my-4 !important;
+  }
+
+  .ql-editor a {
+    @apply text-primary underline !important;
+  }
+
+  /* Article Preview Styles */
+  .prose {
+    @apply max-w-none !important;
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3 {
+    @apply font-display font-bold !important;
+  }
+
+  .prose img {
+    @apply rounded-lg my-8 !important;
+  }
+
+  .prose a {
+    @apply text-primary hover:underline !important;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary pl-6 italic !important;
+  }
+
+  .prose code {
+    @apply bg-muted px-2 py-1 rounded text-sm !important;
+  }
+
+  /* Animations */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
 }
