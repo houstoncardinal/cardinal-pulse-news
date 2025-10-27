@@ -21,7 +21,8 @@ import {
   Eye,
   CheckCircle,
   Upload,
-  Tag
+  Tag,
+  Sparkles
 } from "lucide-react";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -58,6 +59,7 @@ export const AdvancedArticleEditor = ({ article, isOpen, onClose, onSave }: Arti
   const [newKeyword, setNewKeyword] = useState('');
   const [newSource, setNewSource] = useState({ name: '', url: '' });
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +100,42 @@ export const AdvancedArticleEditor = ({ article, isOpen, onClose, onSave }: Arti
       toast.error('Failed to upload image');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!formData.title) {
+      toast.error('Please add a title first');
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    const loadingToast = toast.loading('Generating AI image...');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-article-image', {
+        body: {
+          articleId: article.id,
+          title: formData.title,
+          content: formData.content,
+          category: formData.category
+        }
+      });
+
+      if (error) throw error;
+
+      setFormData(prev => ({
+        ...prev,
+        image_url: data.imageUrl,
+        image_credit: data.credit
+      }));
+
+      toast.success('AI image generated successfully!', { id: loadingToast });
+    } catch (error) {
+      console.error('Generate image error:', error);
+      toast.error('Failed to generate image', { id: loadingToast });
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -319,31 +357,51 @@ export const AdvancedArticleEditor = ({ article, isOpen, onClose, onSave }: Arti
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-lg font-semibold">Featured Image</Label>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    {isUploading ? (
-                      <>
-                        <Upload className="h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4" />
-                        Upload Image
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      onClick={handleGenerateImage}
+                      disabled={isGeneratingImage || !formData.title}
+                      variant="default"
+                      className="gap-2"
+                    >
+                      {isGeneratingImage ? (
+                        <>
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Generate AI Image
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Upload className="h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4" />
+                          Upload Image
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 {formData.image_url && (
