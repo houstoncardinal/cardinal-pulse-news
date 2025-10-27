@@ -20,6 +20,7 @@ export type Database = {
           category: Database["public"]["Enums"]["news_category"]
           content: string
           created_at: string | null
+          date_modified: string | null
           excerpt: string | null
           featured_image: string | null
           id: string
@@ -28,6 +29,7 @@ export type Database = {
           meta_description: string | null
           meta_keywords: string[] | null
           meta_title: string | null
+          news_keywords: string[] | null
           og_description: string | null
           og_image: string | null
           og_title: string | null
@@ -50,6 +52,7 @@ export type Database = {
           category: Database["public"]["Enums"]["news_category"]
           content: string
           created_at?: string | null
+          date_modified?: string | null
           excerpt?: string | null
           featured_image?: string | null
           id?: string
@@ -58,6 +61,7 @@ export type Database = {
           meta_description?: string | null
           meta_keywords?: string[] | null
           meta_title?: string | null
+          news_keywords?: string[] | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
@@ -80,6 +84,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["news_category"]
           content?: string
           created_at?: string | null
+          date_modified?: string | null
           excerpt?: string | null
           featured_image?: string | null
           id?: string
@@ -88,6 +93,7 @@ export type Database = {
           meta_description?: string | null
           meta_keywords?: string[] | null
           meta_title?: string | null
+          news_keywords?: string[] | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
@@ -267,6 +273,7 @@ export type Database = {
     }
     Functions: {
       calculate_read_time: { Args: { content: string }; Returns: string }
+      generate_news_schema: { Args: { article_id: string }; Returns: Json }
       generate_slug: { Args: { title: string }; Returns: string }
     }
     Enums: {

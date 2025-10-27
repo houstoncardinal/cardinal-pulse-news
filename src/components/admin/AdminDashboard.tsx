@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendsPanel } from "./TrendsPanel";
+import { EnhancedTrendsPanel } from "./EnhancedTrendsPanel";
 import { ArticlesPanel } from "./ArticlesPanel";
 import { JobsLog } from "./JobsLog";
 import { SettingsPanel } from "./SettingsPanel";
@@ -12,12 +12,12 @@ export const AdminDashboard = () => {
         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
           Cardinal News - AI Newsroom
         </h1>
-        <p className="text-muted-foreground">Autonomous AI newsroom • Real-time updates • Powered by trends</p>
+        <p className="text-muted-foreground">Autonomous AI newsroom • Real-time updates • Powered by Google Trends</p>
       </div>
 
       <QuickCreate />
       
-      <Tabs defaultValue="trends" className="space-y-6">
+      <Tabs defaultValue="trends" className="space-y-6 mt-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="trends">Live Trends</TabsTrigger>
           <TabsTrigger value="articles">Articles</TabsTrigger>
@@ -26,7 +26,7 @@ export const AdminDashboard = () => {
         </TabsList>
         
         <TabsContent value="trends">
-          <TrendsPanel />
+          <EnhancedTrendsPanel />
         </TabsContent>
         
         <TabsContent value="articles">

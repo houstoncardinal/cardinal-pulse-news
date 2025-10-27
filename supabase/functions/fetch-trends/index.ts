@@ -22,60 +22,98 @@ async function fetchGoogleTrends(region: string = 'US') {
     };
     
     const geoCode = geoMap[region.toLowerCase()] || 'US';
-    const rssUrl = `https://trends.google.com/trends/trendingsearches/daily/rss?geo=${geoCode}`;
     
-    console.log(`Fetching trends from: ${rssUrl}`);
+    // Try multiple RSS feeds for better coverage
+    const feeds = [
+      `https://trends.google.com/trends/trendingsearches/daily/rss?geo=${geoCode}`,
+      `https://trends.google.com/trends/trendingsearches/realtime/rss?geo=${geoCode}`
+    ];
     
-    const response = await fetch(rssUrl);
-    const xmlText = await response.text();
+    let allTrends: any[] = [];
     
-    console.log('Received RSS response');
+    for (const rssUrl of feeds) {
+      try {
+        console.log(`Fetching trends from: ${rssUrl}`);
+        
+        const response = await fetch(rssUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        
+        if (!response.ok) continue;
+        
+        const xmlText = await response.text();
+        console.log('Received RSS response');
+        
+        // Parse XML manually (simplified parsing)
+        const items = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
+        
+        const trends = items.slice(0, 30).map((item, index) => {
+          const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+          const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/);
+          const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
+          const linkMatch = item.match(/<link>(.*?)<\/link>/);
+          const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+          
+          const title = titleMatch ? titleMatch[1] : `Trend ${index + 1}`;
+          const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
+          const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').substring(0, 200) : title;
+          const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
+          const pubDate = pubDateMatch ? new Date(pubDateMatch[1]) : new Date();
+          
+          // Parse traffic number
+          const trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
+          
+          // Categorize based on keywords in title and description
+          const text = (title + ' ' + description).toLowerCase();
+          let category = 'world';
+          if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
+          else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
+          else if (text.match(/sport|game|championship|league|team|player|football|basketball|nba|nfl/)) category = 'sports';
+          else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
+          else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
+          else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
+          
+          // Extract keywords
+          const words = title.split(' ').filter((w: string) => w.length > 3);
+          const keywords = [...new Set(words)].slice(0, 5);
+          
+          return {
+            topic: title,
+            category,
+            trend_strength: Math.min(100, Math.floor(trafficNum / 1000)),
+            region: geoCode,
+            search_volume: trafficNum,
+            keywords,
+            related_queries: [title, description.substring(0, 50)],
+            source_url: link,
+            fetched_at: pubDate.toISOString(),
+            trend_data: {
+              fetched_from: 'google_trends_rss',
+              timestamp: new Date().toISOString(),
+              raw_traffic: traffic
+            }
+          };
+        });
+        
+        allTrends = allTrends.concat(trends);
+      } catch (feedError) {
+        console.error(`Error fetching from ${rssUrl}:`, feedError);
+        continue;
+      }
+    }
     
-    // Parse XML manually (simplified parsing)
-    const items = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
+    // Remove duplicates and sort by trend strength
+    const uniqueTrends = Array.from(
+      new Map(allTrends.map(t => [t.topic, t])).values()
+    ).sort((a, b) => b.trend_strength - a.trend_strength);
     
-    const trends = items.slice(0, 20).map((item, index) => {
-      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
-      const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/);
-      const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
-      const linkMatch = item.match(/<link>(.*?)<\/link>/);
-      
-      const title = titleMatch ? titleMatch[1] : `Trend ${index + 1}`;
-      const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
-      const description = descMatch ? descMatch[1] : title;
-      const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
-      
-      // Parse traffic number
-      const trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
-      
-      // Categorize based on keywords in title and description
-      const text = (title + ' ' + description).toLowerCase();
-      let category = 'world';
-      if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
-      else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
-      else if (text.match(/sport|game|championship|league|team|player|football|basketball/)) category = 'sports';
-      else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
-      else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
-      else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
-      
-      return {
-        topic: title,
-        category,
-        trend_strength: Math.min(100, Math.floor(trafficNum / 1000)),
-        region: region.toLowerCase(),
-        search_volume: trafficNum,
-        keywords: title.split(' ').filter((w: string) => w.length > 3).slice(0, 5),
-        related_queries: [title, description.substring(0, 50)],
-        source_url: link
-      };
-    });
-    
-    console.log(`Parsed ${trends.length} trends`);
-    return trends;
+    console.log(`Parsed ${uniqueTrends.length} unique trends`);
+    return uniqueTrends.length > 0 ? uniqueTrends : getFallbackTrends(region);
     
   } catch (error) {
     console.error('Error fetching Google Trends:', error);
-    // Return fallback data if API fails
     return getFallbackTrends(region);
   }
 }

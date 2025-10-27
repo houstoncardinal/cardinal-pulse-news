@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Eye, Calendar, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 
 const Article = () => {
   const { slug } = useParams();
@@ -37,6 +38,40 @@ const Article = () => {
         .then();
     }
   }, [article]);
+
+  // Generate NewsArticle schema for Google News
+  const generateSchema = () => {
+    if (!article) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": article.title,
+      "description": article.excerpt || article.meta_description,
+      "image": article.image_url || article.featured_image,
+      "datePublished": article.published_at || article.created_at,
+      "dateModified": article.date_modified || article.updated_at,
+      "author": {
+        "@type": "Person",
+        "name": article.author || "Cardinal AI"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Cardinal News",
+        "logo": {
+          "@type": "ImageObject",
+          "url": window.location.origin + "/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": window.location.href
+      },
+      "articleSection": article.category,
+      "keywords": article.meta_keywords?.join(", "),
+      "wordCount": article.word_count
+    };
+  };
 
   if (isLoading) {
     return (
@@ -70,9 +105,49 @@ const Article = () => {
 
   const shareUrl = window.location.href;
   const shareText = article.title;
+  const schema = generateSchema();
 
   return (
     <div className="min-h-screen bg-background">
+      {article && (
+        <Helmet>
+          {/* Primary Meta Tags */}
+          <title>{article.meta_title || article.title} | Cardinal News</title>
+          <meta name="title" content={article.meta_title || article.title} />
+          <meta name="description" content={article.meta_description || article.excerpt} />
+          <meta name="keywords" content={article.meta_keywords?.join(", ")} />
+          <meta name="author" content={article.author || "Cardinal AI"} />
+          
+          {/* Open Graph / Facebook */}
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={shareUrl} />
+          <meta property="og:title" content={article.title} />
+          <meta property="og:description" content={article.excerpt || article.meta_description} />
+          <meta property="og:image" content={article.image_url || article.featured_image} />
+          <meta property="article:published_time" content={article.published_at || article.created_at} />
+          <meta property="article:modified_time" content={article.date_modified || article.updated_at} />
+          <meta property="article:author" content={article.author || "Cardinal AI"} />
+          <meta property="article:section" content={article.category} />
+          {article.tags?.map((tag: string) => (
+            <meta key={tag} property="article:tag" content={tag} />
+          ))}
+          
+          {/* Twitter */}
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:url" content={shareUrl} />
+          <meta property="twitter:title" content={article.title} />
+          <meta property="twitter:description" content={article.excerpt || article.meta_description} />
+          <meta property="twitter:image" content={article.image_url || article.featured_image} />
+          
+          {/* Schema.org NewsArticle */}
+          {schema && (
+            <script type="application/ld+json">
+              {JSON.stringify(schema)}
+            </script>
+          )}
+        </Helmet>
+      )}
+      
       <Header />
       
       <article className="container mx-auto px-4 py-8 max-w-5xl">
