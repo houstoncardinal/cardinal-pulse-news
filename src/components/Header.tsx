@@ -1,8 +1,10 @@
-import { Menu, Search, Bell, Settings } from "lucide-react";
+import { Menu, Search, Bell, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const categories = [
   "World",
@@ -16,6 +18,13 @@ const categories = [
 ];
 
 export const Header = () => {
+  const { user, isAdmin, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top Bar */}
@@ -26,12 +35,31 @@ export const Header = () => {
             <span className="text-primary">• LIVE</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
-                <Settings className="h-3 w-3" />
-                Admin
-              </Button>
-            </Link>
+            {user && isAdmin ? (
+              <>
+                <Link to="/admin">
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+                    <Settings className="h-3 w-3" />
+                    Admin
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs gap-1"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-3 w-3" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+                  Sign In
+                </Button>
+              </Link>
+            )}
             <Button variant="ghost" size="icon" className="h-7 w-7">
               <Bell className="h-3 w-3" />
             </Button>
