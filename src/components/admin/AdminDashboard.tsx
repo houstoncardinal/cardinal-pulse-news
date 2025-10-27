@@ -4,6 +4,7 @@ import { ArticlesPanel } from "./ArticlesPanel";
 import { JobsLog } from "./JobsLog";
 import { SettingsPanel } from "./SettingsPanel";
 import { QuickCreate } from "./QuickCreate";
+import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 
 export const AdminDashboard = () => {
   return (
@@ -16,6 +17,10 @@ export const AdminDashboard = () => {
       </div>
 
       <QuickCreate />
+      
+      <div className="mt-4">
+        <ManualTrendsRefresh />
+      </div>
       
       <Tabs defaultValue="trends" className="space-y-6 mt-6">
         <TabsList className="grid w-full grid-cols-4">
