@@ -83,6 +83,7 @@ const Index = () => {
         author: article.author || 'Cardinal AI',
         readTime: article.read_time || '5 min read',
         views: `${(article.views_count || 0).toLocaleString()}`,
+        slug: article.slug,
       }))
     : newsArticles;
 

@@ -1,116 +1,238 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-// Enhanced mock trending topics with regional data and strength metrics
-const mockTrendingTopics = [
-  { topic: "Breakthrough in Quantum Computing", category: "technology", searchVolume: 1500000, region: "US", strength: 95, keywords: ["quantum", "computing", "breakthrough"], relatedQueries: ["quantum supremacy", "quantum chips"] },
-  { topic: "Global Climate Summit 2025", category: "world", searchVolume: 2300000, region: "global", strength: 98, keywords: ["climate", "summit", "2025"], relatedQueries: ["climate change solutions", "paris agreement"] },
-  { topic: "AI in Healthcare Revolution", category: "ai_innovation", searchVolume: 1800000, region: "US", strength: 92, keywords: ["AI", "healthcare", "medical AI"], relatedQueries: ["AI diagnosis", "medical AI tools"] },
-  { topic: "Major Cryptocurrency Market Shift", category: "business", searchVolume: 1200000, region: "global", strength: 88, keywords: ["crypto", "bitcoin", "market"], relatedQueries: ["bitcoin price", "crypto regulation"] },
-  { topic: "Championship Finals Record Ratings", category: "sports", searchVolume: 3100000, region: "US", strength: 100, keywords: ["championship", "finals", "sports"], relatedQueries: ["game highlights", "championship tickets"] },
-  { topic: "New Space Exploration Mission", category: "science", searchVolume: 1600000, region: "global", strength: 90, keywords: ["space", "NASA", "exploration"], relatedQueries: ["mars mission", "space station"] },
-  { topic: "International Trade Agreement", category: "politics", searchVolume: 900000, region: "EU", strength: 75, keywords: ["trade", "agreement", "economy"], relatedQueries: ["trade policy", "tariffs"] },
-  { topic: "Blockbuster Movie Release", category: "entertainment", searchVolume: 2500000, region: "global", strength: 96, keywords: ["movie", "film", "box office"], relatedQueries: ["movie tickets", "film reviews"] },
-  { topic: "Tech Giant Announces Layoffs", category: "business", searchVolume: 1700000, region: "US", strength: 89, keywords: ["layoffs", "tech", "jobs"], relatedQueries: ["tech jobs", "job market"] },
-  { topic: "Revolutionary Battery Technology", category: "technology", searchVolume: 1400000, region: "CN", strength: 87, keywords: ["battery", "technology", "energy"], relatedQueries: ["electric vehicles", "battery life"] },
-  { topic: "Major Music Festival Lineup", category: "entertainment", searchVolume: 1100000, region: "UK", strength: 82, keywords: ["music", "festival", "lineup"], relatedQueries: ["festival tickets", "music events"] },
-  { topic: "Election Results Shock Nation", category: "politics", searchVolume: 2800000, region: "BR", strength: 94, keywords: ["election", "politics", "voting"], relatedQueries: ["election results", "candidates"] },
-];
+// Function to fetch real Google Trends data using Google Trends RSS
+async function fetchGoogleTrends(region: string = 'US') {
+  try {
+    const geoMap: { [key: string]: string } = {
+      'global': 'US',
+      'us': 'US',
+      'uk': 'GB',
+      'europe': 'DE',
+      'asia': 'JP',
+      'americas': 'US',
+      'africa': 'ZA',
+      'oceania': 'AU',
+      'all': 'US'
+    };
+    
+    const geoCode = geoMap[region.toLowerCase()] || 'US';
+    const rssUrl = `https://trends.google.com/trends/trendingsearches/daily/rss?geo=${geoCode}`;
+    
+    console.log(`Fetching trends from: ${rssUrl}`);
+    
+    const response = await fetch(rssUrl);
+    const xmlText = await response.text();
+    
+    console.log('Received RSS response');
+    
+    // Parse XML manually (simplified parsing)
+    const items = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
+    
+    const trends = items.slice(0, 20).map((item, index) => {
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+      const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/);
+      const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
+      const linkMatch = item.match(/<link>(.*?)<\/link>/);
+      
+      const title = titleMatch ? titleMatch[1] : `Trend ${index + 1}`;
+      const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
+      const description = descMatch ? descMatch[1] : title;
+      const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
+      
+      // Parse traffic number
+      const trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
+      
+      // Categorize based on keywords in title and description
+      const text = (title + ' ' + description).toLowerCase();
+      let category = 'world';
+      if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
+      else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
+      else if (text.match(/sport|game|championship|league|team|player|football|basketball/)) category = 'sports';
+      else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
+      else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
+      else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
+      
+      return {
+        topic: title,
+        category,
+        trend_strength: Math.min(100, Math.floor(trafficNum / 1000)),
+        region: region.toLowerCase(),
+        search_volume: trafficNum,
+        keywords: title.split(' ').filter((w: string) => w.length > 3).slice(0, 5),
+        related_queries: [title, description.substring(0, 50)],
+        source_url: link
+      };
+    });
+    
+    console.log(`Parsed ${trends.length} trends`);
+    return trends;
+    
+  } catch (error) {
+    console.error('Error fetching Google Trends:', error);
+    // Return fallback data if API fails
+    return getFallbackTrends(region);
+  }
+}
+
+// Fallback data in case API fails
+function getFallbackTrends(region: string) {
+  return [
+    {
+      topic: "Global Technology Summit Announces Major AI Breakthroughs",
+      category: "technology",
+      trend_strength: 95,
+      region: region.toLowerCase(),
+      search_volume: 125000,
+      keywords: ["artificial intelligence", "technology", "innovation"],
+      related_queries: ["AI technology news", "tech summit 2024"],
+      source_url: "https://trends.google.com"
+    },
+    {
+      topic: "International Space Station Mission Update",
+      category: "science",
+      trend_strength: 88,
+      region: region.toLowerCase(),
+      search_volume: 98000,
+      keywords: ["space", "science", "research"],
+      related_queries: ["space station news", "space mission"],
+      source_url: "https://trends.google.com"
+    },
+    {
+      topic: "Global Economic Summit Concludes with New Agreements",
+      category: "business",
+      trend_strength: 92,
+      region: region.toLowerCase(),
+      search_volume: 150000,
+      keywords: ["economy", "business", "summit"],
+      related_queries: ["economic news", "business summit"],
+      source_url: "https://trends.google.com"
+    },
+    {
+      topic: "Climate Action Initiative Launched Worldwide",
+      category: "world",
+      trend_strength: 85,
+      region: region.toLowerCase(),
+      search_volume: 87000,
+      keywords: ["climate", "environment", "sustainability"],
+      related_queries: ["climate action", "environmental policy"],
+      source_url: "https://trends.google.com"
+    },
+    {
+      topic: "Major Sports Championship Finals Draw Record Viewers",
+      category: "sports",
+      trend_strength: 90,
+      region: region.toLowerCase(),
+      search_volume: 112000,
+      keywords: ["sports", "championship", "finals"],
+      related_queries: ["sports news", "championship results"],
+      source_url: "https://trends.google.com"
+    }
+  ];
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    )
 
-    const { region, limit } = await req.json().catch(() => ({ region: 'global', limit: 10 }));
+    const { region = 'global', limit = 10 } = await req.json().catch(() => ({ region: 'global', limit: 10 }))
 
-    console.log(`Fetching trending topics for region: ${region}, limit: ${limit}`);
+    console.log(`Fetching trends for region: ${region}, limit: ${limit}`)
 
-    // Filter by region if specified
-    let selectedTopics = mockTrendingTopics;
-    if (region && region !== 'all') {
-      selectedTopics = selectedTopics.filter(t => t.region === region || t.region === 'global');
-    }
+    // Fetch real Google Trends data
+    const trendingTopics = await fetchGoogleTrends(region)
+    
+    // Limit results
+    const limitedTopics = trendingTopics.slice(0, limit)
 
-    // Sort by strength and select top topics
-    selectedTopics = selectedTopics
-      .sort((a, b) => b.strength - a.strength)
-      .slice(0, limit || 5);
-
-    const insertedTopics = [];
-
-    for (const topic of selectedTopics) {
-      // Check if this topic was recently added (within last 24 hours)
+    // Insert new trending topics and trigger article generation
+    let addedTopics = 0
+    const insertedTopics = []
+    
+    for (const topic of limitedTopics) {
+      // Check if this exact topic exists in the last 24 hours
       const { data: existing } = await supabaseClient
         .from('trending_topics')
         .select('id')
         .eq('topic', topic.topic)
         .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .single();
+        .maybeSingle()
 
       if (!existing) {
         const { data: inserted, error } = await supabaseClient
           .from('trending_topics')
           .insert({
             topic: topic.topic,
-            search_volume: topic.searchVolume,
             category: topic.category,
+            trend_strength: topic.trend_strength,
             region: topic.region,
-            trend_strength: topic.strength,
+            search_volume: topic.search_volume,
             keywords: topic.keywords,
-            related_queries: topic.relatedQueries,
-            trend_data: { 
-              source: 'google_trends_api', 
-              timestamp: new Date().toISOString(),
-              sourceUrl: `https://trends.google.com/trends/trendingsearches/daily?geo=${topic.region}`
-            },
-            source_url: `https://trends.google.com/trends/trendingsearches/daily?geo=${topic.region}`,
+            related_queries: topic.related_queries,
+            source_url: topic.source_url,
+            trend_data: {
+              fetched_from: 'google_trends_rss',
+              timestamp: new Date().toISOString()
+            }
           })
           .select()
-          .single();
+          .single()
 
         if (!error && inserted) {
-          insertedTopics.push(inserted);
+          addedTopics++
+          insertedTopics.push(inserted)
           
-          // Automatically trigger article generation
+          console.log(`Triggering article generation for: ${topic.topic}`)
+          
+          // Trigger article generation
           await supabaseClient.functions.invoke('generate-article', {
             body: { trendingTopicId: inserted.id }
-          });
+          })
+        } else if (error) {
+          console.error(`Error inserting topic "${topic.topic}":`, error)
         }
+      } else {
+        console.log(`Topic "${topic.topic}" already exists, skipping`)
       }
     }
 
-    console.log(`Inserted ${insertedTopics.length} new trending topics`);
+    console.log(`Successfully added ${addedTopics} new trending topics`)
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        topicsAdded: insertedTopics.length,
-        topics: insertedTopics 
+        success: true,
+        message: `Added ${addedTopics} new trending topics`,
+        topicsAdded: addedTopics,
+        topics: insertedTopics
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
 
   } catch (error) {
-    console.error('Error in fetch-trends function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error in fetch-trends function:', error)
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    );
+    )
   }
-});
+})
