@@ -115,6 +115,39 @@ export type Database = {
           },
         ]
       }
+      jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          payload: Json | null
+          started_at: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          started_at?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          started_at?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
       publication_queue: {
         Row: {
           article_id: string | null
@@ -149,6 +182,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
       }
       trending_topics: {
         Row: {

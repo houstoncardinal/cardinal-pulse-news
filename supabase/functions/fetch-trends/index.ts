@@ -148,6 +148,18 @@ serve(async (req) => {
     )
 
     const { region = 'global', limit = 10 } = await req.json().catch(() => ({ region: 'global', limit: 10 }))
+    
+    // Log job start
+    const { data: job } = await supabaseClient
+      .from('jobs')
+      .insert({
+        type: 'fetch_trends',
+        status: 'running',
+        started_at: new Date().toISOString(),
+        payload: { region, limit }
+      })
+      .select()
+      .single()
 
     console.log(`Fetching trends for region: ${region}, limit: ${limit}`)
 
@@ -209,6 +221,17 @@ serve(async (req) => {
     }
 
     console.log(`Successfully added ${addedTopics} new trending topics`)
+    
+    // Update job as completed
+    if (job) {
+      await supabaseClient
+        .from('jobs')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', job.id)
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -225,6 +248,38 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in fetch-trends function:', error)
+    
+    // Update job as failed if it exists
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+      
+      // Find the most recent running job
+      const { data: runningJob } = await supabaseClient
+        .from('jobs')
+        .select('id')
+        .eq('type', 'fetch_trends')
+        .eq('status', 'running')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      if (runningJob) {
+        await supabaseClient
+          .from('jobs')
+          .update({
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', runningJob.id)
+      }
+    } catch (jobError) {
+      console.error('Error updating job status:', jobError)
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Unknown error occurred'

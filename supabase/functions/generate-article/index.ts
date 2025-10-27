@@ -19,6 +19,18 @@ serve(async (req) => {
 
     const { trendingTopicId } = await req.json();
     
+    // Log job start
+    const { data: job } = await supabaseClient
+      .from('jobs')
+      .insert({
+        type: 'generate_article',
+        status: 'running',
+        started_at: new Date().toISOString(),
+        payload: { trendingTopicId }
+      })
+      .select()
+      .single();
+    
     console.log('Generating article for trending topic:', trendingTopicId);
 
     // Fetch the trending topic
@@ -233,6 +245,17 @@ serve(async (req) => {
       .eq('id', trendingTopicId);
 
     console.log('Article generated successfully:', article.id);
+    
+    // Update job as completed
+    if (job) {
+      await supabaseClient
+        .from('jobs')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', job.id)
+    }
 
     return new Response(
       JSON.stringify({ success: true, article }),
@@ -241,6 +264,35 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in generate-article function:', error);
+    
+    // Update job as failed if it exists
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+      
+      const { data: runningJobs } = await supabaseClient
+        .from('jobs')
+        .select('id')
+        .eq('type', 'generate_article')
+        .eq('status', 'running')
+        .order('created_at', { ascending: false })
+        .limit(1)
+      
+      if (runningJobs && runningJobs.length > 0) {
+        await supabaseClient
+          .from('jobs')
+          .update({
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', runningJobs[0].id)
+      }
+    } catch (jobError) {
+      console.error('Error updating job status:', jobError)
+    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
