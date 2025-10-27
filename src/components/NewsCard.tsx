@@ -32,17 +32,17 @@ export const NewsCard = ({
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        <Badge className="absolute top-4 left-4 bg-primary hover:bg-primary/90">
+        <Badge className="absolute top-4 left-4 bg-primary hover:bg-primary/90 animate-scale-in">
           {category}
         </Badge>
       </div>
 
       <div className="p-6">
         <h3
-          className={`font-display font-bold mb-3 group-hover:text-primary transition-colors ${
+          className={`font-display font-bold mb-3 group-hover:text-primary transition-colors story-link ${
             featured ? "text-3xl" : "text-xl"
           }`}
         >
@@ -70,7 +70,7 @@ export const NewsCard = ({
   return slug ? (
     <Link to={`/article/${slug}`}>
       <Card
-        className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer ${
+        className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer hover-scale ${
           featured ? "md:col-span-2 md:row-span-2" : ""
         }`}
       >
@@ -79,7 +79,7 @@ export const NewsCard = ({
     </Link>
   ) : (
     <Card
-      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer ${
+      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer hover-scale ${
         featured ? "md:col-span-2 md:row-span-2" : ""
       }`}
     >

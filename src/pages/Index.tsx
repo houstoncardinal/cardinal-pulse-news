@@ -108,28 +108,38 @@ const Index = () => {
         {articlesToDisplay.length > 0 ? (
           <>
             {/* Featured Section */}
-            <section className="mb-16">
+            <section className="mb-16 animate-fade-in">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="font-display text-4xl font-bold">Featured Stories</h2>
-                <Button variant="outline">View All</Button>
+                <div>
+                  <h2 className="font-display text-4xl font-bold">Featured Stories</h2>
+                  <p className="text-muted-foreground">Real-time AI-powered news</p>
+                </div>
+                <Button variant="outline" className="hover-scale">View All</Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <NewsCard {...featured} featured />
                 {articlesToDisplay.slice(1, 3).map((article, i) => (
-                  <NewsCard key={i} {...article} />
+                  <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                    <NewsCard {...article} />
+                  </div>
                 ))}
               </div>
             </section>
 
             {/* Latest News */}
-            <section className="mb-16">
+            <section className="mb-16 animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <div className="flex items-center justify-between mb-8">
-                <h2 className="font-display text-4xl font-bold">Latest News</h2>
-                <Button variant="outline">View All</Button>
+                <div>
+                  <h2 className="font-display text-4xl font-bold">Latest News</h2>
+                  <p className="text-muted-foreground">Updated in real-time</p>
+                </div>
+                <Button variant="outline" className="hover-scale">View All</Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {articlesToDisplay.slice(3).map((article, i) => (
-                  <NewsCard key={i} {...article} />
+                  <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 4) * 0.1}s` }}>
+                    <NewsCard {...article} />
+                  </div>
                 ))}
               </div>
             </section>

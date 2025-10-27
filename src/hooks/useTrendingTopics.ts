@@ -1,7 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const useTrendingTopics = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('trends-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trending_topics'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['trending-topics'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['trending-topics'],
     queryFn: async () => {
@@ -14,6 +38,5 @@ export const useTrendingTopics = () => {
       if (error) throw error;
       return data || [];
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 };

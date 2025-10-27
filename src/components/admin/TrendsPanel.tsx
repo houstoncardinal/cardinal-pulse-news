@@ -60,10 +60,13 @@ export const TrendsPanel = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Live Trending Topics</h2>
-        <Button onClick={handleFetchTrends} variant="outline">
+        <div>
+          <h2 className="text-2xl font-bold">Live Trending Topics</h2>
+          <p className="text-sm text-muted-foreground">Real-time updates • Click to generate</p>
+        </div>
+        <Button onClick={handleFetchTrends} variant="outline" className="hover-scale">
           <TrendingUp className="mr-2 h-4 w-4" />
           Refresh Trends
         </Button>
@@ -71,7 +74,7 @@ export const TrendsPanel = () => {
 
       <div className="grid gap-4">
         {trends?.map((trend) => (
-          <Card key={trend.id} className="p-4">
+          <Card key={trend.id} className="p-4 hover-scale transition-all">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">

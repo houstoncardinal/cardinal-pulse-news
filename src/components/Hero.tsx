@@ -9,13 +9,13 @@ export const Hero = () => {
   const featuredArticle = articles?.[0];
 
   return (
-    <section className="relative min-h-[70vh] flex items-center overflow-hidden">
+    <section className="relative min-h-[70vh] flex items-center overflow-hidden animate-fade-in">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
           src={featuredArticle?.featured_image || heroImage}
           alt={featuredArticle?.title || "Global news network studio"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover animate-scale-in"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
       </div>
@@ -23,24 +23,24 @@ export const Hero = () => {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl">
-          <Badge className="mb-6 bg-primary hover:bg-primary/90 text-base px-4 py-1">
+          <Badge className="mb-6 bg-primary hover:bg-primary/90 text-base px-4 py-1 animate-scale-in">
             {featuredArticle?.category?.toUpperCase() || 'BREAKING NEWS'}
           </Badge>
           
-          <h2 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h2 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in">
             {featuredArticle?.title || 'AI-Powered Global News Network Launches Worldwide'}
           </h2>
           
-          <p className="text-xl text-platinum-silver mb-8 leading-relaxed">
+          <p className="text-xl text-platinum-silver mb-8 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
             {featuredArticle?.excerpt || 'Cardinal News delivers real-time trending stories from around the globe, powered by advanced AI technology and journalistic excellence.'}
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <Button size="lg" className="gap-2 text-base px-8">
+          <div className="flex flex-wrap gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <Button size="lg" className="gap-2 text-base px-8 hover-scale">
               Read Full Story
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="text-base px-8" asChild>
+            <Button size="lg" variant="outline" className="text-base px-8 hover-scale" asChild>
               <a href="/admin">Admin Dashboard</a>
             </Button>
           </div>
