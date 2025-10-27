@@ -1,6 +1,7 @@
 import { Clock, Eye } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 interface NewsCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface NewsCardProps {
   author: string;
   readTime: string;
   views: string;
+  slug?: string;
   featured?: boolean;
 }
 
@@ -21,14 +23,11 @@ export const NewsCard = ({
   author,
   readTime,
   views,
+  slug,
   featured = false,
 }: NewsCardProps) => {
-  return (
-    <Card
-      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer ${
-        featured ? "md:col-span-2 md:row-span-2" : ""
-      }`}
-    >
+  const content = (
+    <>
       <div className={`relative overflow-hidden ${featured ? "h-96" : "h-48"}`}>
         <img
           src={image}
@@ -65,6 +64,26 @@ export const NewsCard = ({
           </div>
         </div>
       </div>
+    </>
+  );
+
+  return slug ? (
+    <Link to={`/article/${slug}`}>
+      <Card
+        className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer ${
+          featured ? "md:col-span-2 md:row-span-2" : ""
+        }`}
+      >
+        {content}
+      </Card>
+    </Link>
+  ) : (
+    <Card
+      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer ${
+        featured ? "md:col-span-2 md:row-span-2" : ""
+      }`}
+    >
+      {content}
     </Card>
   );
 };
