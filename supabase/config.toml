@@ -1,5 +1,8 @@
 project_id = "uxmrmiuwpofulgfjckzy"
 
+[functions.automation-scheduler]
+verify_jwt = false
+
 [functions.fetch-global-weather]
 verify_jwt = false
 
