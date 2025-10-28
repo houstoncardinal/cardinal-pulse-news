@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Zap, CloudRain } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -53,23 +53,6 @@ export const QuickCreate = () => {
     }
   };
 
-  const handleJamaicaWeatherStory = async () => {
-    setIsGenerating(true);
-    try {
-      toast.loading('Fetching live Jamaica weather data and generating urgent story...');
-      
-      const { data, error } = await supabase.functions.invoke('generate-jamaica-weather-story');
-
-      if (error) throw error;
-
-      toast.success(`✓ Published urgent Jamaica weather story: "${data.article.title}"`);
-    } catch (error: any) {
-      console.error('Error generating Jamaica weather story:', error);
-      toast.error('Failed to generate story: ' + error.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   return (
     <Card className="p-4 md:p-6 bg-gradient-to-br from-primary/10 via-card to-card border-primary/20 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 animate-scale-in relative overflow-hidden group">
@@ -121,21 +104,6 @@ export const QuickCreate = () => {
           </Button>
         </div>
 
-        {/* Urgent Jamaica Weather Button */}
-        <div className="mt-4 pt-4 border-t border-primary/20">
-          <Button 
-            onClick={handleJamaicaWeatherStory}
-            disabled={isGenerating}
-            className="w-full gap-2 h-12 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold shadow-lg hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300"
-            size="lg"
-          >
-            <CloudRain className="h-5 w-5" />
-            {isGenerating ? 'Generating Urgent Story...' : '🚨 Generate Jamaica Hurricane Weather Story'}
-          </Button>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Fetches live weather data and creates a powerful, urgent news story
-          </p>
-        </div>
       </div>
     </Card>
   );

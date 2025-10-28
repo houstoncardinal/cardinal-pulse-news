@@ -13,7 +13,11 @@ import { YahooFinanceImporter } from "./YahooFinanceImporter";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { BatchOperations } from "./BatchOperations";
 import { SystemMonitor } from "./SystemMonitor";
-import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity } from "lucide-react";
+import { ContentCalendar } from "./ContentCalendar";
+import { SEOOptimizer } from "./SEOOptimizer";
+import { RealtimeMetrics } from "./RealtimeMetrics";
+import { ContentWorkflow } from "./ContentWorkflow";
+import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const AdminDashboard = () => {
@@ -27,6 +31,10 @@ export const AdminDashboard = () => {
   ];
 
   const moreMenuItems = [
+    { value: "calendar", label: "Content Calendar", icon: Calendar, description: "Plan and schedule content" },
+    { value: "seo", label: "SEO Optimizer", icon: Search, description: "Optimize article SEO" },
+    { value: "realtime", label: "Live Metrics", icon: Radio, description: "Real-time performance" },
+    { value: "workflow", label: "Workflow", icon: GitBranch, description: "Manage content pipeline" },
     { value: "analytics", label: "Analytics", icon: BarChart3, description: "View performance metrics" },
     { value: "batch", label: "Batch Operations", icon: Zap, description: "Bulk article management" },
     { value: "monitor", label: "System Monitor", icon: Activity, description: "Track system health" },
@@ -93,6 +101,22 @@ export const AdminDashboard = () => {
         
         <TabsContent value="jobs" className="mt-6">
           <JobsLog />
+        </TabsContent>
+        
+        <TabsContent value="calendar" className="mt-6">
+          <ContentCalendar />
+        </TabsContent>
+        
+        <TabsContent value="seo" className="mt-6">
+          <SEOOptimizer />
+        </TabsContent>
+        
+        <TabsContent value="realtime" className="mt-6">
+          <RealtimeMetrics />
+        </TabsContent>
+        
+        <TabsContent value="workflow" className="mt-6">
+          <ContentWorkflow />
         </TabsContent>
         
         <TabsContent value="analytics" className="mt-6">
