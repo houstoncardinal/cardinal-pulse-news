@@ -10,7 +10,10 @@ import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
 import { YahooFinanceImporter } from "./YahooFinanceImporter";
-import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe } from "lucide-react";
+import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { BatchOperations } from "./BatchOperations";
+import { SystemMonitor } from "./SystemMonitor";
+import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const AdminDashboard = () => {
@@ -24,11 +27,10 @@ export const AdminDashboard = () => {
   ];
 
   const moreMenuItems = [
-    { value: "settings", label: "Settings", icon: Settings, description: "Configure your newsroom" },
     { value: "analytics", label: "Analytics", icon: BarChart3, description: "View performance metrics" },
-    { value: "notifications", label: "Notifications", icon: Bell, description: "Manage alerts" },
-    { value: "team", label: "Team", icon: Users, description: "Manage users" },
-    { value: "integrations", label: "Integrations", icon: Globe, description: "Connect services" },
+    { value: "batch", label: "Batch Operations", icon: Zap, description: "Bulk article management" },
+    { value: "monitor", label: "System Monitor", icon: Activity, description: "Track system health" },
+    { value: "settings", label: "Settings", icon: Settings, description: "Configure your newsroom" },
   ];
 
   return (
@@ -79,6 +81,18 @@ export const AdminDashboard = () => {
         
         <TabsContent value="jobs" className="mt-6">
           <JobsLog />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="mt-6">
+          <AnalyticsDashboard />
+        </TabsContent>
+        
+        <TabsContent value="batch" className="mt-6">
+          <BatchOperations />
+        </TabsContent>
+        
+        <TabsContent value="monitor" className="mt-6">
+          <SystemMonitor />
         </TabsContent>
         
         <TabsContent value="settings" className="mt-6">
