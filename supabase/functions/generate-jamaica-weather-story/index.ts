@@ -127,12 +127,31 @@ Return ONLY valid JSON:
     const contentData = await contentResponse.json();
     let generatedContent = contentData.choices[0].message.content;
 
-    // Parse JSON
-    const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in AI response');
+    console.log('AI generated content (first 500 chars):', generatedContent.substring(0, 500));
+
+    // Strip markdown code blocks if present
+    generatedContent = generatedContent.trim();
+    if (generatedContent.startsWith('```json')) {
+      generatedContent = generatedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (generatedContent.startsWith('```')) {
+      generatedContent = generatedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
-    const articleData = JSON.parse(jsonMatch[0]);
+
+    // Parse JSON more robustly
+    let articleData;
+    try {
+      // First try to find JSON in the response
+      const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in AI response');
+      }
+      articleData = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', generatedContent);
+      console.error('Parse error:', parseError);
+      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+      throw new Error('AI did not return valid JSON: ' + errorMessage);
+    }
 
     // Generate dramatic hero image
     console.log('Generating dramatic weather image...');
