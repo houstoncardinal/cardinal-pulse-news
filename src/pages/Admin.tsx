@@ -33,7 +33,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-x-hidden">
       <Header />
       <main className="flex-1 pb-20 md:pb-8 overflow-x-hidden w-full">
         <AdminDashboard />

@@ -1,8 +1,16 @@
-import { Menu, Search } from "lucide-react";
+import { Menu, Search, Shield, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const categories = [
   "World",
@@ -28,6 +36,8 @@ const navigationLinks = [
 ];
 
 export const Header = () => {
+  const { user, isAdmin, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top Bar */}
@@ -65,6 +75,36 @@ export const Header = () => {
                     {link.label}
                   </Link>
                 ))}
+                <div className="border-t border-border pt-4 mt-4">
+                  {user ? (
+                    <>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="text-lg hover:text-primary transition-colors flex items-center gap-2 mb-3"
+                        >
+                          <Shield className="h-5 w-5" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => signOut()}
+                        className="text-lg hover:text-primary transition-colors flex items-center gap-2 w-full text-left"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      to="/auth"
+                      className="text-lg hover:text-primary transition-colors flex items-center gap-2"
+                    >
+                      <LogIn className="h-5 w-5" />
+                      Sign In
+                    </Link>
+                  )}
+                </div>
               </nav>
             </SheetContent>
           </Sheet>
@@ -91,9 +131,47 @@ export const Header = () => {
             </div>
           </div>
 
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Search className="h-5 w-5" />
-          </Button>
+          {/* Auth Section */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Search className="h-5 w-5" />
+            </Button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {user.email?.[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                        <Shield className="h-4 w-4 text-primary" />
+                        <span className="font-semibold">Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => signOut()} className="flex items-center gap-2 cursor-pointer">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button asChild variant="default" size="sm" className="hidden md:flex">
+                <Link to="/auth" className="flex items-center gap-2">
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Desktop Navigation */}

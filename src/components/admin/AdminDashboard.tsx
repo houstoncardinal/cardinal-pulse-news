@@ -37,13 +37,25 @@ export const AdminDashboard = () => {
     <div className="min-h-screen pb-24 md:pb-8 overflow-x-hidden">
       {/* Header - Responsive */}
       <div className="container mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 max-w-full">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
-            Cardinal News
-          </h1>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            AI Newsroom • Real-time • Powered by Trends
-          </p>
+        <div className="mb-6 md:mb-8 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-purple-500/20 to-red-400/20 blur-3xl opacity-30 -z-10" />
+          <div className="flex items-center gap-4 mb-3">
+            <div className="p-3 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-2xl backdrop-blur-sm border border-white/10">
+              <Activity className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary via-purple-500 to-red-400 bg-clip-text text-transparent">
+                Admin Control Center
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                AI Newsroom • Real-time • Powered by Trends
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions - Responsive */}
