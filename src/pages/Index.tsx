@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/NewsCard";
 import { NewsWidget } from "@/components/NewsWidget";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { useArticles } from "@/hooks/useArticles";
 import { Loader2, Sparkles, Zap } from "lucide-react";
 
@@ -162,18 +163,19 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: "World", color: "from-blue-600 to-blue-800" },
-              { name: "Business", color: "from-green-600 to-green-800" },
-              { name: "Technology", color: "from-purple-600 to-purple-800" },
-              { name: "Sports", color: "from-orange-600 to-orange-800" },
-              { name: "Entertainment", color: "from-pink-600 to-pink-800" },
-              { name: "Science", color: "from-teal-600 to-teal-800" },
-              { name: "Politics", color: "from-red-600 to-red-800" },
-              { name: "AI & Innovation", color: "from-indigo-600 to-indigo-800" },
+              { name: "World", slug: "world", color: "from-blue-600 to-blue-800" },
+              { name: "Business", slug: "business", color: "from-green-600 to-green-800" },
+              { name: "Technology", slug: "technology", color: "from-purple-600 to-purple-800" },
+              { name: "Sports", slug: "sports", color: "from-orange-600 to-orange-800" },
+              { name: "Entertainment", slug: "entertainment", color: "from-pink-600 to-pink-800" },
+              { name: "Science", slug: "science", color: "from-teal-600 to-teal-800" },
+              { name: "Politics", slug: "politics", color: "from-red-600 to-red-800" },
+              { name: "AI & Innovation", slug: "ai-innovation", color: "from-indigo-600 to-indigo-800" },
             ].map((category) => (
-              <div
+              <Link
                 key={category.name}
-                className={`relative h-32 rounded-lg overflow-hidden group cursor-pointer bg-gradient-to-br ${category.color}`}
+                to={`/category/${category.slug}`}
+                className={`relative h-32 rounded-lg overflow-hidden group cursor-pointer bg-gradient-to-br ${category.color} hover-scale`}
               >
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
                 <div className="relative h-full flex items-center justify-center">
@@ -181,7 +183,7 @@ const Index = () => {
                     {category.name}
                   </h3>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
