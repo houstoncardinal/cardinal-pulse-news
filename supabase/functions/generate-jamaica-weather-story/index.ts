@@ -6,6 +6,153 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Diverse Jamaica locations for variety
+const JAMAICA_LOCATIONS = [
+  { name: 'Kingston', region: 'the capital', features: 'bustling urban center, historic landmarks' },
+  { name: 'Montego Bay', region: 'the northwest coast', features: 'tourism hub, beaches, resorts' },
+  { name: 'Ocho Rios', region: 'the north coast', features: 'waterfalls, cruise port, attractions' },
+  { name: 'Negril', region: 'the western tip', features: 'Seven Mile Beach, cliffs, sunsets' },
+  { name: 'Port Antonio', region: 'the northeast', features: 'Blue Lagoon, rainforest, eco-tourism' },
+  { name: 'Mandeville', region: 'the central highlands', features: 'cooler climate, agriculture, mountains' },
+];
+
+// Dynamic story angles based on weather conditions
+const getStoryAngle = (weatherData: any, alertsData: any) => {
+  const temp = weatherData.main.temp;
+  const conditions = weatherData.weather[0].main.toLowerCase();
+  const hasAlerts = alertsData?.alerts && alertsData.alerts.length > 0;
+  const humidity = weatherData.main.humidity;
+  const windSpeed = weatherData.wind.speed;
+
+  if (hasAlerts) {
+    return {
+      tone: 'urgent',
+      focus: 'safety',
+      priority: 'critical'
+    };
+  }
+
+  if (conditions.includes('rain') || conditions.includes('storm')) {
+    return {
+      tone: 'informative',
+      focus: 'community-impact',
+      priority: 'high'
+    };
+  }
+
+  if (temp > 32) {
+    return {
+      tone: 'advisory',
+      focus: 'health-wellness',
+      priority: 'medium'
+    };
+  }
+
+  if (windSpeed > 10) {
+    return {
+      tone: 'cautionary',
+      focus: 'outdoor-activities',
+      priority: 'medium'
+    };
+  }
+
+  if (humidity > 80) {
+    return {
+      tone: 'lifestyle',
+      focus: 'daily-living',
+      priority: 'low'
+    };
+  }
+
+  if (conditions.includes('clear') && temp > 25 && temp < 30) {
+    return {
+      tone: 'positive',
+      focus: 'lifestyle-culture',
+      priority: 'low'
+    };
+  }
+
+  return {
+    tone: 'neutral',
+    focus: 'general-update',
+    priority: 'low'
+  };
+};
+
+// Generate diverse prompts
+const generateArticlePrompt = (weatherData: any, alertsData: any, location: any, angle: any, recentTitles: string[]) => {
+  const weatherContext = `
+CURRENT WEATHER IN JAMAICA (${location.name}, ${location.region}):
+- Temperature: ${weatherData.main.temp}°C (Feels like: ${weatherData.main.feels_like}°C)
+- Conditions: ${weatherData.weather[0].main} - ${weatherData.weather[0].description}
+- Wind Speed: ${weatherData.wind.speed} m/s
+- Humidity: ${weatherData.main.humidity}%
+- Pressure: ${weatherData.main.pressure} hPa
+- Visibility: ${weatherData.visibility / 1000} km
+${alertsData?.alerts ? `\n⚠️ ACTIVE ALERTS: ${JSON.stringify(alertsData.alerts)}` : ''}
+- Cloud Coverage: ${weatherData.clouds?.all || 0}%
+- Local Features: ${location.features}
+
+Recent Article Titles (MUST BE COMPLETELY DIFFERENT):
+${recentTitles.join('\n')}
+`;
+
+  const toneInstructions = {
+    urgent: 'Write with URGENCY and AUTHORITY. Focus on immediate safety concerns and actionable advice. Use strong, clear language.',
+    informative: 'Write with CLARITY and DEPTH. Explain the weather patterns, community impacts, and what residents need to know. Be thorough but accessible.',
+    advisory: 'Write with CARE and EXPERTISE. Provide health and wellness guidance. Include expert tips and recommendations.',
+    cautionary: 'Write with BALANCE and PRACTICALITY. Discuss outdoor activities, events, and how weather affects daily plans.',
+    lifestyle: 'Write with WARMTH and RELATABILITY. Connect weather to daily Jamaican life, culture, and community activities.',
+    positive: 'Write with ENERGY and OPTIMISM. Celebrate beautiful weather while providing useful information.',
+    neutral: 'Write with PROFESSIONALISM and ACCURACY. Provide a balanced weather update with relevant context.'
+  };
+
+  const focusAreas = {
+    safety: 'safety protocols, emergency preparedness, protection measures, official warnings',
+    'community-impact': 'how this affects neighborhoods, local businesses, schools, transportation, agriculture',
+    'health-wellness': 'heat management, hydration, vulnerable populations, medical advice from health officials',
+    'outdoor-activities': 'events, sports, tourism, beach conditions, hiking, water activities',
+    'daily-living': 'household tips, clothing advice, energy use, sleep quality, mood effects',
+    'lifestyle-culture': 'festivals, music events, food culture, social gatherings, outdoor dining',
+    'general-update': 'comprehensive weather overview, forecast trends, seasonal patterns'
+  };
+
+  return `You are Hunain Qureshi, an award-winning journalist at Cardinal News covering Jamaica. Write a COMPLETELY UNIQUE, FRESH news article about current weather in ${location.name}, ${location.region}.
+
+${weatherContext}
+
+TONE: ${toneInstructions[angle.tone as keyof typeof toneInstructions]}
+FOCUS: ${focusAreas[angle.focus as keyof typeof focusAreas]}
+
+CRITICAL UNIQUENESS REQUIREMENTS:
+- NEVER repeat similar headlines to recent articles
+- Use COMPLETELY DIFFERENT story angles and perspectives
+- Vary your opening hooks and narrative structures
+- Change up the types of quotes and experts you cite
+- Use diverse vocabulary and sentence structures
+- Tell the story from different community perspectives each time
+
+FORMATTING REQUIREMENTS:
+- Start with a unique opening paragraph in <p> tags
+- Use <h2> tags for major sections (vary section names each time)
+- Include 2-3 <blockquote> tags with diverse expert quotes (meteorologists, community leaders, health officials, business owners)
+- Wrap all paragraphs in <p> tags
+- Use <strong> tags strategically for key information
+- Include <ul> or <ol> lists where appropriate
+- Add specific weather data throughout
+
+CONTENT REQUIREMENTS (1200-1800 words):
+- Open with a UNIQUE angle that hasn't been used in recent articles
+- Incorporate local culture and community voices
+- Provide specific, actionable information
+- Include human interest elements
+- Connect weather to local life, economy, or events
+- Vary story structure: sometimes lead with data, sometimes with human impact, sometimes with expert analysis
+- End with forward-looking information or community insights
+
+Make this story COMPLETELY DISTINCT from previous coverage while maintaining journalistic excellence.`;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,17 +167,29 @@ serve(async (req) => {
     const OPENWEATHER_API_KEY = Deno.env.get('OPENWEATHER_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!OPENWEATHER_API_KEY) {
-      throw new Error('OPENWEATHER_API_KEY not configured');
-    }
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!OPENWEATHER_API_KEY || !LOVABLE_API_KEY) {
+      throw new Error('API keys not configured');
     }
 
-    // Fetch current weather for Jamaica (Kingston)
-    console.log('Fetching current weather data for Jamaica...');
+    // Select random location for variety
+    const location = JAMAICA_LOCATIONS[Math.floor(Math.random() * JAMAICA_LOCATIONS.length)];
+    console.log(`Generating story for ${location.name}, Jamaica...`);
+
+    // Fetch recent article titles to avoid repetition
+    const { data: recentArticles } = await supabaseClient
+      .from('articles')
+      .select('title')
+      .eq('category', 'world')
+      .ilike('title', '%jamaica%')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const recentTitles = recentArticles?.map(a => a.title) || [];
+
+    // Fetch weather data
+    console.log('Fetching weather data...');
     const weatherResponse = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=Kingston,JM&appid=${OPENWEATHER_API_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${location.name},JM&appid=${OPENWEATHER_API_KEY}&units=metric`
     );
 
     if (!weatherResponse.ok) {
@@ -38,10 +197,10 @@ serve(async (req) => {
     }
 
     const weatherData = await weatherResponse.json();
-
-    // Fetch alerts and severe weather
     const lat = weatherData.coord.lat;
     const lon = weatherData.coord.lon;
+
+    // Fetch alerts
     const alertsResponse = await fetch(
       `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly&appid=${OPENWEATHER_API_KEY}&units=metric`
     );
@@ -51,55 +210,21 @@ serve(async (req) => {
       alertsData = await alertsResponse.json();
     }
 
-    console.log('Weather data received:', {
+    console.log('Weather:', {
+      location: location.name,
       temp: weatherData.main.temp,
       conditions: weatherData.weather[0].main,
       alerts: alertsData?.alerts?.length || 0
     });
 
-    // Create detailed weather context for the AI
-    const weatherContext = `
-CURRENT WEATHER IN JAMAICA (Kingston):
-- Temperature: ${weatherData.main.temp}°C (Feels like: ${weatherData.main.feels_like}°C)
-- Conditions: ${weatherData.weather[0].main} - ${weatherData.weather[0].description}
-- Wind Speed: ${weatherData.wind.speed} m/s
-- Humidity: ${weatherData.main.humidity}%
-- Pressure: ${weatherData.main.pressure} hPa
-- Visibility: ${weatherData.visibility / 1000} km
-${alertsData?.alerts ? `\n⚠️ ACTIVE ALERTS: ${JSON.stringify(alertsData.alerts)}` : ''}
+    // Determine story angle based on conditions
+    const angle = getStoryAngle(weatherData, alertsData);
+    console.log('Story angle:', angle);
 
-Additional Data:
-- Sunrise: ${new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString()}
-- Sunset: ${new Date(weatherData.sys.sunset * 1000).toLocaleTimeString()}
-- Sea Level Pressure: ${weatherData.main.sea_level || weatherData.main.pressure} hPa
-${weatherData.rain ? `- Rainfall: ${JSON.stringify(weatherData.rain)}` : ''}
-${weatherData.clouds ? `- Cloud Coverage: ${weatherData.clouds.all}%` : ''}
-`;
+    // Generate article with dynamic prompt
+    const articlePrompt = generateArticlePrompt(weatherData, alertsData, location, angle, recentTitles);
 
-    // Generate powerful article using AI with structured output
-    const articlePrompt = `You are Hunain Qureshi, a powerful investigative journalist covering critical weather events. Write an URGENT, COMPELLING news article about the current weather situation in Jamaica.
-
-${weatherContext}
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Start with a dramatic opening paragraph in <p> tags
-- Use <h2> tags for major sections (e.g., "Breaking Conditions", "Impact on Communities", "Expert Warnings", "Safety Advisory")
-- Include 2-3 <blockquote> tags with powerful quotes from meteorologists or officials
-- Wrap all paragraphs in <p> tags
-- Use <strong> tags to emphasize critical warnings and key statistics
-- Include <ul> or <ol> lists for safety tips or affected areas
-- Add specific weather data throughout (temperatures, wind speeds, rainfall)
-
-Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
-- Opens with a powerful lede that captures the severity/impact
-- Uses vivid, sensory language to bring readers into the story
-- Discusses the human impact and safety concerns
-- Includes expert meteorological context
-- Provides actionable safety information
-- Uses dramatic but factual language
-- Formatted in clean HTML with <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol> tags`;
-
-    console.log('Generating article with AI using structured output...');
+    console.log('Generating article with AI...');
     const contentResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -109,7 +234,10 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a professional investigative journalist. Use the provided tool to return structured article data.' },
+          { 
+            role: 'system', 
+            content: 'You are an award-winning journalist who writes unique, engaging, and varied news articles. Each piece must be completely distinct with fresh perspectives and angles. Use the provided tool to return structured article data.' 
+          },
           { role: 'user', content: articlePrompt }
         ],
         tools: [
@@ -117,18 +245,41 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
             type: 'function',
             function: {
               name: 'create_article',
-              description: 'Create a news article with structured data',
+              description: 'Create a unique news article with structured data',
               parameters: {
                 type: 'object',
                 properties: {
-                  title: { type: 'string', description: 'Urgent, powerful headline under 60 characters' },
-                  excerpt: { type: 'string', description: 'Gripping 2-3 sentence summary' },
-                  content: { type: 'string', description: 'Full article in HTML format with <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol> tags. Include powerful quotes and dramatic formatting.' },
+                  title: { 
+                    type: 'string', 
+                    description: 'UNIQUE headline (completely different from recent articles) under 80 characters that matches the story tone' 
+                  },
+                  excerpt: { 
+                    type: 'string', 
+                    description: 'Compelling 2-3 sentence summary with a unique angle (150-200 chars)' 
+                  },
+                  content: { 
+                    type: 'string', 
+                    description: 'Full article (1200-1800 words) in HTML with varied structure, diverse perspectives, and unique storytelling. Use <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol> tags.' 
+                  },
                   category: { type: 'string', enum: ['world'] },
-                  tags: { type: 'array', items: { type: 'string' } },
-                  meta_description: { type: 'string', description: 'SEO description 150-160 chars' },
-                  meta_keywords: { type: 'array', items: { type: 'string' } },
-                  imagePrompt: { type: 'string', description: 'Detailed prompt for dramatic weather image' }
+                  tags: { 
+                    type: 'array', 
+                    items: { type: 'string' },
+                    description: 'Relevant tags including location, weather type, and focus area'
+                  },
+                  meta_description: { 
+                    type: 'string', 
+                    description: 'SEO meta description 150-160 chars with unique hook' 
+                  },
+                  meta_keywords: { 
+                    type: 'array', 
+                    items: { type: 'string' },
+                    description: 'Specific SEO keywords'
+                  },
+                  imagePrompt: { 
+                    type: 'string', 
+                    description: 'Detailed, specific prompt for image showing unique aspect of this weather story in Jamaica' 
+                  }
                 },
                 required: ['title', 'excerpt', 'content', 'category', 'tags', 'meta_description', 'meta_keywords', 'imagePrompt'],
                 additionalProperties: false
@@ -136,7 +287,8 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
             }
           }
         ],
-        tool_choice: { type: 'function', function: { name: 'create_article' } }
+        tool_choice: { type: 'function', function: { name: 'create_article' } },
+        temperature: 0.9 // Higher temperature for more creativity and variety
       }),
     });
 
@@ -147,20 +299,17 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
     }
 
     const contentData = await contentResponse.json();
-    console.log('AI response received');
-
-    // Extract structured output from tool call
     const toolCall = contentData.choices[0].message.tool_calls?.[0];
+    
     if (!toolCall || toolCall.function.name !== 'create_article') {
-      throw new Error('AI did not return article data via tool call');
+      throw new Error('AI did not return article data');
     }
 
     const articleData = JSON.parse(toolCall.function.arguments);
 
-    // Generate dramatic hero image
-    console.log('Generating dramatic weather image...');
-    const imagePrompt = articleData.imagePrompt || 
-      `Dramatic photorealistic image of severe weather in Jamaica: dark storm clouds over Kingston, palm trees bending in strong winds, rough Caribbean seas, tropical storm conditions, dramatic lighting, photojournalistic style, 16:9 composition, ultra high resolution, powerful and urgent mood.`;
+    // Generate contextual image
+    console.log('Generating contextual image...');
+    const imagePrompt = `${articleData.imagePrompt}. Photorealistic, professional photojournalism, ${location.name} Jamaica, 16:9 composition, ultra high resolution, authentic Caribbean atmosphere, ${weatherData.weather[0].description} conditions.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -183,7 +332,7 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
       if (generatedImageUrl) {
         const base64Data = generatedImageUrl.split(',')[1];
         const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-        const fileName = `jamaica-weather-${Date.now()}.png`;
+        const fileName = `jamaica-${location.name.toLowerCase()}-${Date.now()}.png`;
         
         const { error: uploadError } = await supabaseClient.storage
           .from('article-images')
@@ -194,7 +343,7 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
             .from('article-images')
             .getPublicUrl(fileName);
           imageUrl = publicUrl;
-          console.log('✓ Dramatic weather image uploaded:', publicUrl);
+          console.log('✓ Image uploaded:', publicUrl);
         }
       }
     }
@@ -206,7 +355,7 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
       .replace(/\s+/g, '-')
       .substring(0, 60) + '-' + Math.random().toString(36).substring(2, 8);
 
-    // Calculate read time
+    // Calculate metrics
     const wordCount = articleData.content.split(/\s+/).length;
     const readTime = Math.max(1, Math.round(wordCount / 200)) + ' min read';
 
@@ -244,7 +393,7 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
       throw insertError;
     }
 
-    console.log(`✓ Published urgent Jamaica weather story: "${articleData.title}"`);
+    console.log(`✓ Published Jamaica story [${angle.tone}/${angle.focus}]: "${articleData.title}"`);
 
     return new Response(
       JSON.stringify({
@@ -253,19 +402,16 @@ Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
           id: article.id,
           title: articleData.title,
           slug,
+          location: location.name,
+          angle: angle,
           imageUrl
-        },
-        weatherData: {
-          temp: weatherData.main.temp,
-          conditions: weatherData.weather[0].main,
-          alerts: alertsData?.alerts?.length || 0
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error generating Jamaica weather story:', error);
+    console.error('Error generating Jamaica story:', error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : String(error)
