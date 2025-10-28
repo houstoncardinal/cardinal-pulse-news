@@ -6,9 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Function to fetch real Google Trends data using Google Trends RSS
+// Function to fetch real Google Trends data using SerpAPI
 async function fetchGoogleTrends(region: string = 'US') {
   try {
+    const serpApiKey = Deno.env.get('SERPAPI_KEY');
+    if (!serpApiKey) {
+      console.error('SERPAPI_KEY not configured');
+      return getFallbackTrends(region);
+    }
+
     const geoMap: { [key: string]: string } = {
       'global': 'US',
       'us': 'US',
@@ -23,133 +29,80 @@ async function fetchGoogleTrends(region: string = 'US') {
     
     const geoCode = geoMap[region.toLowerCase()] || 'US';
     
-    // Try multiple RSS feeds for better coverage
-    const feeds = [
-      `https://trends.google.com/trends/trendingsearches/daily/rss?geo=${geoCode}`,
-      `https://trends.google.com/trends/trendingsearches/realtime/rss?geo=${geoCode}`
-    ];
+    console.log(`Fetching trends from SerpAPI for region: ${geoCode}`);
     
-    let allTrends: any[] = [];
+    // Use SerpAPI Google Trends Trending Now endpoint
+    const apiUrl = `https://serpapi.com/search.json?engine=google_trends_trending_now&geo=${geoCode}&hl=en&api_key=${serpApiKey}`;
     
-    for (const rssUrl of feeds) {
-      try {
-        console.log(`Fetching trends from: ${rssUrl}`);
-        
-        const response = await fetch(rssUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
-        });
-        
-        if (!response.ok) {
-          console.log(`RSS feed returned status ${response.status}`);
-          continue;
-        }
-        
-        const xmlText = await response.text();
-        console.log(`Received RSS response, length: ${xmlText.length} bytes`);
-        
-        // Log first 500 chars to see structure
-        console.log(`RSS preview: ${xmlText.substring(0, 500)}`);
-        
-        // Parse XML manually (simplified parsing)
-        const items = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
-        console.log(`Found ${items.length} items in RSS feed`);
-        
-        const trends = items.slice(0, 30).map((item, index) => {
-          try {
-            const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || 
-                              item.match(/<title>(.*?)<\/title>/);
-            const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/) ||
-                                item.match(/<ht:approx_traffic>(.*?)<\/ht:approx_traffic>/);
-            const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ||
-                             item.match(/<description>(.*?)<\/description>/);
-            const linkMatch = item.match(/<link>(.*?)<\/link>/);
-            const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
-            
-            // Get the actual title, clean it
-            let title = titleMatch ? titleMatch[1].trim() : null;
-            
-            // Skip if no title found
-            if (!title) {
-              console.log(`Skipping item ${index} - no title found`);
-              return null;
-            }
-            
-            // Remove any extra markup or encoding
-            title = title.replace(/&amp;/g, '&')
-                         .replace(/&lt;/g, '<')
-                         .replace(/&gt;/g, '>')
-                         .replace(/&quot;/g, '"')
-                         .replace(/&#39;/g, "'");
-            
-            const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
-            const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').substring(0, 200) : title;
-            const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
-            const pubDate = pubDateMatch ? new Date(pubDateMatch[1]) : new Date();
-            
-            // Parse traffic number - handle formats like "100K+", "2M+", etc.
-            let trafficNum = 10000;
-            if (traffic.includes('M+') || traffic.includes('m+')) {
-              trafficNum = parseFloat(traffic) * 1000000;
-            } else if (traffic.includes('K+') || traffic.includes('k+')) {
-              trafficNum = parseFloat(traffic) * 1000;
-            } else {
-              trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
-            }
-            
-            console.log(`✓ Parsed trend: "${title}" (${traffic} = ${trafficNum})`);
-            
-            // Categorize based on keywords in title and description
-            const text = (title + ' ' + description).toLowerCase();
-            let category = 'world';
-            if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
-            else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
-            else if (text.match(/sport|game|championship|league|team|player|football|basketball|nba|nfl|soccer|lakers|nfl|vs|cavaliers|pistons|chiefs|commanders|magic|76ers/)) category = 'sports';
-            else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
-            else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
-            else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
-            
-            // Extract keywords from title
-            const words = title.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2 && !['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'out', 'has'].includes(w));
-            const keywords = [...new Set(words)].slice(0, 5);
-            
-            return {
-              topic: title,
-              category,
-              trend_strength: Math.min(100, Math.max(50, Math.floor(trafficNum / 10000))),
-              region: geoCode,
-              search_volume: trafficNum,
-              keywords,
-              related_queries: [title],
-              source_url: link,
-              fetched_at: pubDate.toISOString(),
-              trend_data: {
-                fetched_from: 'google_trends_rss',
-                timestamp: new Date().toISOString(),
-                raw_traffic: traffic
-              }
-            };
-          } catch (parseError) {
-            console.error(`Error parsing item ${index}:`, parseError);
-            return null;
-          }
-        }).filter(t => t !== null); // Remove null entries
-        
-        allTrends = allTrends.concat(trends);
-      } catch (feedError) {
-        console.error(`Error fetching from ${rssUrl}:`, feedError);
-        continue;
-      }
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      console.error(`SerpAPI returned status ${response.status}`);
+      return getFallbackTrends(region);
     }
     
-    // Remove duplicates and sort by trend strength
-    const uniqueTrends = Array.from(
-      new Map(allTrends.map(t => [t.topic, t])).values()
-    ).sort((a, b) => b.trend_strength - a.trend_strength);
+    const data = await response.json();
+    console.log(`Received ${data.trending_searches?.length || 0} trends from SerpAPI`);
     
-    console.log(`Parsed ${uniqueTrends.length} unique trends`);
-    return uniqueTrends.length > 0 ? uniqueTrends : getFallbackTrends(region);
+    if (!data.trending_searches || data.trending_searches.length === 0) {
+      console.log('No trending searches found in response');
+      return getFallbackTrends(region);
+    }
+    
+    const trends = data.trending_searches.slice(0, 30).map((item: any, index: number) => {
+      try {
+        const query = item.query;
+        const searchVolume = item.search_volume || 10000;
+        const categories = item.categories || [];
+        
+        // Categorize based on category IDs from SerpAPI
+        let category = 'world';
+        if (categories.length > 0) {
+          const catId = categories[0].id;
+          const catName = categories[0].name?.toLowerCase() || '';
+          
+          if (catId === 23 || catName.includes('tech')) category = 'technology';
+          else if (catId === 6 || catName.includes('business') || catName.includes('finance')) category = 'business';
+          else if (catId === 17 || catName.includes('sport')) category = 'sports';
+          else if (catId === 25 || catName.includes('science')) category = 'science';
+          else if (catId === 3 || catName.includes('entertainment')) category = 'entertainment';
+          else if (catId === 14 || catId === 10 || catName.includes('polit') || catName.includes('law') || catName.includes('government')) category = 'politics';
+        }
+        
+        // Extract keywords from query
+        const words = query.toLowerCase().split(/\s+/).filter((w: string) => 
+          w.length > 2 && !['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'out', 'has'].includes(w)
+        );
+        const keywords = [...new Set(words)].slice(0, 5);
+        
+        const trendStrength = Math.min(100, Math.max(50, Math.floor(searchVolume / 10000)));
+        
+        console.log(`✓ Parsed trend: "${query}" (volume: ${searchVolume}, strength: ${trendStrength}, category: ${category})`);
+        
+        return {
+          topic: query,
+          category,
+          trend_strength: trendStrength,
+          region: geoCode,
+          search_volume: searchVolume,
+          keywords,
+          related_queries: item.trend_breakdown || [query],
+          source_url: 'https://trends.google.com',
+          fetched_at: new Date().toISOString(),
+          trend_data: {
+            fetched_from: 'serpapi',
+            timestamp: new Date().toISOString(),
+            categories: categories
+          }
+        };
+      } catch (parseError) {
+        console.error(`Error parsing trend ${index}:`, parseError);
+        return null;
+      }
+    }).filter((t: any) => t !== null);
+    
+    console.log(`Successfully parsed ${trends.length} trends`);
+    return trends.length > 0 ? trends : getFallbackTrends(region);
     
   } catch (error) {
     console.error('Error fetching Google Trends:', error);
@@ -240,14 +193,15 @@ serve(async (req) => {
 
     console.log(`Fetching trends for region: ${region}, limit: ${limit}`)
 
-    // Clean up old trends (older than 48 hours) to keep data fresh
-    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
-    console.log(`Cleaning up trends older than ${twoDaysAgo}`)
+    // Clean up old trends (older than 24 hours) and placeholder data
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    console.log(`Cleaning up trends older than ${oneDayAgo}`)
     
+    // Delete old trends and any placeholder trends
     await supabaseClient
       .from('trending_topics')
       .delete()
-      .lt('fetched_at', twoDaysAgo)
+      .or(`fetched_at.lt.${oneDayAgo},topic.like.*Global Technology Summit*,topic.like.*International Space Station*,topic.like.*Global Economic Summit*,topic.like.*Climate Action Initiative*,topic.like.*Major Sports Championship*`)
 
     // Fetch real Google Trends data
     const trendingTopics = await fetchGoogleTrends(region)
@@ -260,12 +214,12 @@ serve(async (req) => {
     const insertedTopics = []
     
     for (const topic of limitedTopics) {
-      // Check if this exact topic exists in the last 6 hours (shorter window for freshness)
+      // Check if this exact topic exists in the last 3 hours (very short window for freshness)
       const { data: existing } = await supabaseClient
         .from('trending_topics')
         .select('id')
         .eq('topic', topic.topic)
-        .gte('fetched_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
+        .gte('fetched_at', new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())
         .maybeSingle()
 
       if (!existing) {
