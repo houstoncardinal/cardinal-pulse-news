@@ -31,6 +31,9 @@ const Index = () => {
     : [];
 
   const featured = articlesToDisplay[0];
+  // Exclude hero article from featured stories to prevent duplication
+  const featuredArticles = articlesToDisplay.slice(1, 4);
+  const latestArticles = articlesToDisplay.slice(4, 10);
   const hasRealArticles = articlesToDisplay.length > 0;
 
   if (isLoading) {
@@ -112,12 +115,13 @@ const Index = () => {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesToDisplay.slice(0, 1).map((article, i) => (
+                {/* Skip first article as it's shown in Hero */}
+                {articlesToDisplay.slice(1, 2).map((article, i) => (
                   <div key={i} className="animate-fade-in md:col-span-2 md:row-span-2">
                     <NewsCard {...article} featured />
                   </div>
                 ))}
-                {articlesToDisplay.slice(1, 3).map((article, i) => (
+                {articlesToDisplay.slice(2, 4).map((article, i) => (
                   <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
                     <NewsCard {...article} />
                   </div>
@@ -125,8 +129,8 @@ const Index = () => {
               </div>
             </section>
 
-            {/* Latest News - Show if more than 3 articles */}
-            {articlesToDisplay.length > 3 && (
+            {/* Latest News - Show if more than 4 articles */}
+            {articlesToDisplay.length > 4 && (
               <section className="mb-16 animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <div className="flex items-center justify-between mb-8">
                   <div>
@@ -135,7 +139,7 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {articlesToDisplay.slice(3).map((article, i) => (
+                  {articlesToDisplay.slice(4).map((article, i) => (
                     <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 4) * 0.1}s` }}>
                       <NewsCard {...article} />
                     </div>

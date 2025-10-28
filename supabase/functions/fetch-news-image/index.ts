@@ -25,8 +25,33 @@ serve(async (req) => {
       throw new Error('SERPER_API_KEY not configured');
     }
 
-    // Search for news images using Serper (Google Search API)
-    const searchQuery = `${topic} news ${category || ''}`;
+    // Create a more specific search query based on category and topic
+    let searchQuery = topic;
+    
+    // Add category-specific context to improve relevance
+    if (category) {
+      const categoryLower = category.toLowerCase();
+      if (categoryLower.includes('weather')) {
+        searchQuery = `${topic} weather storm rain flooding`;
+      } else if (categoryLower.includes('business')) {
+        searchQuery = `${topic} business economy finance`;
+      } else if (categoryLower.includes('tech')) {
+        searchQuery = `${topic} technology innovation`;
+      } else if (categoryLower.includes('sports')) {
+        searchQuery = `${topic} sports game match`;
+      } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
+        searchQuery = `${topic} entertainment celebrity event`;
+      } else if (categoryLower.includes('science')) {
+        searchQuery = `${topic} science research discovery`;
+      } else if (categoryLower.includes('politics')) {
+        searchQuery = `${topic} politics government`;
+      } else {
+        searchQuery = `${topic} news ${category}`;
+      }
+    }
+    
+    console.log(`📸 Image search query: ${searchQuery}`);
+
     const imageSearchResponse = await fetch('https://google.serper.dev/images', {
       method: 'POST',
       headers: {
@@ -35,10 +60,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 10,
+        num: 15, // Increased to get more options
         gl: 'us',
         hl: 'en',
         safe: 'active',
+        type: 'news', // Prioritize news images
       }),
     });
 
@@ -75,18 +101,44 @@ serve(async (req) => {
       'reuters', 'apnews', 'bbc', 'cnn', 'nytimes', 'washingtonpost', 
       'theguardian', 'aljazeera', 'bloomberg', 'wsj', 'forbes', 'npr',
       'nbcnews', 'abcnews', 'cbsnews', 'usatoday', 'latimes', 'time',
-      'businessinsider', 'huffpost', 'politico', 'thehill', 'axios'
+      'businessinsider', 'huffpost', 'politico', 'thehill', 'axios',
+      'getty', 'apimages', 'shutterstock'
+    ];
+
+    // Filter out generic/irrelevant images
+    const excludeKeywords = [
+      'logo', 'icon', 'chart', 'graph', 'stock-photo',
+      'template', 'banner', 'advertisement', 'vector'
     ];
 
     // Try to find images from news sources first
-    let selectedImage = imageSearchData.images.find((img: any) => 
-      newsSourceKeywords.some(source => 
-        img.link?.toLowerCase().includes(source) || 
-        img.imageUrl?.toLowerCase().includes(source)
-      )
-    );
+    let selectedImage = imageSearchData.images.find((img: any) => {
+      const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
+      const imgTitle = (img.title || '').toLowerCase();
+      
+      // Check if from news source
+      const isFromNewsSource = newsSourceKeywords.some(source => imgUrl.includes(source));
+      
+      // Check if not a generic image
+      const isNotGeneric = !excludeKeywords.some(keyword => 
+        imgUrl.includes(keyword) || imgTitle.includes(keyword)
+      );
+      
+      return isFromNewsSource && isNotGeneric;
+    });
 
-    // If no news source image, use the first high-quality result
+    // If no news source image, find first non-generic high-quality result
+    if (!selectedImage) {
+      selectedImage = imageSearchData.images.find((img: any) => {
+        const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
+        const imgTitle = (img.title || '').toLowerCase();
+        return !excludeKeywords.some(keyword => 
+          imgUrl.includes(keyword) || imgTitle.includes(keyword)
+        );
+      });
+    }
+
+    // Final fallback to first image
     if (!selectedImage) {
       selectedImage = imageSearchData.images[0];
     }
