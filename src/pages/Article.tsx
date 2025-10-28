@@ -107,11 +107,23 @@ const Article = () => {
     );
   }
 
-  const shareUrl = `https://www.cardinal-news.com/article/${article.slug}`;
+  const baseUrl = "https://www.cardinal-news.com";
+  const shareUrl = `${baseUrl}/article/${article.slug}`;
   const shareText = article.title;
   const canonicalUrl = shareUrl;
   const publishDate = new Date(article.published_at || article.created_at);
   const modifiedDate = new Date(article.date_modified || article.updated_at);
+  
+  // Ensure absolute URLs for images
+  const getAbsoluteImageUrl = (imageUrl: string | null | undefined) => {
+    if (!imageUrl) return `${baseUrl}/logo.png`;
+    if (imageUrl.startsWith('http')) return imageUrl;
+    return `${baseUrl}${imageUrl}`;
+  };
+  
+  const shareImage = getAbsoluteImageUrl(article.og_image || article.image_url || article.featured_image);
+  const shareTitle = article.og_title || article.meta_title || article.title;
+  const shareDescription = article.og_description || article.meta_description || article.excerpt || article.title;
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,9 +148,11 @@ const Article = () => {
             <meta property="og:type" content="article" />
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:site_name" content="Cardinal News" />
-            <meta property="og:title" content={article.og_title || article.title} />
-            <meta property="og:description" content={article.og_description || article.excerpt || article.meta_description} />
-            <meta property="og:image" content={article.og_image || article.image_url || article.featured_image} />
+            <meta property="og:title" content={shareTitle} />
+            <meta property="og:description" content={shareDescription} />
+            <meta property="og:image" content={shareImage} />
+            <meta property="og:image:secure_url" content={shareImage} />
+            <meta property="og:image:type" content="image/jpeg" />
             <meta property="og:image:width" content="1200" />
             <meta property="og:image:height" content="675" />
             <meta property="og:image:alt" content={article.title} />
@@ -146,7 +160,6 @@ const Article = () => {
             <meta property="article:modified_time" content={article.date_modified || article.updated_at} />
             <meta property="article:author" content={article.author || "Cardinal AI"} />
             <meta property="article:section" content={article.category} />
-            <meta property="fb:app_id" content="your-facebook-app-id" />
             {article.tags?.map((tag: string) => (
               <meta key={tag} property="article:tag" content={tag} />
             ))}
@@ -156,9 +169,21 @@ const Article = () => {
             <meta name="twitter:site" content="@cardinalnews" />
             <meta name="twitter:creator" content="@cardinalnews" />
             <meta name="twitter:url" content={canonicalUrl} />
-            <meta name="twitter:title" content={article.title} />
-            <meta name="twitter:description" content={article.excerpt || article.meta_description} />
-            <meta name="twitter:image" content={article.image_url || article.featured_image} />
+            <meta name="twitter:title" content={shareTitle} />
+            <meta name="twitter:description" content={shareDescription} />
+            <meta name="twitter:image" content={shareImage} />
+            <meta name="twitter:image:alt" content={article.title} />
+            
+            {/* Additional Social Media Tags */}
+            <meta property="og:determiner" content="a" />
+            <meta property="og:rich_attachment" content="true" />
+            <meta name="pinterest:description" content={shareDescription} />
+            <meta name="pinterest:media" content={shareImage} />
+            <meta name="linkedin:author" content={article.author || "Cardinal AI"} />
+            
+            {/* WhatsApp & Telegram */}
+            <meta property="og:video" content="" />
+            <meta property="og:audio" content="" />
             
             {/* Additional SEO */}
             <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
