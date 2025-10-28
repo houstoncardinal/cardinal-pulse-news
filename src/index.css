@@ -252,6 +252,201 @@ All colors MUST be HSL.
     @apply bg-muted px-2 py-1 rounded text-sm !important;
   }
 
+  /* Forbes-Style Article Content */
+  .article-content {
+    @apply text-lg leading-relaxed;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  .article-content p {
+    @apply mb-8 text-foreground/90;
+    line-height: 1.8;
+    letter-spacing: -0.003em;
+  }
+
+  /* Luxurious Drop Cap */
+  .article-content .drop-cap::first-letter {
+    @apply font-display text-primary float-left mr-3 mt-1;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    font-weight: 700;
+    text-shadow: 0 2px 10px hsl(var(--cardinal-red) / 0.3);
+  }
+
+  /* Section Headings with Decorative Elements */
+  .article-content h1 {
+    @apply font-display text-4xl md:text-5xl font-bold mt-16 mb-8;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--primary)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .article-content h2 {
+    @apply font-display text-3xl md:text-4xl font-bold mt-14 mb-6 relative;
+    letter-spacing: -0.01em;
+    padding-top: 1rem;
+  }
+
+  .article-content h2 .heading-decorator {
+    @apply absolute top-0 left-0 w-16 h-1 bg-gradient-to-r from-primary to-primary/50;
+  }
+
+  .article-content h3 {
+    @apply font-display text-2xl md:text-3xl font-semibold mt-12 mb-5;
+    letter-spacing: -0.01em;
+  }
+
+  .article-content h4 {
+    @apply font-display text-xl md:text-2xl font-semibold mt-10 mb-4;
+  }
+
+  /* Pull Quotes - Forbes Style */
+  .article-content .pull-quote,
+  .article-content blockquote {
+    @apply relative my-12 py-8 px-8 md:px-12;
+    border: none;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+    border-left: 4px solid hsl(var(--primary));
+    box-shadow: var(--luxury-shadow);
+    font-style: italic;
+  }
+
+  .article-content .pull-quote::before,
+  .article-content blockquote::before {
+    content: '"';
+    @apply absolute text-9xl font-display text-primary/20 -top-4 -left-2;
+    line-height: 1;
+  }
+
+  .article-content .pull-quote p,
+  .article-content blockquote p {
+    @apply text-2xl md:text-3xl font-medium leading-relaxed mb-4;
+    font-style: italic;
+    color: hsl(var(--foreground));
+  }
+
+  .article-content .pull-quote p:last-child,
+  .article-content blockquote p:last-child {
+    @apply mb-0;
+  }
+
+  /* Lists with Enhanced Styling */
+  .article-content ul,
+  .article-content ol {
+    @apply my-8 space-y-4;
+  }
+
+  .article-content ul li {
+    @apply relative pl-8;
+  }
+
+  .article-content ul li::before {
+    content: '';
+    @apply absolute left-0 top-3 w-2 h-2 rounded-full bg-primary;
+  }
+
+  .article-content ol {
+    counter-reset: article-counter;
+  }
+
+  .article-content ol li {
+    @apply relative pl-8;
+    counter-increment: article-counter;
+  }
+
+  .article-content ol li::before {
+    content: counter(article-counter) '.';
+    @apply absolute left-0 font-display font-bold text-primary;
+  }
+
+  /* Images with Captions */
+  .article-content img {
+    @apply w-full rounded-lg my-12 shadow-2xl;
+    transition: var(--transition-smooth);
+  }
+
+  .article-content img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 60px -10px hsl(0 0% 0% / 0.7);
+  }
+
+  .article-content figure {
+    @apply my-12;
+  }
+
+  .article-content figcaption {
+    @apply text-sm text-muted-foreground mt-3 text-center italic;
+  }
+
+  /* Links */
+  .article-content a {
+    @apply text-primary font-medium relative;
+    transition: var(--transition-smooth);
+  }
+
+  .article-content a:hover {
+    @apply text-primary/80;
+  }
+
+  .article-content a::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-px bg-primary origin-left scale-x-0;
+    transition: transform 0.3s ease;
+  }
+
+  .article-content a:hover::after {
+    @apply scale-x-100;
+  }
+
+  /* Emphasis */
+  .article-content strong,
+  .article-content b {
+    @apply font-semibold text-foreground;
+  }
+
+  .article-content em,
+  .article-content i {
+    @apply italic;
+  }
+
+  /* Horizontal Rules as Section Dividers */
+  .article-content hr {
+    @apply my-16 border-none h-px bg-gradient-to-r from-transparent via-border to-transparent;
+  }
+
+  /* Code Blocks */
+  .article-content code {
+    @apply px-2 py-1 rounded text-sm bg-muted font-mono;
+  }
+
+  .article-content pre {
+    @apply p-6 rounded-lg bg-muted/50 overflow-x-auto my-8;
+  }
+
+  .article-content pre code {
+    @apply p-0 bg-transparent;
+  }
+
+  /* Tables */
+  .article-content table {
+    @apply w-full my-8 border-collapse;
+  }
+
+  .article-content th {
+    @apply font-display font-semibold text-left p-4 border-b-2 border-primary bg-muted/30;
+  }
+
+  .article-content td {
+    @apply p-4 border-b border-border;
+  }
+
+  .article-content tr:hover {
+    @apply bg-muted/20;
+  }
+
   /* Advanced Animations */
   @keyframes shimmer {
     0% { background-position: -1000px 0; }
