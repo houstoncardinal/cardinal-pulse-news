@@ -23,7 +23,7 @@ serve(async (req) => {
     });
 
     const superAdminEmail = 'hunainm.qureshi@gmail.com';
-    const newPassword = 'Samura14@';
+    const newPassword = 'Samurai14@';
 
     console.log('Resetting admin password...');
 

@@ -23,7 +23,7 @@ serve(async (req) => {
     });
 
     const superAdminEmail = 'hunainm.qureshi@gmail.com';
-    const superAdminPassword = 'Samura14@';
+    const superAdminPassword = 'Samurai14@';
 
     console.log('Setting up super admin user...');
 

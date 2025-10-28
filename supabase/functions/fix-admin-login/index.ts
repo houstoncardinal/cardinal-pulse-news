@@ -23,7 +23,7 @@ serve(async (req) => {
     });
 
     const targetEmail = 'hunainm.qureshi@gmail.com';
-    const targetPassword = 'Samura14@';
+    const targetPassword = 'Samurai14@';
 
     console.log('Starting admin login fix...');
 
