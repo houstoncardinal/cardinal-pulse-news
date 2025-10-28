@@ -146,18 +146,41 @@ Return ONLY a JSON object with this exact structure:
           console.error('Image fetch failed:', imageError);
         }
 
-        // Check if this title is too similar to existing ones
-        const similarTitle = existingTitles.find(existing => 
-          existing.toLowerCase().includes(articleData.title.toLowerCase().substring(0, 25)) ||
-          articleData.title.toLowerCase().includes(existing.toLowerCase().substring(0, 25))
+        // Enhanced duplicate detection - check both title similarity and content overlap
+        const titleWords = new Set(
+          articleData.title
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((word: string) => word.length > 3)
         );
+
+        let isDuplicate = false;
+        for (const existingTitle of existingTitles) {
+          const existingWords = new Set(
+            existingTitle
+              .toLowerCase()
+              .split(/\s+/)
+              .filter((word: string) => word.length > 3)
+          );
+
+          const titleWordsArray = Array.from(titleWords) as string[];
+          const commonWords = titleWordsArray.filter((word: string) => existingWords.has(word));
+          const similarity = commonWords.length / Math.max(titleWords.size, existingWords.size);
+
+          // More strict: 70% similarity threshold
+          if (similarity > 0.7) {
+            console.log(`⚠️ Skipping similar article: "${articleData.title}"`);
+            console.log(`Similar to existing: "${existingTitle}" (${(similarity * 100).toFixed(1)}% match)`);
+            isDuplicate = true;
+            break;
+          }
+        }
         
-        if (similarTitle) {
-          console.log(`⚠️ Skipping duplicate/similar article: "${articleData.title}"`);
+        if (isDuplicate) {
           results.push({
             topic,
             success: false,
-            error: `Title too similar to existing article: "${similarTitle}"`
+            error: 'Similar article already exists'
           });
           continue;
         }

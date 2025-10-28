@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_history: {
+        Row: {
+          action: string
+          article_id: string
+          change_summary: string | null
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_data: Json | null
+          previous_data: Json | null
+        }
+        Insert: {
+          action: string
+          article_id: string
+          change_summary?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+        }
+        Update: {
+          action?: string
+          article_id?: string
+          change_summary?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           author: string | null

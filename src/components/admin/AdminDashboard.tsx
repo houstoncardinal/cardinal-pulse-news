@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { EnhancedTrendsPanel } from "./EnhancedTrendsPanel";
 import { ArticlesPanel } from "./ArticlesPanel";
+import { ArticleManagement } from "./ArticleManagement";
 import { ArticleReviewPanel } from "./ArticleReviewPanel";
 import { JobsLog } from "./JobsLog";
 import { SettingsPanel } from "./SettingsPanel";
@@ -104,7 +105,7 @@ export const AdminDashboard = () => {
         </TabsContent>
         
         <TabsContent value="articles" className="mt-6">
-          <ArticlesPanel />
+          <ArticleManagement />
         </TabsContent>
         
         <TabsContent value="jobs" className="mt-6">
