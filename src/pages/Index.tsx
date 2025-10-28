@@ -124,20 +124,20 @@ const Index = () => {
             </div>
             
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Your AI Newsroom Awaits
+              Breaking News Coming Soon
             </h2>
             
             <p className="text-muted-foreground mb-8 text-lg">
-              No articles yet. Generate powerful, AI-written stories with stunning images in seconds.
+              Our newsroom is preparing the latest stories. Check back shortly for breaking news and updates.
             </p>
 
             <div className="space-y-4 mb-8">
               <div className="flex items-start gap-3 text-left p-4 rounded-lg bg-muted/50">
                 <Zap className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">Instant Generation</h3>
+                  <h3 className="font-semibold mb-1">Real-Time Coverage</h3>
                   <p className="text-sm text-muted-foreground">
-                    Create professional articles from Google Trends in seconds
+                    Get the latest news as it happens, 24/7
                   </p>
                 </div>
               </div>
@@ -145,20 +145,13 @@ const Index = () => {
               <div className="flex items-start gap-3 text-left p-4 rounded-lg bg-muted/50">
                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">AI-Powered Images</h3>
+                  <h3 className="font-semibold mb-1">Expert Analysis</h3>
                   <p className="text-sm text-muted-foreground">
-                    Every article gets a stunning, custom hero image via OpenAI
+                    In-depth reporting on the stories that matter
                   </p>
                 </div>
               </div>
             </div>
-            
-            <Button asChild size="lg" className="hover-scale group">
-              <a href="/admin" className="flex items-center gap-2">
-                <Zap className="h-4 w-4 group-hover:animate-pulse" />
-                Open Admin Dashboard
-              </a>
-            </Button>
           </div>
         )}
 
