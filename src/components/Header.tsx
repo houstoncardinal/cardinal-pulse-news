@@ -67,6 +67,22 @@ export const Header = () => {
             </h1>
           </Link>
 
+          {/* Desktop Quick Links */}
+          <div className="hidden lg:flex items-center gap-4 mx-8">
+            <Link 
+              to="/weather" 
+              className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex items-center gap-2"
+            >
+              🌍 Weather
+            </Link>
+            <Link 
+              to="/watch" 
+              className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex items-center gap-2"
+            >
+              📺 Watch
+            </Link>
+          </div>
+
           {/* Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <div className="relative w-full">

@@ -1,5 +1,8 @@
 project_id = "uxmrmiuwpofulgfjckzy"
 
+[functions.fetch-global-weather]
+verify_jwt = false
+
 [functions.import-yahoo-finance]
 verify_jwt = false
 

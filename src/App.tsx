@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Article from "./pages/Article";
 import Category from "./pages/Category";
 import Watch from "./pages/Watch";
+import Weather from "./pages/Weather";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/article/:slug" element={<Article />} />
           <Route path="/category/:category" element={<Category />} />
           <Route path="/watch" element={<Watch />} />
+          <Route path="/weather" element={<Weather />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

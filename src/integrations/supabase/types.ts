@@ -303,6 +303,27 @@ export type Database = {
         }
         Relationships: []
       }
+      weather_data: {
+        Row: {
+          created_at: string
+          data: Json
+          fetched_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          fetched_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          fetched_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       trending_analytics: {

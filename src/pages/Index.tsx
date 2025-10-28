@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { TrendingTicker } from "@/components/TrendingTicker";
 import { NewsCard } from "@/components/NewsCard";
 import { NewsWidget } from "@/components/NewsWidget";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -215,6 +216,9 @@ const Index = () => {
           </div>
         </section>
       </main>
+
+      {/* Global Weather Widget */}
+      <WeatherWidget />
 
       <Footer />
     </div>
