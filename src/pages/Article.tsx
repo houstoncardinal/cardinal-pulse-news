@@ -108,6 +108,8 @@ const Article = () => {
   const shareUrl = `https://www.cardinal-news.com/article/${article.slug}`;
   const shareText = article.title;
   const canonicalUrl = shareUrl;
+  const publishDate = new Date(article.published_at || article.created_at);
+  const modifiedDate = new Date(article.date_modified || article.updated_at);
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,6 +161,23 @@ const Article = () => {
             {/* Additional SEO */}
             <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
             <meta property="og:locale" content="en_US" />
+            
+            {/* Google News Tags */}
+            <meta name="standout" content={canonicalUrl} />
+            <meta name="original-source" content={canonicalUrl} />
+            <meta name="article:published_time" content={publishDate.toISOString()} />
+            <meta name="article:modified_time" content={modifiedDate.toISOString()} />
+            <meta name="publish_date" content={publishDate.toISOString()} />
+            
+            {/* Pagination & Canonical */}
+            <link rel="alternate" type="application/rss+xml" title="Cardinal News RSS Feed" href="https://www.cardinal-news.com/rss.xml" />
+            
+            {/* Mobile Optimization */}
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+            <meta name="theme-color" content="#dc2626" />
+            <meta name="mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
           </Helmet>
         </>
       )}
