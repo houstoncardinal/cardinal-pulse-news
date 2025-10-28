@@ -117,15 +117,15 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] md:max-h-[85vh] p-0 gap-0 w-[95vw] md:w-full">
         {/* Search Header */}
-        <div className="flex items-center gap-3 p-4 border-b border-border">
+        <div className="flex items-center gap-3 p-3 md:p-4 border-b border-border bg-card">
           <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for articles, topics, or keywords..."
-            className="border-0 focus-visible:ring-0 text-base"
+            placeholder="Search articles..."
+            className="border-0 focus-visible:ring-0 text-base bg-transparent"
             autoFocus
           />
           {query && (
@@ -133,15 +133,15 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
               variant="ghost"
               size="icon"
               onClick={() => setQuery("")}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-8 w-8"
             >
               <X className="h-4 w-4" />
             </Button>
           )}
         </div>
 
-        <ScrollArea className="flex-1 max-h-[calc(85vh-80px)]">
-          <div className="p-4 space-y-6">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-64px)] md:max-h-[calc(85vh-80px)]">
+          <div className="p-3 md:p-4 space-y-4 md:space-y-6">
             {/* AI Completions */}
             {completions.length > 0 && (
               <div className="space-y-2">
@@ -198,28 +198,28 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
                   <button
                     key={article.id}
                     onClick={() => handleArticleClick(article.slug)}
-                    className="w-full text-left p-3 rounded-lg hover:bg-accent transition-colors group"
+                    className="w-full text-left p-3 rounded-lg hover:bg-accent/50 active:bg-accent transition-colors group"
                   >
                     <div className="flex gap-3">
                       {article.image_url && (
                         <img
                           src={article.image_url}
                           alt={article.title}
-                          className="w-24 h-16 object-cover rounded flex-shrink-0"
+                          className="w-20 h-14 md:w-24 md:h-16 object-cover rounded flex-shrink-0"
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">
+                        <h3 className="font-semibold text-sm md:text-base group-hover:text-primary transition-colors line-clamp-2">
                           {article.title}
                         </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        <p className="text-xs text-muted-foreground line-clamp-1 md:line-clamp-2 mt-1">
                           {article.excerpt}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary" className="text-xs">
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] md:text-xs px-2 py-0.5">
                             {article.category}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] md:text-xs text-muted-foreground">
                             {formatDate(article.published_at)}
                           </span>
                         </div>
