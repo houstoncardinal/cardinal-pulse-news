@@ -107,17 +107,17 @@ export default function Weather() {
         
         <main className="flex-1 container mx-auto px-4 py-8">
           {/* Hero Section */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <Globe2 className="h-8 w-8 text-primary" />
-              <h1 className="font-display text-4xl md:text-5xl font-bold">
+          <div className="mb-6 sm:mb-8 text-center px-2">
+            <div className="inline-flex items-center gap-2 mb-3 sm:mb-4">
+              <Globe2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold">
                 Global Weather Center
               </h1>
             </div>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-2xl mx-auto px-4">
               Real-time weather monitoring for major cities worldwide. Updated every 10 minutes.
             </p>
-            <Badge className="mt-4 bg-green-500/20 text-green-500 border-green-500/30">
+            <Badge className="mt-3 sm:mt-4 bg-green-500/20 text-green-500 border-green-500/30 text-xs sm:text-sm">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
               LIVE
             </Badge>
@@ -125,17 +125,23 @@ export default function Weather() {
 
           {/* Region Filter */}
           <Tabs value={selectedRegion} onValueChange={setSelectedRegion} className="mb-8">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 gap-2">
-              {regions.map(region => (
-                <TabsTrigger key={region} value={region} className="capitalize">
-                  {region === "all" ? "🌍 All Regions" : region}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-7 gap-2">
+                {regions.map(region => (
+                  <TabsTrigger 
+                    key={region} 
+                    value={region} 
+                    className="capitalize whitespace-nowrap px-4 sm:px-6"
+                  >
+                    {region === "all" ? "🌍 All" : region}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </Tabs>
 
           {/* Weather Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {filteredCities.map((city, index) => (
               <Card
                 key={city.name}
