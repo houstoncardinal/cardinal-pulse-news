@@ -4,10 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const footerLinks = {
-  Company: ["About Us", "Careers", "Contact", "Press Kit"],
-  Resources: ["Help Center", "API", "Guidelines", "Privacy Policy"],
-  Categories: ["World", "Business", "Technology", "Sports"],
-  Follow: ["Newsletter", "Podcasts", "Events", "Mobile App"],
+  Company: [
+    { name: "About Us", path: "/about" },
+    { name: "Careers", path: "/careers" },
+    { name: "Contact", path: "/contact" },
+    { name: "Advertise", path: "/advertise" },
+  ],
+  Resources: [
+    { name: "Help Center", path: "/help" },
+    { name: "Privacy Policy", path: "/privacy" },
+  ],
+  Categories: [
+    { name: "World", path: "/category/world" },
+    { name: "Business", path: "/category/business" },
+    { name: "Technology", path: "/category/technology" },
+    { name: "Sports", path: "/category/sports" },
+  ],
 };
 
 export const Footer = () => {
@@ -33,37 +45,21 @@ export const Footer = () => {
         </div>
 
         {/* Links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-12">
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
               <h4 className="font-semibold mb-4">{category}</h4>
               <ul className="space-y-2">
-                {links.map((link) => {
-                  const isCategory = category === "Categories";
-                  const href = isCategory 
-                    ? `/category/${link.toLowerCase()}` 
-                    : "#";
-                  
-                  return (
-                    <li key={link}>
-                      {isCategory ? (
-                        <Link
-                          to={href}
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {link}
-                        </Link>
-                      ) : (
-                        <a
-                          href={href}
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {link}
-                        </a>
-                      )}
-                    </li>
-                  );
-                })}
+                {links.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.path}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           ))}
