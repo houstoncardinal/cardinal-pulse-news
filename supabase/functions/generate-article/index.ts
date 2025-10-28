@@ -68,7 +68,7 @@ serve(async (req) => {
             {
               "title": "Compelling headline under 60 characters",
               "excerpt": "Brief summary under 160 characters",
-              "content": "Full article content in markdown format (1000-1500 words). Include proper paragraphs, quotes if relevant, and factual information. Write in an engaging, professional journalistic style.",
+              "content": "Full article content in HTML format (1000-1500 words). Use proper HTML tags: <h2> for main sections, <h3> for subsections, <p> for paragraphs, <blockquote> for powerful quotes or key statements. Include impactful quotes from experts or key figures when relevant. Structure with clear sections and compelling subheadings. Write in an engaging, professional journalistic style with strong narrative flow.",
               "metaTitle": "SEO-optimized title under 60 characters",
               "metaDescription": "SEO description under 160 characters",
               "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
@@ -78,7 +78,20 @@ serve(async (req) => {
               "imagePrompt": "A detailed, specific prompt for generating a photorealistic news photograph. Describe the main subject, setting, lighting, mood, and key visual elements that would accurately represent this specific news story. Be very specific about what should be shown - mention key people, objects, locations, or events. Example: 'A photorealistic image of [specific subject] with [specific details about the scene], dramatic professional lighting, 16:9 news photography composition, ultra high resolution.'"
             }
             
-            Guidelines:
+            Content Formatting Guidelines:
+            - Start with a strong opening paragraph that hooks readers
+            - Use <h2> tags for major section headings (e.g., "The Impact on Global Markets", "Expert Analysis")
+            - Use <h3> tags for subsections when needed
+            - Include <blockquote> tags for powerful statements, expert opinions, or key quotes
+            - Each paragraph should be wrapped in <p> tags
+            - Write with authority and include expert perspectives
+            - Add dramatic impact with well-placed quotes
+            
+            SEO & E-E-A-T Guidelines:
+            - Demonstrate Experience: Include specific details, data, and real-world examples
+            - Show Expertise: Reference credible sources, studies, and expert opinions
+            - Establish Authority: Write with confidence and include verifiable facts
+            - Build Trust: Cite reputable sources, be accurate, and maintain objectivity
             - Write factual, unbiased content with strong journalistic integrity
             - Use engaging headlines that attract clicks while being accurate
             - Include relevant context and background information

@@ -81,14 +81,23 @@ ${weatherData.clouds ? `- Cloud Coverage: ${weatherData.clouds.all}%` : ''}
 
 ${weatherContext}
 
-Write a hard-hitting, emotionally resonant article that:
-- Opens with a powerful lede that captures the severity/impact of the situation
+CRITICAL FORMATTING REQUIREMENTS:
+- Start with a dramatic opening paragraph in <p> tags
+- Use <h2> tags for major sections (e.g., "Breaking Conditions", "Impact on Communities", "Expert Warnings", "Safety Advisory")
+- Include 2-3 <blockquote> tags with powerful quotes from meteorologists or officials
+- Wrap all paragraphs in <p> tags
+- Use <strong> tags to emphasize critical warnings and key statistics
+- Include <ul> or <ol> lists for safety tips or affected areas
+- Add specific weather data throughout (temperatures, wind speeds, rainfall)
+
+Write a hard-hitting, emotionally resonant article (1000-1500 words) that:
+- Opens with a powerful lede that captures the severity/impact
 - Uses vivid, sensory language to bring readers into the story
 - Discusses the human impact and safety concerns
-- Includes expert context about hurricanes/tropical storms in the Caribbean
-- Provides actionable safety information for residents
+- Includes expert meteorological context
+- Provides actionable safety information
 - Uses dramatic but factual language
-- 1000-1500 words of gripping journalism`;
+- Formatted in clean HTML with <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol> tags`;
 
     console.log('Generating article with AI using structured output...');
     const contentResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -114,7 +123,7 @@ Write a hard-hitting, emotionally resonant article that:
                 properties: {
                   title: { type: 'string', description: 'Urgent, powerful headline under 60 characters' },
                   excerpt: { type: 'string', description: 'Gripping 2-3 sentence summary' },
-                  content: { type: 'string', description: 'Full article in markdown format with powerful, vivid language' },
+                  content: { type: 'string', description: 'Full article in HTML format with <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol> tags. Include powerful quotes and dramatic formatting.' },
                   category: { type: 'string', enum: ['world'] },
                   tags: { type: 'array', items: { type: 'string' } },
                   meta_description: { type: 'string', description: 'SEO description 150-160 chars' },

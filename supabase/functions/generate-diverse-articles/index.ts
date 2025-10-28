@@ -65,34 +65,37 @@ const articleTemplates = {
 async function generateArticleContent(category: string, topic: string): Promise<any> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   
-  const systemPrompt = `You are an elite journalist writing for a prestigious news publication like Forbes or The New York Times. Create a comprehensive, well-researched news article with the following structure:
+  const systemPrompt = `You are an elite journalist writing for a prestigious news publication like Forbes or The New York Times. Create comprehensive, well-researched news articles with exceptional formatting.
 
-CRITICAL FORMAT REQUIREMENTS:
-1. Start with a compelling opening paragraph (no heading)
-2. Use <h2> tags for main section headings (3-4 sections)
-3. Use <h3> tags for subsections where appropriate
-4. Include 2-3 <blockquote> tags with powerful, memorable quotes from experts or key figures
-5. Use <strong> tags for emphasis on key terms and important facts
-6. Include <ul> or <ol> lists where appropriate for clarity
-7. Add relevant statistics and data points
-8. Write in a sophisticated, engaging tone with varied sentence structure
-9. End with forward-looking analysis or implications
+CRITICAL HTML FORMATTING REQUIREMENTS:
+1. Start with a compelling lead paragraph wrapped in <p> tags (no heading above it)
+2. Use <h2> tags for major sections (e.g., "Breaking Developments", "Market Impact", "Expert Analysis", "What This Means")
+3. Use <h3> tags for subsections when needed
+4. Include 2-3 <blockquote> tags with powerful, memorable quotes from experts, officials, or key figures
+5. Wrap every paragraph in <p> tags
+6. Use <strong> tags to emphasize key facts, statistics, and critical information
+7. Include <ul> or <ol> lists where appropriate for clarity (key points, affected areas, implications)
+8. Add specific data points, statistics, and verifiable facts throughout
+9. Write with sophisticated vocabulary and varied sentence structure
+10. End with forward-looking analysis, implications, or expert predictions
 
-The article should be 800-1200 words, thoroughly researched-sounding, and formatted for luxury publication standards.`;
+Write 800-1200 words of thoroughly researched-sounding content formatted for luxury publication standards.`;
 
-  const userPrompt = `Write a comprehensive news article about: "${topic}"
+  const userPrompt = `Write a comprehensive, expertly formatted news article about: "${topic}"
 
 Category: ${category}
 
-Include:
-- Compelling opening paragraph that hooks the reader
-- Multiple well-structured sections with <h2> headings
-- Expert quotes in <blockquote> tags
-- Specific details, statistics, and context
-- Analysis of implications and future outlook
-- Professional, sophisticated tone
+Structure your article with:
+- A powerful opening paragraph that immediately engages the reader
+- At least 3-4 <h2> section headings with compelling titles
+- 2-3 <blockquote> elements containing impactful quotes from experts or stakeholders
+- <strong> emphasis on crucial information and key statistics
+- Specific details, data points, and context that demonstrate expertise
+- Professional analysis and implications
+- Lists (<ul> or <ol>) where appropriate for clarity
+- A concluding section with forward-looking insights
 
-Format the article with proper HTML tags: <h2>, <h3>, <blockquote>, <strong>, <p>, <ul>, <ol>`;
+Format everything with proper HTML tags: <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol>. Make it read like a premium news publication.`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',

@@ -252,17 +252,33 @@ All colors MUST be HSL.
     @apply bg-muted px-2 py-1 rounded text-sm !important;
   }
 
-  /* Forbes-Style Article Content */
+  /* Article Content - Enhanced Formatting */
   .article-content {
-    @apply text-lg leading-relaxed;
+    @apply text-lg leading-relaxed max-w-4xl mx-auto;
     font-feature-settings: "kern" 1, "liga" 1;
     text-rendering: optimizeLegibility;
   }
 
+  /* Lead Paragraph - Distinctive Opening */
+  .article-content > p:first-of-type {
+    @apply text-xl md:text-2xl leading-relaxed mb-10 text-foreground font-medium;
+    letter-spacing: -0.01em;
+  }
+
   .article-content p {
-    @apply mb-8 text-foreground/90;
-    line-height: 1.8;
+    @apply mb-6 text-foreground/90;
+    line-height: 1.9;
     letter-spacing: -0.003em;
+  }
+
+  /* Enhanced Section Spacing */
+  .article-content > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .article-content > h2 + *,
+  .article-content > h3 + * {
+    margin-top: 1rem;
   }
 
   /* Luxurious Drop Cap */
