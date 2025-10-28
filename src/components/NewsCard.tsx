@@ -2,6 +2,7 @@ import { Clock, Eye } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 interface NewsCardProps {
   title: string;
@@ -26,13 +27,31 @@ export const NewsCard = ({
   slug,
   featured = false,
 }: NewsCardProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
+  const fallbackImage = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070";
+  
   const content = (
     <>
-      <div className={`relative overflow-hidden ${featured ? "h-96" : "h-48"} group-hover:shadow-2xl transition-shadow duration-500`}>
+      <div className={`relative overflow-hidden ${featured ? "h-96" : "h-48"} group-hover:shadow-2xl transition-shadow duration-500 bg-muted`}>
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          </div>
+        )}
+        
         <img
-          src={image}
+          src={imageError ? fallbackImage : image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageError(true);
+            setImageLoaded(true);
+          }}
+          className={`w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent group-hover:from-black/70 transition-colors duration-500" />
         

@@ -80,7 +80,7 @@ const Index = () => {
         title: article.title,
         excerpt: article.excerpt || '',
         category: article.category,
-        image: article.featured_image || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070",
+        image: article.featured_image || article.image_url || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070",
         author: article.author || 'Cardinal AI',
         readTime: article.read_time || '5 min read',
         views: `${(article.views_count || 0).toLocaleString()}`,
@@ -89,6 +89,7 @@ const Index = () => {
     : newsArticles;
 
   const featured = articlesToDisplay[0];
+  const hasRealArticles = publishedArticles && publishedArticles.length > 0;
 
   if (isLoading) {
     return (
@@ -109,6 +110,19 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
+        {/* Real-time indicator badge */}
+        {hasRealArticles && (
+          <div className="flex justify-center mb-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 rounded-full backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <span className="text-sm font-semibold text-primary">Live • AI-Generated News</span>
+            </div>
+          </div>
+        )}
+
         {articlesToDisplay.length > 0 ? (
           <>
             {/* Featured Section */}
@@ -149,13 +163,20 @@ const Index = () => {
             </section>
           </>
         ) : (
-          <div className="text-center py-20">
-            <h2 className="text-3xl font-display font-bold mb-4">No Articles Yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Visit the Admin Dashboard to generate your first AI-powered articles
+          <div className="text-center py-20 animate-fade-in">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 mb-4">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-display font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+              Generating Your First Articles
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Our AI is creating powerful, engaging articles with stunning images. Visit the Admin Dashboard to manage content generation.
             </p>
-            <Button asChild>
-              <a href="/admin">Go to Admin Dashboard</a>
+            <Button asChild size="lg" className="hover-scale">
+              <a href="/admin">Open Admin Dashboard</a>
             </Button>
           </div>
         )}
