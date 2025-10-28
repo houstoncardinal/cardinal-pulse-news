@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const QuickCreate = () => {
   const [topic, setTopic] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   const handleQuickGenerate = async () => {
     if (!topic.trim()) {
@@ -50,6 +51,32 @@ export const QuickCreate = () => {
       toast.error('Failed to generate article');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSeedDiverseTopics = async () => {
+    setIsSeeding(true);
+    const toastId = toast.loading('Seeding diverse trending topics across all categories...');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-trending-topics', {
+        body: { 
+          forceRefresh: false,
+          articlesPerTopic: 1
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success(
+        `✅ Seeded ${data.topicsInserted || 0} topics and generated ${data.articlesGenerated || 0} articles across ${data.categoriesRepresented?.length || 0} categories!`, 
+        { id: toastId, duration: 6000 }
+      );
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to seed topics', { id: toastId });
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -103,6 +130,26 @@ export const QuickCreate = () => {
             )}
           </Button>
         </div>
+
+        <Button
+          onClick={handleSeedDiverseTopics}
+          disabled={isSeeding}
+          size="lg"
+          className="w-full mt-3 h-auto py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+        >
+          <div className="flex items-center gap-3 w-full justify-center">
+            <Database className="h-5 w-5" />
+            <div className="text-left">
+              <div className="font-bold text-sm">
+                {isSeeding ? "Populating Topics..." : "Populate Trending Topics"}
+              </div>
+              <div className="text-xs text-white/90 font-normal">
+                Add variety • All categories • Auto-generate
+              </div>
+            </div>
+            {isSeeding && <Sparkles className="h-4 w-4 animate-pulse" />}
+          </div>
+        </Button>
 
       </div>
     </Card>

@@ -1,5 +1,8 @@
 project_id = "uxmrmiuwpofulgfjckzy"
 
+[functions.seed-trending-topics]
+verify_jwt = false
+
 [functions.automation-scheduler]
 verify_jwt = true
 
