@@ -120,6 +120,27 @@ All colors MUST be HSL.
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
   }
+
+  /* Enhanced text wrapping and readability */
+  p, li, span {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Prevent text overflow in containers */
+  .text-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Smooth text rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
 }
 
 @layer utilities {
@@ -309,5 +330,50 @@ All colors MUST be HSL.
 
   .ticker-scroll-fast {
     animation: ticker-scroll-fast 25s linear infinite;
+  }
+
+  /* Smart device optimizations */
+  @media (max-width: 400px) {
+    /* Smart watch and ultra-small screens */
+    body {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.1rem; }
+
+    .container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  @media (min-width: 401px) and (max-width: 640px) {
+    /* Mobile phones */
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  /* Touch target optimization */
+  @media (hover: none) and (pointer: coarse) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { TrendingTicker } from "@/components/TrendingTicker";
 import { NewsCard } from "@/components/NewsCard";
+import { NewsWidget } from "@/components/NewsWidget";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useArticles } from "@/hooks/useArticles";
@@ -98,10 +99,13 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       <TrendingTicker />
       <Hero />
+      
+      {/* Smart Watch Widget - Shows on all devices */}
+      <NewsWidget position="bottom-right" autoHide={false} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">

@@ -27,11 +27,11 @@ export const Hero = () => {
             {featuredArticle?.category?.toUpperCase() || 'BREAKING NEWS'}
           </Badge>
           
-          <h2 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight animate-fade-in text-wrap">
             {featuredArticle?.title || 'AI-Powered Global News Network Launches Worldwide'}
           </h2>
           
-          <p className="text-xl text-platinum-silver mb-8 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <p className="text-base sm:text-lg md:text-xl text-platinum-silver mb-6 md:mb-8 leading-relaxed animate-fade-in text-wrap" style={{ animationDelay: '0.2s' }}>
             {featuredArticle?.excerpt || 'Cardinal News delivers real-time trending stories from around the globe, powered by advanced AI technology and journalistic excellence.'}
           </p>
 
