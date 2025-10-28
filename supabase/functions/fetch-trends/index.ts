@@ -41,80 +41,100 @@ async function fetchGoogleTrends(region: string = 'US') {
           }
         });
         
-        if (!response.ok) continue;
+        if (!response.ok) {
+          console.log(`RSS feed returned status ${response.status}`);
+          continue;
+        }
         
         const xmlText = await response.text();
-        console.log(`Received RSS response, length: ${xmlText.length}`);
+        console.log(`Received RSS response, length: ${xmlText.length} bytes`);
+        
+        // Log first 500 chars to see structure
+        console.log(`RSS preview: ${xmlText.substring(0, 500)}`);
         
         // Parse XML manually (simplified parsing)
         const items = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
         console.log(`Found ${items.length} items in RSS feed`);
         
         const trends = items.slice(0, 30).map((item, index) => {
-          const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
-          const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/);
-          const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
-          const linkMatch = item.match(/<link>(.*?)<\/link>/);
-          const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
-          
-          // Get the actual title, clean it
-          let title = titleMatch ? titleMatch[1].trim() : `Trend ${index + 1}`;
-          
-          // Remove any extra markup or encoding
-          title = title.replace(/&amp;/g, '&')
-                       .replace(/&lt;/g, '<')
-                       .replace(/&gt;/g, '>')
-                       .replace(/&quot;/g, '"')
-                       .replace(/&#39;/g, "'");
-          
-          const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
-          const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').substring(0, 200) : title;
-          const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
-          const pubDate = pubDateMatch ? new Date(pubDateMatch[1]) : new Date();
-          
-          // Parse traffic number - handle formats like "100K+", "2M+", etc.
-          let trafficNum = 10000;
-          if (traffic.includes('M+') || traffic.includes('m+')) {
-            trafficNum = parseFloat(traffic) * 1000000;
-          } else if (traffic.includes('K+') || traffic.includes('k+')) {
-            trafficNum = parseFloat(traffic) * 1000;
-          } else {
-            trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
-          }
-          
-          console.log(`Parsed trend: ${title} (${traffic})`);
-          
-          // Categorize based on keywords in title and description
-          const text = (title + ' ' + description).toLowerCase();
-          let category = 'world';
-          if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
-          else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
-          else if (text.match(/sport|game|championship|league|team|player|football|basketball|nba|nfl|soccer|lakers|nfl|vs/)) category = 'sports';
-          else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
-          else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
-          else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
-          
-          // Extract keywords from title
-          const words = title.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2 && !['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'out', 'has'].includes(w));
-          const keywords = [...new Set(words)].slice(0, 5);
-          
-          return {
-            topic: title,
-            category,
-            trend_strength: Math.min(100, Math.max(50, Math.floor(trafficNum / 10000))),
-            region: geoCode,
-            search_volume: trafficNum,
-            keywords,
-            related_queries: [title],
-            source_url: link,
-            fetched_at: pubDate.toISOString(),
-            trend_data: {
-              fetched_from: 'google_trends_rss',
-              timestamp: new Date().toISOString(),
-              raw_traffic: traffic
+          try {
+            const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || 
+                              item.match(/<title>(.*?)<\/title>/);
+            const trafficMatch = item.match(/<ht:approx_traffic><!\[CDATA\[(.*?)\]\]><\/ht:approx_traffic>/) ||
+                                item.match(/<ht:approx_traffic>(.*?)<\/ht:approx_traffic>/);
+            const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ||
+                             item.match(/<description>(.*?)<\/description>/);
+            const linkMatch = item.match(/<link>(.*?)<\/link>/);
+            const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+            
+            // Get the actual title, clean it
+            let title = titleMatch ? titleMatch[1].trim() : null;
+            
+            // Skip if no title found
+            if (!title) {
+              console.log(`Skipping item ${index} - no title found`);
+              return null;
             }
-          };
-        });
+            
+            // Remove any extra markup or encoding
+            title = title.replace(/&amp;/g, '&')
+                         .replace(/&lt;/g, '<')
+                         .replace(/&gt;/g, '>')
+                         .replace(/&quot;/g, '"')
+                         .replace(/&#39;/g, "'");
+            
+            const traffic = trafficMatch ? trafficMatch[1] : '10,000+';
+            const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').substring(0, 200) : title;
+            const link = linkMatch ? linkMatch[1] : 'https://trends.google.com';
+            const pubDate = pubDateMatch ? new Date(pubDateMatch[1]) : new Date();
+            
+            // Parse traffic number - handle formats like "100K+", "2M+", etc.
+            let trafficNum = 10000;
+            if (traffic.includes('M+') || traffic.includes('m+')) {
+              trafficNum = parseFloat(traffic) * 1000000;
+            } else if (traffic.includes('K+') || traffic.includes('k+')) {
+              trafficNum = parseFloat(traffic) * 1000;
+            } else {
+              trafficNum = parseInt(traffic.replace(/[,+]/g, '')) || 10000;
+            }
+            
+            console.log(`✓ Parsed trend: "${title}" (${traffic} = ${trafficNum})`);
+            
+            // Categorize based on keywords in title and description
+            const text = (title + ' ' + description).toLowerCase();
+            let category = 'world';
+            if (text.match(/tech|ai|digital|cyber|software|app|internet|computer/)) category = 'technology';
+            else if (text.match(/business|market|stock|trade|economy|finance|company/)) category = 'business';
+            else if (text.match(/sport|game|championship|league|team|player|football|basketball|nba|nfl|soccer|lakers|nfl|vs|cavaliers|pistons|chiefs|commanders|magic|76ers/)) category = 'sports';
+            else if (text.match(/science|research|study|discovery|space|health|medical/)) category = 'science';
+            else if (text.match(/entertainment|movie|music|celebrity|show|film|actor/)) category = 'entertainment';
+            else if (text.match(/politics|election|government|vote|policy|law/)) category = 'politics';
+            
+            // Extract keywords from title
+            const words = title.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2 && !['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'out', 'has'].includes(w));
+            const keywords = [...new Set(words)].slice(0, 5);
+            
+            return {
+              topic: title,
+              category,
+              trend_strength: Math.min(100, Math.max(50, Math.floor(trafficNum / 10000))),
+              region: geoCode,
+              search_volume: trafficNum,
+              keywords,
+              related_queries: [title],
+              source_url: link,
+              fetched_at: pubDate.toISOString(),
+              trend_data: {
+                fetched_from: 'google_trends_rss',
+                timestamp: new Date().toISOString(),
+                raw_traffic: traffic
+              }
+            };
+          } catch (parseError) {
+            console.error(`Error parsing item ${index}:`, parseError);
+            return null;
+          }
+        }).filter(t => t !== null); // Remove null entries
         
         allTrends = allTrends.concat(trends);
       } catch (feedError) {
