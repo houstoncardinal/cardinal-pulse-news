@@ -75,12 +75,6 @@ export const Header = () => {
             >
               🌍 Weather
             </Link>
-            <Link 
-              to="/watch" 
-              className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex items-center gap-2"
-            >
-              📺 Watch
-            </Link>
           </div>
 
           {/* Search */}
