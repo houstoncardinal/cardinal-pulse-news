@@ -30,10 +30,10 @@ serve(async (req) => {
     // Yahoo Finance RSS feed URLs
     const rssFeeds: Record<string, string> = {
       finance: 'https://finance.yahoo.com/news/rssindex',
-      stocks: 'https://finance.yahoo.com/news/topic/stock-market-news',
-      crypto: 'https://finance.yahoo.com/topic/crypto/',
-      economy: 'https://finance.yahoo.com/topic/economic-news/',
-      earnings: 'https://finance.yahoo.com/topic/earnings/',
+      stocks: 'https://finance.yahoo.com/rss/topstories',
+      crypto: 'https://finance.yahoo.com/rss/cryptocurrency',
+      economy: 'https://finance.yahoo.com/rss/economics',
+      earnings: 'https://finance.yahoo.com/rss/earnings',
     };
 
     const feedUrl = rssFeeds[category] || rssFeeds.finance;
