@@ -11,6 +11,7 @@ import { QuickCreate } from "./QuickCreate";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
+import { CategoryArticleGenerator } from "./CategoryArticleGenerator";
 import { YahooFinanceImporter } from "./YahooFinanceImporter";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { BatchOperations } from "./BatchOperations";
@@ -97,7 +98,10 @@ export const AdminDashboard = () => {
         </TabsList>
         
         <TabsContent value="trends" className="mt-6">
-          <EnhancedTrendsPanel />
+          <div className="space-y-6">
+            <CategoryArticleGenerator />
+            <EnhancedTrendsPanel />
+          </div>
         </TabsContent>
         
         <TabsContent value="review" className="mt-6">
