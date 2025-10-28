@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.smart-search]
 verify_jwt = false
+
+[functions.generate-diverse-global-stories]
+verify_jwt = true

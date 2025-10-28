@@ -11,6 +11,7 @@ import { QuickCreate } from "./QuickCreate";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
+import { GenerateGlobalStories } from "./GenerateGlobalStories";
 import { CategoryArticleGenerator } from "./CategoryArticleGenerator";
 import { YahooFinanceImporter } from "./YahooFinanceImporter";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
@@ -75,6 +76,7 @@ export const AdminDashboard = () => {
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <QuickCreate />
+          <GenerateGlobalStories />
           <YahooFinanceImporter />
           <ManualTrendsRefresh />
           <GenerateDiverseArticles />
