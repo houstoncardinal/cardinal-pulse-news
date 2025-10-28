@@ -17,7 +17,8 @@ import { ContentCalendar } from "./ContentCalendar";
 import { SEOOptimizer } from "./SEOOptimizer";
 import { RealtimeMetrics } from "./RealtimeMetrics";
 import { ContentWorkflow } from "./ContentWorkflow";
-import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch } from "lucide-react";
+import { TrendingCoverage } from "./TrendingCoverage";
+import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const AdminDashboard = () => {
@@ -31,6 +32,7 @@ export const AdminDashboard = () => {
   ];
 
   const moreMenuItems = [
+    { value: "coverage", label: "Trending Coverage", icon: Target, description: "Fill gaps in trending categories" },
     { value: "calendar", label: "Content Calendar", icon: Calendar, description: "Plan and schedule content" },
     { value: "seo", label: "SEO Optimizer", icon: Search, description: "Optimize article SEO" },
     { value: "realtime", label: "Live Metrics", icon: Radio, description: "Real-time performance" },
@@ -117,6 +119,10 @@ export const AdminDashboard = () => {
         
         <TabsContent value="workflow" className="mt-6">
           <ContentWorkflow />
+        </TabsContent>
+        
+        <TabsContent value="coverage" className="mt-6">
+          <TrendingCoverage />
         </TabsContent>
         
         <TabsContent value="analytics" className="mt-6">
