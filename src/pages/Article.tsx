@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileToolbar } from "@/components/MobileToolbar";
 import { ArticleContent } from "@/components/ArticleContent";
+import { AdSense } from "@/components/AdSense";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Eye, Calendar, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
@@ -241,9 +242,8 @@ const Article = () => {
         )}
 
         {/* Ad Space - Horizontal Banner */}
-        <div className="mb-8 bg-muted/20 border-2 border-dashed border-muted rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">Advertisement Space (728x90)</p>
-          <p className="text-xs text-muted-foreground mt-2">Google AdSense code goes here</p>
+        <div className="mb-8 flex justify-center">
+          <AdSense slot="1234567890" format="horizontal" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -325,17 +325,15 @@ const Article = () => {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Ad Space - Sidebar */}
-            <div className="bg-muted/20 border-2 border-dashed border-muted rounded-lg p-8 text-center sticky top-24">
-              <p className="text-muted-foreground">Advertisement Space (300x600)</p>
-              <p className="text-xs text-muted-foreground mt-2">Google AdSense code goes here</p>
+            <div className="sticky top-24">
+              <AdSense slot="9876543210" format="vertical" style={{ minHeight: '600px' }} />
             </div>
           </div>
         </div>
 
         {/* Ad Space - Bottom Banner */}
-        <div className="mt-12 bg-muted/20 border-2 border-dashed border-muted rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">Advertisement Space (728x90)</p>
-          <p className="text-xs text-muted-foreground mt-2">Google AdSense code goes here</p>
+        <div className="mt-12 flex justify-center">
+          <AdSense slot="1122334455" format="horizontal" />
         </div>
       </article>
 
