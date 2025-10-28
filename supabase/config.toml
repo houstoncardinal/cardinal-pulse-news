@@ -59,3 +59,6 @@ verify_jwt = true
 
 [functions.translate-text]
 verify_jwt = false
+
+[functions.smart-search]
+verify_jwt = false

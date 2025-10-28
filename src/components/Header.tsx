@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Menu, Search, Shield, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LanguageTranslator } from "@/components/LanguageTranslator";
 import { AccessibilityMenu } from "@/components/AccessibilityMenu";
+import { SearchDialog } from "@/components/SearchDialog";
 
 const categories = [
   "World",
@@ -39,8 +41,11 @@ const navigationLinks = [
 
 export const Header = () => {
   const { user, isAdmin, signOut } = useAuth();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
+    <>
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top Bar */}
       <div className="border-b border-border/50">
@@ -124,18 +129,27 @@ export const Header = () => {
 
           {/* Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="relative w-full"
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search news..."
-                className="pl-10 bg-secondary border-border"
+                className="pl-10 bg-secondary border-border cursor-pointer"
+                readOnly
               />
-            </div>
+            </button>
           </div>
 
           {/* Auth Section */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden"
+              onClick={() => setSearchOpen(true)}
+            >
               <Search className="h-5 w-5" />
             </Button>
             
@@ -194,5 +208,6 @@ export const Header = () => {
         </nav>
       </div>
     </header>
+    </>
   );
 };
