@@ -58,7 +58,7 @@ export const NewsCard = ({
         {/* Animated gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 gradient-animate" />
         
-        <Badge className="absolute top-4 left-4 bg-primary hover:bg-primary/90 animate-scale-in backdrop-blur-sm shadow-lg glow-pulse">
+        <Badge className="absolute top-4 left-4 bg-primary hover:bg-primary/90 animate-bounce-in backdrop-blur-sm shadow-lg hover-glow">
           {category}
         </Badge>
 
@@ -102,12 +102,12 @@ export const NewsCard = ({
   return slug ? (
     <Link to={`/article/${slug}`}>
       <Card
-        className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer hover-scale relative ${
+        className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer hover-lift hover-glow animate-reveal-scale relative ${
           featured ? "md:col-span-2 md:row-span-2" : ""
         }`}
       >
         {/* Glow effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none animate-pulse-glow">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 blur-xl" />
         </div>
         {content}
@@ -115,12 +115,12 @@ export const NewsCard = ({
     </Link>
   ) : (
     <Card
-      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer hover-scale relative ${
+      className={`luxury-card group overflow-hidden border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer hover-lift hover-glow animate-reveal-scale relative ${
         featured ? "md:col-span-2 md:row-span-2" : ""
       }`}
     >
       {/* Glow effect on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none animate-pulse-glow">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 blur-xl" />
       </div>
       {content}

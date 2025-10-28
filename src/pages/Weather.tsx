@@ -136,12 +136,13 @@ export default function Weather() {
 
           {/* Weather Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-            {filteredCities.map((city) => (
+            {filteredCities.map((city, index) => (
               <Card
                 key={city.name}
-                className={`p-6 cursor-pointer transition-all hover:scale-105 hover:shadow-xl ${
-                  selectedCity?.name === city.name ? 'ring-2 ring-primary' : ''
+                className={`p-6 cursor-pointer transition-all hover-lift hover-glow animate-reveal-scale ${
+                  selectedCity?.name === city.name ? 'ring-2 ring-primary animate-pulse-glow' : ''
                 }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => {
                   setSelectedCity(city);
                   setShowDetailPanel(true);
@@ -152,12 +153,14 @@ export default function Weather() {
                     <h3 className="font-display font-bold text-xl">{city.name}</h3>
                     <p className="text-xs text-muted-foreground">{city.region}</p>
                   </div>
-                  <span className="text-4xl">{getWeatherIcon(city.weather.weather[0].main)}</span>
+                  <div className="animate-bounce-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <AnimatedWeatherIcon condition={city.weather.weather[0].main} size="sm" />
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl font-bold">
+                    <span className="text-4xl font-bold bg-gradient-to-br from-foreground to-primary bg-clip-text text-transparent">
                       {Math.round(city.weather.main.temp)}°C
                     </span>
                     <span className="text-sm text-muted-foreground">
@@ -171,11 +174,11 @@ export default function Weather() {
                   
                   <div className="grid grid-cols-2 gap-2 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 text-xs">
-                      <Droplets className="h-4 w-4 text-blue-400" />
+                      <Droplets className="h-4 w-4 text-blue-400 animate-pulse" />
                       {city.weather.main.humidity}%
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <Wind className="h-4 w-4 text-gray-400" />
+                      <Wind className="h-4 w-4 text-gray-400 animate-pulse" />
                       {Math.round(city.weather.wind.speed * 3.6)} km/h
                     </div>
                   </div>
@@ -187,23 +190,27 @@ export default function Weather() {
           {/* Detailed View */}
           {selectedCity && (
             <>
-              <Card className="p-8 mb-6">
+              <Card className="p-8 mb-6 animate-reveal-from-bottom hover-lift">
                 <div className="flex items-center gap-4 mb-6">
-                  <AnimatedWeatherIcon condition={selectedCity.weather.weather[0].main} size="lg" />
-                  <div className="flex-1">
-                    <h2 className="font-display text-3xl font-bold">{selectedCity.name}</h2>
-                    <p className="text-muted-foreground">{selectedCity.region}</p>
-                    <Badge className="mt-2">{selectedCity.weather.weather[0].main}</Badge>
+                  <div className="animate-bounce-in">
+                    <AnimatedWeatherIcon condition={selectedCity.weather.weather[0].main} size="lg" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-6xl font-bold">{Math.round(selectedCity.weather.main.temp)}°C</div>
+                  <div className="flex-1">
+                    <h2 className="font-display text-3xl font-bold animate-fade-in">{selectedCity.name}</h2>
+                    <p className="text-muted-foreground animate-fade-in" style={{ animationDelay: '0.1s' }}>{selectedCity.region}</p>
+                    <Badge className="mt-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>{selectedCity.weather.weather[0].main}</Badge>
+                  </div>
+                  <div className="text-right animate-reveal-scale">
+                    <div className="text-6xl font-bold bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent">
+                      {Math.round(selectedCity.weather.main.temp)}°C
+                    </div>
                     <p className="text-muted-foreground">Feels like {Math.round(selectedCity.weather.main.feels_like)}°C</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="flex items-start gap-3">
-                    <Thermometer className="h-6 w-6 text-red-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                    <Thermometer className="h-6 w-6 text-red-400 mt-1 animate-pulse" />
                     <div>
                       <p className="text-sm text-muted-foreground">High / Low</p>
                       <p className="text-xl font-semibold">
@@ -212,40 +219,40 @@ export default function Weather() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Droplets className="h-6 w-6 text-blue-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                    <Droplets className="h-6 w-6 text-blue-400 mt-1 animate-pulse" />
                     <div>
                       <p className="text-sm text-muted-foreground">Humidity</p>
                       <p className="text-xl font-semibold">{selectedCity.weather.main.humidity}%</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Wind className="h-6 w-6 text-gray-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                    <Wind className="h-6 w-6 text-gray-400 mt-1 animate-pulse" />
                     <div>
                       <p className="text-sm text-muted-foreground">Wind Speed</p>
                       <p className="text-xl font-semibold">{Math.round(selectedCity.weather.wind.speed * 3.6)} km/h</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Eye className="h-6 w-6 text-purple-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                    <Eye className="h-6 w-6 text-purple-400 mt-1 animate-pulse" />
                     <div>
                       <p className="text-sm text-muted-foreground">Visibility</p>
                       <p className="text-xl font-semibold">{(selectedCity.weather.visibility / 1000).toFixed(1)} km</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Cloud className="h-6 w-6 text-gray-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                    <Cloud className="h-6 w-6 text-gray-400 mt-1 animate-cloud-drift" />
                     <div>
                       <p className="text-sm text-muted-foreground">Cloud Cover</p>
                       <p className="text-xl font-semibold">{selectedCity.weather.clouds.all}%</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <TrendingUp className="h-6 w-6 text-orange-400 mt-1" />
+                  <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                    <TrendingUp className="h-6 w-6 text-orange-400 mt-1 animate-pulse" />
                     <div>
                       <p className="text-sm text-muted-foreground">Pressure</p>
                       <p className="text-xl font-semibold">{selectedCity.weather.main.pressure} hPa</p>
@@ -255,51 +262,57 @@ export default function Weather() {
               </Card>
 
               {/* Advanced Features */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <WeatherRadar 
-                  lat={selectedCity.lat} 
-                  lon={selectedCity.lon} 
-                  cityName={selectedCity.name} 
-                />
-                <WeatherAlerts
-                  cityName={selectedCity.name}
-                  alerts={[]}
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 animate-reveal-from-bottom" style={{ animationDelay: '0.3s' }}>
+                <div className="hover-lift">
+                  <WeatherRadar 
+                    lat={selectedCity.lat} 
+                    lon={selectedCity.lon} 
+                    cityName={selectedCity.name} 
+                  />
+                </div>
+                <div className="hover-lift">
+                  <WeatherAlerts
+                    cityName={selectedCity.name}
+                    alerts={[]}
+                  />
+                </div>
               </div>
 
-              <WeatherForecast
-                cityName={selectedCity.name}
-                forecast={[
-                  {
-                    date: 'Dec 29',
-                    day: 'Today',
-                    high: Math.round(selectedCity.weather.main.temp_max) + 2,
-                    low: Math.round(selectedCity.weather.main.temp_min),
-                    condition: selectedCity.weather.weather[0].main,
-                    icon: selectedCity.weather.weather[0].main,
-                    precipitation: 20,
-                    humidity: selectedCity.weather.main.humidity,
-                    windSpeed: Math.round(selectedCity.weather.wind.speed * 3.6),
-                    hourly: [
-                      { time: '12 PM', temp: Math.round(selectedCity.weather.main.temp), condition: selectedCity.weather.weather[0].main, icon: 'clear' },
-                      { time: '3 PM', temp: Math.round(selectedCity.weather.main.temp) + 1, condition: selectedCity.weather.weather[0].main, icon: 'clear' },
-                      { time: '6 PM', temp: Math.round(selectedCity.weather.main.temp) - 1, condition: 'Partly Cloudy', icon: 'clouds' },
-                      { time: '9 PM', temp: Math.round(selectedCity.weather.main.temp) - 3, condition: 'Clear', icon: 'clear' },
-                    ]
-                  },
-                  ...Array.from({ length: 6 }, (_, i) => ({
-                    date: `Dec ${30 + i}`,
-                    day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
-                    high: Math.round(selectedCity.weather.main.temp_max) + Math.floor(Math.random() * 5) - 2,
-                    low: Math.round(selectedCity.weather.main.temp_min) + Math.floor(Math.random() * 3) - 1,
-                    condition: ['Clear', 'Partly Cloudy', 'Cloudy', 'Rain'][Math.floor(Math.random() * 4)],
-                    icon: 'clear',
-                    precipitation: Math.floor(Math.random() * 60),
-                    humidity: 50 + Math.floor(Math.random() * 40),
-                    windSpeed: 10 + Math.floor(Math.random() * 20)
-                  }))
-                ]}
-              />
+              <div className="animate-reveal-from-bottom" style={{ animationDelay: '0.4s' }}>
+                <WeatherForecast
+                  cityName={selectedCity.name}
+                  forecast={[
+                    {
+                      date: 'Dec 29',
+                      day: 'Today',
+                      high: Math.round(selectedCity.weather.main.temp_max) + 2,
+                      low: Math.round(selectedCity.weather.main.temp_min),
+                      condition: selectedCity.weather.weather[0].main,
+                      icon: selectedCity.weather.weather[0].main,
+                      precipitation: 20,
+                      humidity: selectedCity.weather.main.humidity,
+                      windSpeed: Math.round(selectedCity.weather.wind.speed * 3.6),
+                      hourly: [
+                        { time: '12 PM', temp: Math.round(selectedCity.weather.main.temp), condition: selectedCity.weather.weather[0].main, icon: 'clear' },
+                        { time: '3 PM', temp: Math.round(selectedCity.weather.main.temp) + 1, condition: selectedCity.weather.weather[0].main, icon: 'clear' },
+                        { time: '6 PM', temp: Math.round(selectedCity.weather.main.temp) - 1, condition: 'Partly Cloudy', icon: 'clouds' },
+                        { time: '9 PM', temp: Math.round(selectedCity.weather.main.temp) - 3, condition: 'Clear', icon: 'clear' },
+                      ]
+                    },
+                    ...Array.from({ length: 6 }, (_, i) => ({
+                      date: `Dec ${30 + i}`,
+                      day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
+                      high: Math.round(selectedCity.weather.main.temp_max) + Math.floor(Math.random() * 5) - 2,
+                      low: Math.round(selectedCity.weather.main.temp_min) + Math.floor(Math.random() * 3) - 1,
+                      condition: ['Clear', 'Partly Cloudy', 'Cloudy', 'Rain'][Math.floor(Math.random() * 4)],
+                      icon: 'clear',
+                      precipitation: Math.floor(Math.random() * 60),
+                      humidity: 50 + Math.floor(Math.random() * 40),
+                      windSpeed: 10 + Math.floor(Math.random() * 20)
+                    }))
+                  ]}
+                />
+              </div>
             </>
           )}
         </main>
