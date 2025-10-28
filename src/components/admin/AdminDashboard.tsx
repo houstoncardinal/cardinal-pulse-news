@@ -8,6 +8,7 @@ import { SettingsPanel } from "./SettingsPanel";
 import { QuickCreate } from "./QuickCreate";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
+import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,7 @@ export const AdminDashboard = () => {
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <QuickCreate />
           <ManualTrendsRefresh />
+          <GenerateDiverseArticles />
           <BulkArticleGenerator />
         </div>
       </div>

@@ -1,5 +1,8 @@
 project_id = "uxmrmiuwpofulgfjckzy"
 
+[functions.generate-diverse-articles]
+verify_jwt = false
+
 [functions.fetch-trends]
 verify_jwt = false
 
