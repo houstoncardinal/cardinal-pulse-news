@@ -4,28 +4,12 @@ export const LoadingScreen = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Hide immediately when DOM is ready (much faster)
-    if (document.readyState === 'complete') {
+    // Immediate hide after minimal delay
+    const timer = setTimeout(() => {
       setIsVisible(false);
-      return;
-    }
+    }, 100);
 
-    const handleLoad = () => {
-      // Small delay for smooth transition
-      setTimeout(() => setIsVisible(false), 200);
-    };
-
-    window.addEventListener('load', handleLoad);
-    
-    // Fallback: hide after max 800ms even if load event doesn't fire
-    const fallbackTimer = setTimeout(() => {
-      setIsVisible(false);
-    }, 800);
-
-    return () => {
-      window.removeEventListener('load', handleLoad);
-      clearTimeout(fallbackTimer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isVisible) return null;
