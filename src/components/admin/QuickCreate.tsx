@@ -54,46 +54,54 @@ export const QuickCreate = () => {
   };
 
   return (
-    <Card className="p-4 md:p-6 bg-gradient-to-r from-primary/5 to-red-400/5 border-primary/20 animate-scale-in">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <div className="p-2 bg-primary/10 rounded-lg w-fit">
-          <Zap className="h-5 w-5 text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-bold text-base md:text-lg">Quick Article Generator</h3>
-          <p className="text-xs md:text-sm text-muted-foreground">Enter any topic to instantly create an article</p>
-        </div>
-      </div>
+    <Card className="p-4 md:p-6 bg-gradient-to-br from-primary/10 via-card to-card border-primary/20 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 animate-scale-in relative overflow-hidden group">
+      {/* Animated background effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 gradient-animate opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Input
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="Enter trending topic..."
-          onKeyPress={(e) => e.key === 'Enter' && handleQuickGenerate()}
-          disabled={isGenerating}
-          className="flex-1 h-11"
-        />
-        <Button 
-          onClick={handleQuickGenerate}
-          disabled={isGenerating || !topic.trim()}
-          className="gap-2 h-11 w-full sm:w-auto"
-          size="default"
-        >
-          {isGenerating ? (
-            <>
-              <Sparkles className="h-4 w-4 animate-spin" />
-              <span className="hidden sm:inline">Generating...</span>
-              <span className="sm:hidden">Generating</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Generate Now</span>
-              <span className="sm:hidden">Generate</span>
-            </>
-          )}
-        </Button>
+      {/* Glow orb effect */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      
+      <div className="relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <div className="p-2 bg-primary/10 rounded-lg w-fit glow-pulse">
+            <Zap className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-base md:text-lg group-hover:text-primary transition-colors duration-300">⚡ Quick Article Generator</h3>
+            <p className="text-xs md:text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Enter any topic to instantly create an AI-powered article</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Enter trending topic..."
+            onKeyPress={(e) => e.key === 'Enter' && handleQuickGenerate()}
+            disabled={isGenerating}
+            className="flex-1 h-11 transition-all duration-300 focus:shadow-lg focus:shadow-primary/20"
+          />
+          <Button 
+            onClick={handleQuickGenerate}
+            disabled={isGenerating || !topic.trim()}
+            className="gap-2 h-11 w-full sm:w-auto transition-all duration-300 hover:shadow-lg hover:shadow-primary/30"
+            size="default"
+          >
+            {isGenerating ? (
+              <>
+                <Sparkles className="h-4 w-4 animate-spin" />
+                <span className="hidden sm:inline">Generating...</span>
+                <span className="sm:hidden">Generating</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Generate Now</span>
+                <span className="sm:hidden">Generate</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </Card>
   );
