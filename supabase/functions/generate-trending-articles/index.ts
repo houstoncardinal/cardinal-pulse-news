@@ -95,46 +95,55 @@ Return ONLY a JSON object with this exact structure:
           throw new Error("Invalid JSON response from AI");
         }
 
-        // Generate hero image
-        console.log(`Generating image for: ${articleData.title}`);
-        const imagePrompt = `Create a professional, high-quality news article hero image for: "${articleData.title}". Style: modern journalism, clean, impactful, 16:9 aspect ratio.`;
-
-        const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [
-              { role: "user", content: imagePrompt }
-            ],
-            modalities: ["image", "text"]
-          }),
-        });
-
+        // Generate stunning hero image with OpenAI gpt-image-1
+        console.log(`Generating high-quality image for: ${articleData.title}`);
         let imageUrl = null;
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          const base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-          
-          if (base64Image) {
-            const base64Data = base64Image.split(",")[1];
-            const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-              .from("article-images")
-              .upload(fileName, imageBuffer, { contentType: "image/png" });
+        
+        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+        if (OPENAI_API_KEY) {
+          const imagePrompt = `Professional news photography for: ${articleData.title}. Style: Photorealistic, cinematic, high-quality journalism, dramatic lighting, ultra sharp, 16:9 aspect ratio. ${articleData.category} theme.`;
 
-            if (!uploadError && uploadData) {
-              const { data: { publicUrl } } = supabaseClient.storage
+          const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-image-1",
+              prompt: imagePrompt,
+              size: "1536x1024",
+              quality: "high",
+              output_format: "png",
+              n: 1
+            }),
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            const base64Image = imageData.data?.[0]?.b64_json;
+          
+            if (base64Image) {
+              const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
+              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+              
+              const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from("article-images")
-                .getPublicUrl(fileName);
-              imageUrl = publicUrl;
+                .upload(fileName, imageBuffer, { contentType: "image/png" });
+
+              if (!uploadError && uploadData) {
+                const { data: { publicUrl } } = supabaseClient.storage
+                  .from("article-images")
+                  .getPublicUrl(fileName);
+                imageUrl = publicUrl;
+                console.log('✓ High-quality image uploaded:', publicUrl);
+              }
             }
+          } else {
+            console.warn('OpenAI image generation failed, continuing without image');
           }
+        } else {
+          console.warn('OPENAI_API_KEY not set, skipping image generation');
         }
 
         // Generate slug
@@ -148,7 +157,8 @@ Return ONLY a JSON object with this exact structure:
         const wordCount = articleData.content.split(/\s+/).length;
         const readTime = Math.max(1, Math.round(wordCount / 200)) + " min read";
 
-        // Insert article
+        // Insert article - AUTO-PUBLISH
+        const now = new Date().toISOString();
         const { data: article, error: insertError } = await supabaseClient
           .from("articles")
           .insert({
@@ -159,21 +169,24 @@ Return ONLY a JSON object with this exact structure:
             category: articleData.category,
             author: "Hunain Qureshi",
             status: "published",
+            published_at: now,
             featured_image: imageUrl,
             image_url: imageUrl,
+            image_credit: imageUrl ? 'AI Generated (OpenAI GPT-Image-1)' : null,
             tags: articleData.tags,
             meta_description: articleData.meta_description,
             meta_keywords: articleData.meta_keywords,
             meta_title: articleData.title,
             read_time: readTime,
             word_count: wordCount,
-            published_at: new Date().toISOString(),
             og_title: articleData.title,
             og_description: articleData.excerpt,
             og_image: imageUrl,
           })
           .select()
           .single();
+
+        console.log(`✓ Published article by Hunain Qureshi: "${articleData.title}"`);
 
         if (insertError) {
           console.error(`Failed to insert article for ${topic}:`, insertError);
