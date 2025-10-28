@@ -15,6 +15,15 @@ const categories = [
   "AI & Innovation",
 ];
 
+const navigationLinks = [
+  { label: "Weather", path: "/weather", emoji: "🌍" },
+  ...categories.map(cat => ({ 
+    label: cat, 
+    path: `/category/${cat.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`,
+    emoji: null 
+  })),
+];
+
 export const Header = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,13 +52,14 @@ export const Header = () => {
             </SheetTrigger>
             <SheetContent side="left" className="w-72">
               <nav className="flex flex-col gap-4 mt-8">
-                {categories.map((category) => (
+                {navigationLinks.map((link) => (
                   <Link
-                    key={category}
-                    to={`/category/${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
-                    className="text-lg hover:text-primary transition-colors"
+                    key={link.label}
+                    to={link.path}
+                    className="text-lg hover:text-primary transition-colors flex items-center gap-2"
                   >
-                    {category}
+                    {link.emoji && <span>{link.emoji}</span>}
+                    {link.label}
                   </Link>
                 ))}
               </nav>
@@ -66,16 +76,6 @@ export const Header = () => {
               <span className="text-foreground">News</span>
             </h1>
           </Link>
-
-          {/* Desktop Quick Links */}
-          <div className="hidden lg:flex items-center gap-4 mx-8">
-            <Link 
-              to="/weather" 
-              className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex items-center gap-2"
-            >
-              🌍 Weather
-            </Link>
-          </div>
 
           {/* Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
@@ -95,13 +95,14 @@ export const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 mt-6 text-sm">
-          {categories.map((category) => (
+          {navigationLinks.map((link) => (
             <Link
-              key={category}
-              to={`/category/${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
-              className="hover:text-primary transition-colors font-medium whitespace-nowrap"
+              key={link.label}
+              to={link.path}
+              className="hover:text-primary transition-colors font-medium whitespace-nowrap flex items-center gap-1"
             >
-              {category}
+              {link.emoji && <span className="text-base">{link.emoji}</span>}
+              {link.label}
             </Link>
           ))}
         </nav>
