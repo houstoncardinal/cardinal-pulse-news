@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LanguageTranslator } from "@/components/LanguageTranslator";
+import { AccessibilityMenu } from "@/components/AccessibilityMenu";
 
 const categories = [
   "World",
@@ -136,6 +138,9 @@ export const Header = () => {
             <Button variant="ghost" size="icon" className="md:hidden">
               <Search className="h-5 w-5" />
             </Button>
+            
+            <AccessibilityMenu />
+            <LanguageTranslator />
             
             {user ? (
               <DropdownMenu>
