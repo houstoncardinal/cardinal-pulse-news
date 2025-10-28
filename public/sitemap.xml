@@ -1,14 +1,616 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Main Sitemap: All articles, categories, and static pages -->
-  <sitemap>
-    <loc>https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap</loc>
-    <lastmod>2025-10-28T10:00:00Z</lastmod>
-  </sitemap>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
   
-  <!-- Google News Sitemap: Last 48 hours only -->
-  <sitemap>
-    <loc>https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap?type=news</loc>
+  <!-- Static Pages -->
+  <url>
+    <loc>https://www.cardinal-news.com</loc>
     <lastmod>2025-10-28T10:00:00Z</lastmod>
-  </sitemap>
-</sitemapindex>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/weather</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Category Pages -->
+  <url>
+    <loc>https://www.cardinal-news.com/category/world</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/business</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/technology</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/sports</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/entertainment</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/music</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/movies</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/events</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/science</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/politics</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/ai-innovation</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/category/lifestyle</loc>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Articles with Google News Tags -->
+  <url>
+    <loc>https://www.cardinal-news.com/article/cody-beef-franke-a-barstool-legend-remembered-10k6nx</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:33:44Z</news:publication_date>
+      <news:title>Cody &apos;Beef&apos; Franke: A Barstool Legend Remembered</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:34:32Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/celtics-dominate-pelicans-in-early-season-showdown-iu3udk</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:33:17Z</news:publication_date>
+      <news:title>Celtics Dominate Pelicans in Early Season Showdown</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:33:17Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/amazon-announces-new-wave-of-layoffs-mrcz3t</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:32:54Z</news:publication_date>
+      <news:title>Amazon Announces New Wave of Layoffs</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:32:54Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/nuggets-timberwolves-set-for-western-conference-sh-92s1u6</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:32:33Z</news:publication_date>
+      <news:title>Nuggets, Timberwolves Set for Western Conference Showdown</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:35:54Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/mavericks-edge-thunder-in-thrilling-season-opener-cwwzjy</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:32:14Z</news:publication_date>
+      <news:title>Mavericks Edge Thunder in Thrilling Season Opener</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:32:14Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/warriors-dominate-grizzlies-in-season-opener-yzber1</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:31:48Z</news:publication_date>
+      <news:title>Warriors Dominate Grizzlies in Season Opener</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:31:48Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/lakers-dominate-blazers-in-season-opener-p9mr1z</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:31:25Z</news:publication_date>
+      <news:title>Lakers Dominate Blazers in Season Opener</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:31:25Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/chiefs-dominate-commanders-in-mnf-showdown-aken69</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:31:00Z</news:publication_date>
+      <news:title>Chiefs Dominate Commanders in MNF Showdown</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:31:04Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/dodgers-eyeing-world-series-glory-in-2025-g95ebf</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:30:39Z</news:publication_date>
+      <news:title>Dodgers Eyeing World Series Glory in 2025</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:30:39Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/jamaica-braces-for-severe-weather-onslaught-42ot5w</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T10:08:05Z</news:publication_date>
+      <news:title>Jamaica Braces for Severe Weather Onslaught</news:title>
+    </news:news>
+    <lastmod>2025-10-28T10:08:05Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/gta-vi-trailer-2-exclusive-release-date-revealed-8i2rvx</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:45:30Z</news:publication_date>
+      <news:title>GTA VI Trailer 2: Exclusive Release Date Revealed</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:45:30Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/gta-6-vice-city-reimagined-for-next-gen-gaming-ddbrmr</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:44:59Z</news:publication_date>
+      <news:title>GTA 6: Vice City Reimagined for Next-Gen Gaming</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:44:59Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/amd-s-rise-challenging-nvidia-in-ai-chip-market-4lsatc</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:44:35Z</news:publication_date>
+      <news:title>AMD&apos;s Rise: Challenging NVIDIA in AI Chip Market</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:44:35Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/nvidia-dominates-ai-chip-market-with-record-breakin-fnwmvg</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:44:13Z</news:publication_date>
+      <news:title>NVIDIA Dominates AI Chip Market with Record-Breaking Growth</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:44:13Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/deepseek-r1-ai-challenges-gpt-5-supremacy-y06bxd</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:43:53Z</news:publication_date>
+      <news:title>DeepSeek R1 AI Challenges GPT-5 Supremacy</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:43:53Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/ai-models-race-to-dominate-2025-landscape-i9p0xw</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:43:27Z</news:publication_date>
+      <news:title>AI Models Race to Dominate 2025 Landscape</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:43:27Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/deep-learning-redefining-future-of-artificial-inte-qo12zy</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:43:05Z</news:publication_date>
+      <news:title>Deep Learning: Redefining Future of Artificial Intelligence</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:43:05Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/llm-models-power-next-gen-ai-applications-e1z5e3</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:42:42Z</news:publication_date>
+      <news:title>LLM Models Power Next-Gen AI Applications</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:42:42Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/nvidia-unveils-blackwell-b300-ai-chip-revolutionizi-7f4nyx</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:42:21Z</news:publication_date>
+      <news:title>NVIDIA Unveils Blackwell B300 AI Chip, Revolutionizing Computing</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:42:21Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/nvidia-stock-soars-to-new-highs-on-ai-demand-0xm9ui</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:41:58Z</news:publication_date>
+      <news:title>NVIDIA Stock Soars to New Highs on AI Demand</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:41:58Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/amd-mi350-challenges-nvidia-in-ai-accelerator-race-33t4qr</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:41:33Z</news:publication_date>
+      <news:title>AMD MI350 Challenges NVIDIA in AI Accelerator Race</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:41:33Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/tesla-stock-skyrockets-on-autonomous-driving-breakth-0xq17a</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:41:12Z</news:publication_date>
+      <news:title>Tesla Stock Skyrockets on Autonomous Driving Breakthrough</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:41:12Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/apple-ai-strategy-unveiled-in-2025-roadmap-92rnxh</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:40:50Z</news:publication_date>
+      <news:title>Apple AI Strategy Unveiled in 2025 Roadmap</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:40:50Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/tesla-shares-surge-on-record-deliveries-outlook-eqqq9x</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:40:28Z</news:publication_date>
+      <news:title>Tesla Shares Surge on Record Deliveries Outlook</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:40:28Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/quantum-computing-leap-google-s-willow-chip-breakthro-hjqwqg</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:40:06Z</news:publication_date>
+      <news:title>Quantum Computing Leap: Google&apos;s Willow Chip Breakthrough</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:40:06Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/trump-s-2025-strategy-reshaping-american-politics-30k2sk</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:39:42Z</news:publication_date>
+      <news:title>Trump&apos;s 2025 Strategy: Reshaping American Politics</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:39:42Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/tesla-s-optimus-robot-set-to-revolutionize-manufactur-uxtb0z</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:39:20Z</news:publication_date>
+      <news:title>Tesla&apos;s Optimus Robot Set to Revolutionize Manufacturing</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:39:20Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/amazon-s-project-kuiper-takes-on-starlink-in-satellit-2hqhwh</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:38:58Z</news:publication_date>
+      <news:title>Amazon&apos;s Project Kuiper Takes on Starlink in Satellite Battle</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:38:58Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/meta-s-llama-4-redefines-open-source-ai-landscape-jt5tmf</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:38:36Z</news:publication_date>
+      <news:title>Meta&apos;s Llama 4 Redefines Open-Source AI Landscape</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:38:36Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/bitcoin-etfs-drive-cryptocurrency-mainstream-adoption-q9xjqk</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:38:14Z</news:publication_date>
+      <news:title>Bitcoin ETFs Drive Cryptocurrency Mainstream Adoption</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:38:14Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/spacex-starship-advances-mars-colonization-timeline-a8wczt</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:37:52Z</news:publication_date>
+      <news:title>SpaceX Starship Advances Mars Colonization Timeline</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:37:52Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/microsoft-s-ai-copilot-transforms-enterprise-productiv-c2oo8m</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:37:30Z</news:publication_date>
+      <news:title>Microsoft&apos;s AI Copilot Transforms Enterprise Productivity</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:37:30Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/openai-s-gpt-5-set-to-redefine-artificial-intelligenc-hgwq4j</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:37:08Z</news:publication_date>
+      <news:title>OpenAI&apos;s GPT-5 Set to Redefine Artificial Intelligence</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:37:08Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.cardinal-news.com/article/apple-s-vision-pro-2-anticipated-2025-release-pn4jkf</loc>
+    <news:news>
+      <news:publication>
+        <news:name>Cardinal News</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2025-10-28T09:36:46Z</news:publication_date>
+      <news:title>Apple&apos;s Vision Pro 2 Anticipated 2025 Release</news:title>
+    </news:news>
+    <lastmod>2025-10-28T09:36:46Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+</urlset>

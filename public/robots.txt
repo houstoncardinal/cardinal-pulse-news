@@ -43,10 +43,8 @@ Disallow: /admin
 Disallow: /auth
 Disallow: /api/
 
-# Sitemaps - Multiple formats for comprehensive indexing
+# Sitemap
 Sitemap: https://www.cardinal-news.com/sitemap.xml
-Sitemap: https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap
-Sitemap: https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap?type=news
 
 # Preferred domain
 Host: https://www.cardinal-news.com
