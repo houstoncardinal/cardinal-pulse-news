@@ -62,10 +62,25 @@ const articleTemplates = {
   ]
 };
 
-async function generateArticleContent(category: string, topic: string): Promise<any> {
+async function generateArticleContent(category: string, topic: string, existingTitles: string[]): Promise<any> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   
+  const timestamp = new Date().toISOString();
+  const uniquePerspectives = [
+    "exclusive insider analysis", "expert roundtable insights", "data-driven investigation",
+    "on-the-ground reporting", "comprehensive market analysis", "breaking developments",
+    "deep dive investigation", "industry expert perspective", "emerging trends analysis"
+  ];
+  const perspective = uniquePerspectives[Math.floor(Math.random() * uniquePerspectives.length)];
+  
   const systemPrompt = `You are an elite journalist writing for a prestigious news publication like Forbes or The New York Times. Create comprehensive, well-researched news articles with exceptional formatting.
+
+CRITICAL UNIQUENESS REQUIREMENTS:
+- Every article MUST have a completely unique angle and perspective
+- NEVER repeat similar story structures, headlines, or narrative approaches
+- Focus on fresh insights, unique data points, and original analysis
+- Vary your writing style, tone, and structure significantly between articles
+- Generate: ${timestamp} - ${perspective}
 
 CRITICAL HTML FORMATTING REQUIREMENTS:
 1. Start with a compelling lead paragraph wrapped in <p> tags (no heading above it)
@@ -81,19 +96,27 @@ CRITICAL HTML FORMATTING REQUIREMENTS:
 
 Write 800-1200 words of thoroughly researched-sounding content formatted for luxury publication standards.`;
 
+  const existingContext = existingTitles.length > 0 
+    ? `\n\nIMPORTANT: These titles already exist - your article MUST be completely different in angle and approach:\n${existingTitles.slice(-5).join('\n')}`
+    : '';
+
   const userPrompt = `Write a comprehensive, expertly formatted news article about: "${topic}"
 
 Category: ${category}
+Unique Perspective: ${perspective}
+${existingContext}
 
 Structure your article with:
-- A powerful opening paragraph that immediately engages the reader
-- At least 3-4 <h2> section headings with compelling titles
-- 2-3 <blockquote> elements containing impactful quotes from experts or stakeholders
+- A UNIQUE and powerful opening paragraph that immediately engages the reader with a fresh angle
+- At least 3-4 <h2> section headings with compelling, varied titles
+- 2-3 <blockquote> elements containing impactful quotes from different types of experts or stakeholders
 - <strong> emphasis on crucial information and key statistics
 - Specific details, data points, and context that demonstrate expertise
-- Professional analysis and implications
+- Professional analysis and implications from a unique viewpoint
 - Lists (<ul> or <ol>) where appropriate for clarity
 - A concluding section with forward-looking insights
+
+CRITICAL: Make this article distinctly different from any other article on similar topics. Find a unique angle, use different examples, and provide fresh insights.
 
 Format everything with proper HTML tags: <p>, <h2>, <h3>, <blockquote>, <strong>, <ul>, <ol>. Make it read like a premium news publication.`;
 
@@ -165,6 +188,15 @@ serve(async (req) => {
 
     console.log(`Generating ${articlesPerCategory} articles per category...`);
 
+    // Fetch existing article titles to avoid duplication
+    const { data: existingArticles } = await supabase
+      .from('articles')
+      .select('title')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    const existingTitles = existingArticles?.map(a => a.title) || [];
+
     const allArticles = [];
     const results = [];
 
@@ -177,7 +209,20 @@ serve(async (req) => {
         try {
           console.log(`Generating article for ${category}: ${topic}`);
           
-          const article = await generateArticleContent(category, topic);
+          const article = await generateArticleContent(category, topic, existingTitles);
+          
+          // Check if this title is too similar to existing ones
+          const similarTitle = existingTitles.find(existing => 
+            existing.toLowerCase().includes(article.title.toLowerCase().substring(0, 20)) ||
+            article.title.toLowerCase().includes(existing.toLowerCase().substring(0, 20))
+          );
+          
+          if (similarTitle) {
+            console.log(`⚠️ Skipping duplicate/similar article: "${article.title}"`);
+            continue;
+          }
+          
+          existingTitles.push(article.title);
           
           // Fetch real news image from web
           console.log(`🔍 Searching for real news images for: ${topic}`);

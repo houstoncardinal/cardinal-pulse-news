@@ -33,6 +33,18 @@ serve(async (req) => {
     
     console.log('Generating article for trending topic:', trendingTopicId);
 
+    // Fetch existing article titles to avoid duplication
+    const { data: existingArticles } = await supabaseClient
+      .from('articles')
+      .select('title')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    const existingTitles = existingArticles?.map(a => a.title) || [];
+    const existingContext = existingTitles.length > 0 
+      ? `\n\nCRITICAL UNIQUENESS REQUIREMENT: These titles already exist in our system - your article MUST have a completely different headline and unique angle:\n${existingTitles.slice(-10).join('\n')}\n\nYou MUST find a fresh perspective that makes your article stand out from these existing pieces.`
+      : '';
+
     // Fetch the trending topic
     const { data: topic, error: topicError } = await supabaseClient
       .from('trending_topics')
@@ -43,6 +55,14 @@ serve(async (req) => {
     if (topicError || !topic) {
       throw new Error('Trending topic not found');
     }
+
+    const timestamp = new Date().toISOString();
+    const uniqueFrameworks = [
+      "investigative analysis", "expert roundtable", "data-driven report",
+      "comprehensive overview", "critical examination", "industry insider view",
+      "breaking coverage", "impact study", "trend forecast", "detailed investigation"
+    ];
+    const framework = uniqueFrameworks[Math.floor(Math.random() * uniqueFrameworks.length)];
 
     // Generate article using Lovable AI
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -64,11 +84,19 @@ serve(async (req) => {
             role: 'system',
             content: `You are a professional news journalist for Cardinal News. Write compelling, accurate, SEO-optimized news articles based on trending topics. 
             
+            CRITICAL UNIQUENESS MANDATE:
+            - Every article must present a UNIQUE angle and perspective
+            - Headlines must be distinctly different from existing articles
+            - Focus on fresh insights, original analysis, and unexplored angles
+            - Vary narrative structure, tone, and approach significantly
+            - Generation Framework: ${framework}
+            - Timestamp: ${timestamp}
+            
             Your output MUST be valid JSON with this exact structure:
             {
-              "title": "Compelling headline under 60 characters",
-              "excerpt": "Brief summary under 160 characters",
-              "content": "Full article content in HTML format (1000-1500 words). Use proper HTML tags: <h2> for main sections, <h3> for subsections, <p> for paragraphs, <blockquote> for powerful quotes or key statements. Include impactful quotes from experts or key figures when relevant. Structure with clear sections and compelling subheadings. Write in an engaging, professional journalistic style with strong narrative flow.",
+              "title": "UNIQUE and compelling headline under 60 characters",
+              "excerpt": "Brief summary with fresh perspective under 160 characters",
+              "content": "Full article content in HTML format (1000-1500 words). Use proper HTML tags: <h2> for main sections, <h3> for subsections, <p> for paragraphs, <blockquote> for powerful quotes or key statements. Include impactful quotes from experts or key figures when relevant. Structure with clear sections and compelling subheadings. Write in an engaging, professional journalistic style with strong narrative flow and ORIGINAL insights.",
               "metaTitle": "SEO-optimized title under 60 characters",
               "metaDescription": "SEO description under 160 characters",
               "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
@@ -107,8 +135,13 @@ serve(async (req) => {
             Keywords: ${topic.keywords?.join(', ') || 'N/A'}
             Related queries: ${topic.related_queries?.join(', ') || 'N/A'}
             ${topic.trend_data ? `Additional context: ${JSON.stringify(topic.trend_data)}` : ''}
+            ${existingContext}
             
-            Make it comprehensive, engaging, and SEO-optimized with proper source citations. Return ONLY valid JSON, no additional text.`
+            Framework: ${framework}
+            
+            Make it comprehensive, engaging, and SEO-optimized with proper source citations. 
+            CRITICAL: Your article MUST present a unique angle not covered in existing articles. Find fresh insights and original perspectives.
+            Return ONLY valid JSON, no additional text.`
           }
         ],
         temperature: 0.7,
@@ -201,6 +234,17 @@ serve(async (req) => {
       "datePublished": new Date().toISOString(),
       "keywords": articleData.metaKeywords?.join(', '),
     };
+
+    // Check for duplicate or similar titles
+    const similarTitle = existingTitles.find(existing => 
+      existing.toLowerCase().includes(articleData.title.toLowerCase().substring(0, 25)) ||
+      articleData.title.toLowerCase().includes(existing.toLowerCase().substring(0, 25))
+    );
+    
+    if (similarTitle) {
+      console.log(`⚠️ Skipping duplicate/similar article: "${articleData.title}" (similar to: "${similarTitle}")`);
+      throw new Error(`Article title too similar to existing: "${similarTitle}"`);
+    }
 
     // Insert article into database - AUTO-PUBLISH
     const now = new Date().toISOString();

@@ -29,29 +29,56 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
+    // Fetch existing article titles to avoid duplication
+    const { data: existingArticles } = await supabaseClient
+      .from('articles')
+      .select('title')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    const existingTitles = existingArticles?.map(a => a.title) || [];
+
     const results = [];
 
     for (const topic of topics) {
       try {
         console.log(`Generating article for: ${topic}`);
 
+        const timestamp = new Date().toISOString();
+        const uniqueAngles = [
+          "exclusive breaking analysis", "investigative deep dive", "expert consensus report",
+          "comprehensive market update", "emerging patterns analysis", "insider perspective",
+          "critical examination", "trend analysis report", "impact assessment study"
+        ];
+        const angle = uniqueAngles[Math.floor(Math.random() * uniqueAngles.length)];
+
+        const existingContext = existingTitles.length > 0 
+          ? `\n\nCRITICAL: These titles already exist - your article MUST have a completely different headline and angle:\n${existingTitles.slice(-10).join('\n')}`
+          : '';
+
         // Generate article content with Lovable AI
         const contentPrompt = `You are Hunain Qureshi, a powerful and compelling news writer. Write a comprehensive, engaging news article about: "${topic}"
 
+Unique Angle: ${angle}
+Generation Timestamp: ${timestamp}
+${existingContext}
+
 The article should be:
 - 800-1200 words
-- Professional yet captivating
-- Include relevant context and background
-- Well-structured with clear sections
-- Written in an authoritative voice
-- Include relevant statistics or details where appropriate
+- Professional yet captivating with a UNIQUE perspective
+- Include relevant context and background NOT covered in existing articles
+- Well-structured with clear sections using varied heading styles
+- Written in an authoritative voice with distinctive insights
+- Include relevant statistics, data points, or details that are specific and fresh
+- MUST have a completely unique headline that doesn't resemble existing articles
+- Focus on a different aspect or angle of the topic than typical coverage
 
 Return ONLY a JSON object with this exact structure:
 {
-  "title": "Compelling headline",
-  "excerpt": "Engaging 2-3 sentence summary",
-  "content": "Full article content with proper formatting",
-  "category": "sports|technology|business|entertainment|world|politics",
+  "title": "Compelling, UNIQUE headline that stands out",
+  "excerpt": "Engaging 2-3 sentence summary with fresh perspective",
+  "content": "Full article content with proper formatting and unique insights",
+  "category": "sports|technology|business|entertainment|world|politics|ai-innovation|science",
   "tags": ["tag1", "tag2", "tag3"],
   "meta_description": "SEO-optimized description (150-160 chars)",
   "meta_keywords": ["keyword1", "keyword2", "keyword3"]
@@ -118,6 +145,24 @@ Return ONLY a JSON object with this exact structure:
         } catch (imageError) {
           console.error('Image fetch failed:', imageError);
         }
+
+        // Check if this title is too similar to existing ones
+        const similarTitle = existingTitles.find(existing => 
+          existing.toLowerCase().includes(articleData.title.toLowerCase().substring(0, 25)) ||
+          articleData.title.toLowerCase().includes(existing.toLowerCase().substring(0, 25))
+        );
+        
+        if (similarTitle) {
+          console.log(`⚠️ Skipping duplicate/similar article: "${articleData.title}"`);
+          results.push({
+            topic,
+            success: false,
+            error: `Title too similar to existing article: "${similarTitle}"`
+          });
+          continue;
+        }
+        
+        existingTitles.push(articleData.title);
 
         // Generate slug
         const slug = articleData.title
