@@ -6,6 +6,7 @@ import { useArticles } from "@/hooks/useArticles";
 import { useState } from "react";
 import { AdvancedArticleEditor } from "./AdvancedArticleEditor";
 import { UpdateAuthorButton } from "./UpdateAuthorButton";
+import { GenerateWorldwideArticles } from "./GenerateWorldwideArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -41,6 +42,9 @@ export const ArticlesPanel = () => {
     <>
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Published Articles</h2>
+        
+        {/* Worldwide Article Generator */}
+        <GenerateWorldwideArticles />
         
         {/* Update Author Button */}
         <Card className="p-6 bg-muted/50">

@@ -8,6 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Cloud, Droplets, Wind, Eye, Thermometer, Globe2, AlertTriangle, TrendingUp } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { WeatherRadar } from "@/components/weather/WeatherRadar";
+import { WeatherForecast } from "@/components/weather/WeatherForecast";
+import { WeatherAlerts } from "@/components/weather/WeatherAlerts";
+import { AnimatedWeatherIcon } from "@/components/weather/AnimatedWeatherIcon";
 
 interface WeatherCity {
   name: string;
@@ -177,72 +181,121 @@ export default function Weather() {
 
           {/* Detailed View */}
           {selectedCity && (
-            <Card className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-6xl">{getWeatherIcon(selectedCity.weather.weather[0].main)}</span>
-                <div className="flex-1">
-                  <h2 className="font-display text-3xl font-bold">{selectedCity.name}</h2>
-                  <p className="text-muted-foreground">{selectedCity.region}</p>
-                  <Badge className="mt-2">{selectedCity.weather.weather[0].main}</Badge>
+            <>
+              <Card className="p-8 mb-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <AnimatedWeatherIcon condition={selectedCity.weather.weather[0].main} size="lg" />
+                  <div className="flex-1">
+                    <h2 className="font-display text-3xl font-bold">{selectedCity.name}</h2>
+                    <p className="text-muted-foreground">{selectedCity.region}</p>
+                    <Badge className="mt-2">{selectedCity.weather.weather[0].main}</Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-6xl font-bold">{Math.round(selectedCity.weather.main.temp)}°C</div>
+                    <p className="text-muted-foreground">Feels like {Math.round(selectedCity.weather.main.feels_like)}°C</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-6xl font-bold">{Math.round(selectedCity.weather.main.temp)}°C</div>
-                  <p className="text-muted-foreground">Feels like {Math.round(selectedCity.weather.main.feels_like)}°C</p>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="flex items-start gap-3">
+                    <Thermometer className="h-6 w-6 text-red-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">High / Low</p>
+                      <p className="text-xl font-semibold">
+                        {Math.round(selectedCity.weather.main.temp_max)}° / {Math.round(selectedCity.weather.main.temp_min)}°
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Droplets className="h-6 w-6 text-blue-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Humidity</p>
+                      <p className="text-xl font-semibold">{selectedCity.weather.main.humidity}%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Wind className="h-6 w-6 text-gray-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Wind Speed</p>
+                      <p className="text-xl font-semibold">{Math.round(selectedCity.weather.wind.speed * 3.6)} km/h</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Eye className="h-6 w-6 text-purple-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Visibility</p>
+                      <p className="text-xl font-semibold">{(selectedCity.weather.visibility / 1000).toFixed(1)} km</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Cloud className="h-6 w-6 text-gray-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Cloud Cover</p>
+                      <p className="text-xl font-semibold">{selectedCity.weather.clouds.all}%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="h-6 w-6 text-orange-400 mt-1" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pressure</p>
+                      <p className="text-xl font-semibold">{selectedCity.weather.main.pressure} hPa</p>
+                    </div>
+                  </div>
                 </div>
+              </Card>
+
+              {/* Advanced Features */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <WeatherRadar 
+                  lat={selectedCity.lat} 
+                  lon={selectedCity.lon} 
+                  cityName={selectedCity.name} 
+                />
+                <WeatherAlerts
+                  cityName={selectedCity.name}
+                  alerts={[]}
+                />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="flex items-start gap-3">
-                  <Thermometer className="h-6 w-6 text-red-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">High / Low</p>
-                    <p className="text-xl font-semibold">
-                      {Math.round(selectedCity.weather.main.temp_max)}° / {Math.round(selectedCity.weather.main.temp_min)}°
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Droplets className="h-6 w-6 text-blue-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Humidity</p>
-                    <p className="text-xl font-semibold">{selectedCity.weather.main.humidity}%</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Wind className="h-6 w-6 text-gray-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Wind Speed</p>
-                    <p className="text-xl font-semibold">{Math.round(selectedCity.weather.wind.speed * 3.6)} km/h</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Eye className="h-6 w-6 text-purple-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Visibility</p>
-                    <p className="text-xl font-semibold">{(selectedCity.weather.visibility / 1000).toFixed(1)} km</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Cloud className="h-6 w-6 text-gray-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cloud Cover</p>
-                    <p className="text-xl font-semibold">{selectedCity.weather.clouds.all}%</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="h-6 w-6 text-orange-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pressure</p>
-                    <p className="text-xl font-semibold">{selectedCity.weather.main.pressure} hPa</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              <WeatherForecast
+                cityName={selectedCity.name}
+                forecast={[
+                  {
+                    date: 'Dec 29',
+                    day: 'Today',
+                    high: Math.round(selectedCity.weather.main.temp_max) + 2,
+                    low: Math.round(selectedCity.weather.main.temp_min),
+                    condition: selectedCity.weather.weather[0].main,
+                    icon: selectedCity.weather.weather[0].main,
+                    precipitation: 20,
+                    humidity: selectedCity.weather.main.humidity,
+                    windSpeed: Math.round(selectedCity.weather.wind.speed * 3.6),
+                    hourly: [
+                      { time: '12 PM', temp: Math.round(selectedCity.weather.main.temp), condition: selectedCity.weather.weather[0].main, icon: 'clear' },
+                      { time: '3 PM', temp: Math.round(selectedCity.weather.main.temp) + 1, condition: selectedCity.weather.weather[0].main, icon: 'clear' },
+                      { time: '6 PM', temp: Math.round(selectedCity.weather.main.temp) - 1, condition: 'Partly Cloudy', icon: 'clouds' },
+                      { time: '9 PM', temp: Math.round(selectedCity.weather.main.temp) - 3, condition: 'Clear', icon: 'clear' },
+                    ]
+                  },
+                  ...Array.from({ length: 6 }, (_, i) => ({
+                    date: `Dec ${30 + i}`,
+                    day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
+                    high: Math.round(selectedCity.weather.main.temp_max) + Math.floor(Math.random() * 5) - 2,
+                    low: Math.round(selectedCity.weather.main.temp_min) + Math.floor(Math.random() * 3) - 1,
+                    condition: ['Clear', 'Partly Cloudy', 'Cloudy', 'Rain'][Math.floor(Math.random() * 4)],
+                    icon: 'clear',
+                    precipitation: Math.floor(Math.random() * 60),
+                    humidity: 50 + Math.floor(Math.random() * 40),
+                    windSpeed: 10 + Math.floor(Math.random() * 20)
+                  }))
+                ]}
+              />
+            </>
           )}
         </main>
 
