@@ -44,13 +44,13 @@ export const Header = () => {
             <SheetContent side="left" className="w-72">
               <nav className="flex flex-col gap-4 mt-8">
                 {categories.map((category) => (
-                  <a
+                  <Link
                     key={category}
-                    href="#"
+                    to={`/category/${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
                     className="text-lg hover:text-primary transition-colors"
                   >
                     {category}
-                  </a>
+                  </Link>
                 ))}
               </nav>
             </SheetContent>
@@ -86,13 +86,13 @@ export const Header = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 mt-6 text-sm">
           {categories.map((category) => (
-            <a
+            <Link
               key={category}
-              href="#"
+              to={`/category/${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
               className="hover:text-primary transition-colors font-medium whitespace-nowrap"
             >
               {category}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

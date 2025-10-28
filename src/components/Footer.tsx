@@ -1,6 +1,7 @@
 import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 
 const footerLinks = {
   Company: ["About Us", "Careers", "Contact", "Press Kit"],
@@ -37,16 +38,32 @@ export const Footer = () => {
             <div key={category}>
               <h4 className="font-semibold mb-4">{category}</h4>
               <ul className="space-y-2">
-                {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
+                {links.map((link) => {
+                  const isCategory = category === "Categories";
+                  const href = isCategory 
+                    ? `/category/${link.toLowerCase()}` 
+                    : "#";
+                  
+                  return (
+                    <li key={link}>
+                      {isCategory ? (
+                        <Link
+                          to={href}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {link}
+                        </Link>
+                      ) : (
+                        <a
+                          href={href}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {link}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
