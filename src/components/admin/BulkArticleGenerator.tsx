@@ -86,7 +86,7 @@ nuggets vs timberwolves`;
               Bulk Article Generator
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Generate powerful articles by Hunain Qureshi
+              Auto-generate & publish articles by Hunain Qureshi with AI-powered images
             </p>
           </div>
           <Zap className="h-8 w-8 text-primary animate-pulse" />
