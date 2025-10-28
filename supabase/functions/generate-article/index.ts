@@ -306,7 +306,7 @@ Generate an image that readers will immediately recognize as related to this spe
         excerpt: articleData.excerpt,
         content: articleData.content,
         category: articleData.category || 'world',
-        author: 'Cardinal AI',
+        author: 'Hunain Qureshi',
         tags: articleData.tags || [],
         meta_title: articleData.metaTitle,
         meta_description: articleData.metaDescription,

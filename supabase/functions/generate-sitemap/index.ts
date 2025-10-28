@@ -49,6 +49,7 @@ ${articles?.map(article => `  <url>
       <news:publication_date>${article.published_at}</news:publication_date>
       <news:title>${escapeXml(article.title)}</news:title>
       <news:keywords>${escapeXml(article.meta_keywords?.join(', ') || '')}</news:keywords>
+      <news:stock_tickers>${escapeXml(extractStockTickers(article.meta_keywords || []))}</news:stock_tickers>
     </news:news>
     <lastmod>${article.updated_at || article.published_at}</lastmod>
     <changefreq>hourly</changefreq>
@@ -85,7 +86,8 @@ ${articles?.map(article => `  <url>
     // Category pages
     const categories = [
       'world', 'business', 'technology', 'sports', 
-      'entertainment', 'science', 'politics', 'ai-innovation'
+      'entertainment', 'music', 'movies', 'events',
+      'science', 'politics', 'ai-innovation', 'lifestyle'
     ];
     const categoryPages = categories.map(cat => ({
       loc: `${baseUrl}/category/${cat}`,
@@ -160,4 +162,12 @@ function escapeXml(unsafe: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+function extractStockTickers(keywords: string[]): string {
+  // Extract potential stock tickers (uppercase 1-5 letter words)
+  const tickers = keywords
+    .filter(k => /^[A-Z]{1,5}$/.test(k))
+    .join(', ');
+  return tickers;
 }

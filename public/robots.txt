@@ -1,7 +1,7 @@
 # Cardinal News - Robots.txt
 # Optimized for maximum crawl efficiency and Google News inclusion
 
-# Google News Bot - Full access
+# Google News Bot - Full access with priority
 User-agent: Googlebot-News
 Allow: /
 Crawl-delay: 0
@@ -16,7 +16,7 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
 
-# Social Media Crawlers
+# Social Media Crawlers - Full access for sharing
 User-agent: Twitterbot
 Allow: /
 
@@ -36,14 +36,17 @@ Allow: /
 # All other bots
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /auth
 Crawl-delay: 2
 
-# Sitemaps
+# Disallow admin and auth pages
+Disallow: /admin
+Disallow: /auth
+Disallow: /api/
+
+# Sitemaps - Multiple formats for comprehensive indexing
 Sitemap: https://www.cardinal-news.com/sitemap.xml
-Sitemap: https://www.cardinal-news.com/news-sitemap.xml
+Sitemap: https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap
+Sitemap: https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap?type=news
 
 # Preferred domain
 Host: https://www.cardinal-news.com

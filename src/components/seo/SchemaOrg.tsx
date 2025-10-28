@@ -48,7 +48,7 @@ export const SchemaOrg = ({ type, article, categoryName, url }: SchemaOrgProps) 
     "image": {
       "@id": `${baseUrl}/#logo`
     },
-    "description": "Cardinal News delivers real-time breaking news, in-depth analysis, and comprehensive coverage of world events, business, technology, sports, politics, and more. Your trusted source for AI-powered journalism.",
+    "description": "Cardinal News delivers real-time breaking news, in-depth analysis, and comprehensive coverage of world events, business, technology, sports, politics, and more. Trusted journalism by Hunain Qureshi.",
     "sameAs": [
       "https://twitter.com/cardinalnews",
       "https://facebook.com/cardinalnews",
@@ -115,8 +115,16 @@ export const SchemaOrg = ({ type, article, categoryName, url }: SchemaOrgProps) 
       "dateCreated": article.created_at,
       "author": {
         "@type": "Person",
-        "name": article.author || "Cardinal AI",
-        "url": `${baseUrl}/author/${(article.author || 'cardinal-ai').toLowerCase().replace(/\s+/g, '-')}`
+        "name": article.author || "Hunain Qureshi",
+        "url": `${baseUrl}/author/${(article.author || 'hunain-qureshi').toLowerCase().replace(/\s+/g, '-')}`,
+        "sameAs": [
+          "https://twitter.com/hunainqureshi",
+          "https://linkedin.com/in/hunainqureshi"
+        ],
+        "jobTitle": "Chief Editor & Journalist",
+        "worksFor": {
+          "@id": `${baseUrl}/#organization`
+        }
       },
       "publisher": {
         "@id": `${baseUrl}/#organization`
@@ -127,6 +135,11 @@ export const SchemaOrg = ({ type, article, categoryName, url }: SchemaOrgProps) 
         "@id": `${baseUrl}/#website`
       },
       "articleSection": article.category,
+      "about": {
+        "@type": "Thing",
+        "name": article.category,
+        "sameAs": `https://www.wikidata.org/wiki/${getCategoryWikidata(article.category)}`
+      },
       "keywords": article.meta_keywords?.join(", "),
       "wordCount": article.word_count,
       "inLanguage": "en-US",
@@ -227,6 +240,23 @@ export const SchemaOrg = ({ type, article, categoryName, url }: SchemaOrgProps) 
   
   const collectionSchema = getCollectionPageSchema();
   if (collectionSchema) allSchemas.push(collectionSchema);
+
+  // Helper function for Wikidata links
+  function getCategoryWikidata(category: string): string {
+    const wikidataMap: Record<string, string> = {
+      'world': 'Q16502',
+      'business': 'Q4830453',
+      'technology': 'Q11024',
+      'sports': 'Q349',
+      'entertainment': 'Q173799',
+      'science': 'Q336',
+      'politics': 'Q7163',
+      'music': 'Q638',
+      'movies': 'Q11424',
+      'events': 'Q1656682'
+    };
+    return wikidataMap[category.toLowerCase()] || 'Q1656682';
+  }
 
   return (
     <Helmet>

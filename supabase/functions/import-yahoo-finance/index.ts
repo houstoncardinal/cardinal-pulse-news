@@ -257,7 +257,7 @@ Write a full, original article that expands on this story with analysis, context
           excerpt: articleData.excerpt,
           content: articleData.content,
           category: mapCategoryToCardinal(category),
-          author: 'Cardinal AI',
+          author: 'Hunain Qureshi',
           tags: articleData.tags || article.category || ['finance', 'business'],
           meta_title: articleData.metaTitle,
           meta_description: articleData.metaDescription,

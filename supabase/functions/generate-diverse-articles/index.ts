@@ -141,7 +141,7 @@ Format everything with proper HTML tags: <p>, <h2>, <h3>, <blockquote>, <strong>
     category,
     word_count: wordCount,
     read_time: readTime,
-    author: 'Cardinal AI',
+    author: 'Hunain Qureshi',
     status: 'published',
     published_at: new Date().toISOString(),
     meta_title: title,
