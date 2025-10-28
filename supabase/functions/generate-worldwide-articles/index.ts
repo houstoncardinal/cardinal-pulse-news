@@ -31,19 +31,43 @@ serve(async (req) => {
       .select()
       .single();
 
-    // Define regions to scan
-    const regions = ['US', 'GB', 'DE', 'JP', 'AU', 'CA', 'FR', 'IT', 'ES', 'BR', 'IN', 'ZA'];
+    // Define regions and major cities to scan for hyper-local content
+    const regions = [
+      'US', 'GB', 'DE', 'JP', 'AU', 'CA', 'FR', 'IT', 'ES', 'BR', 'IN', 'ZA',
+      'MX', 'AR', 'KR', 'SG', 'AE', 'NL', 'CH', 'SE', 'NO', 'DK', 'FI',
+      'BE', 'AT', 'IE', 'NZ', 'TH', 'MY', 'PH', 'ID', 'VN', 'CL', 'CO', 'PE'
+    ];
+    
+    // City-specific regions for major metropolitan areas
+    const cityRegions = [
+      { code: 'US-NY', name: 'New York' },
+      { code: 'US-CA', name: 'Los Angeles' },
+      { code: 'US-IL', name: 'Chicago' },
+      { code: 'US-TX', name: 'Houston' },
+      { code: 'US-FL', name: 'Miami' },
+      { code: 'GB-LND', name: 'London' },
+      { code: 'FR-J', name: 'Paris' },
+      { code: 'DE-BE', name: 'Berlin' },
+      { code: 'JP-13', name: 'Tokyo' },
+      { code: 'AU-NSW', name: 'Sydney' },
+      { code: 'CA-ON', name: 'Toronto' },
+      { code: 'BR-SP', name: 'Sao Paulo' },
+      { code: 'IN-DL', name: 'Delhi' },
+      { code: 'MX-CMX', name: 'Mexico City' },
+      { code: 'SG', name: 'Singapore' },
+      { code: 'AE-DU', name: 'Dubai' },
+    ];
     
     let totalTrends = 0;
     let totalArticles = 0;
 
-    // Fetch trends from each region
+    // Fetch trends from each country region
     for (const region of regions) {
       try {
-        console.log(`📍 Fetching trends from ${region}...`);
+        console.log(`📍 Fetching country trends from ${region}...`);
         
         const { data: trendsData, error: trendsError } = await supabaseClient.functions.invoke('fetch-trends', {
-          body: { region, limit: 5 }
+          body: { region, limit: 3 }
         });
 
         if (trendsError) {
@@ -53,17 +77,43 @@ serve(async (req) => {
 
         if (trendsData?.topicsAdded) {
           totalTrends += trendsData.topicsAdded;
-          console.log(`✓ Added ${trendsData.topicsAdded} trends from ${region}`);
+          console.log(`✓ Added ${trendsData.topicsAdded} country trends from ${region}`);
         }
 
         // Add small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (regionError) {
         console.error(`Error processing region ${region}:`, regionError);
       }
     }
 
-    console.log(`✓ Scanned ${regions.length} regions, found ${totalTrends} new trends`);
+    // Fetch city-specific trends for major metros
+    for (const city of cityRegions) {
+      try {
+        console.log(`🏙️ Fetching city trends from ${city.name} (${city.code})...`);
+        
+        const { data: trendsData, error: trendsError } = await supabaseClient.functions.invoke('fetch-trends', {
+          body: { region: city.code, limit: 5 }
+        });
+
+        if (trendsError) {
+          console.error(`❌ Error fetching trends from ${city.name}:`, trendsError);
+          continue;
+        }
+
+        if (trendsData?.topicsAdded) {
+          totalTrends += trendsData.topicsAdded;
+          console.log(`✓ Added ${trendsData.topicsAdded} local trends from ${city.name}`);
+        }
+
+        // Add small delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      } catch (cityError) {
+        console.error(`Error processing city ${city.name}:`, cityError);
+      }
+    }
+
+    console.log(`✓ Scanned ${regions.length} countries + ${cityRegions.length} major cities, found ${totalTrends} new trends`);
 
     // Wait for trends to be inserted
     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -157,10 +207,12 @@ serve(async (req) => {
           status: 'completed',
           completed_at: new Date().toISOString(),
           result: { 
-            regionsScanned: regions.length,
+            countriesScanned: regions.length,
+            citiesScanned: cityRegions.length,
+            totalRegions: regions.length + cityRegions.length,
             totalTrends,
             totalArticles,
-            message: `Successfully generated ${totalArticles} articles from ${totalTrends} worldwide trends`
+            message: `Successfully generated ${totalArticles} articles from ${totalTrends} worldwide and local trends`
           }
         })
         .eq('id', job.id);
@@ -169,8 +221,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: `Generated ${totalArticles} articles from ${totalTrends} worldwide trends`,
-        regionsScanned: regions.length,
+        message: `Generated ${totalArticles} articles from ${totalTrends} worldwide and local trends`,
+        countriesScanned: regions.length,
+        citiesScanned: cityRegions.length,
+        totalRegions: regions.length + cityRegions.length,
         totalTrends,
         totalArticles
       }),

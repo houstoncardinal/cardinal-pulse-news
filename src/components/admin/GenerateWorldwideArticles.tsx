@@ -77,29 +77,29 @@ export const GenerateWorldwideArticles = () => {
 
       <Alert className="bg-blue-500/5 border-blue-500/20">
         <AlertDescription className="text-sm">
-          <strong>How it works:</strong> This will scan Google Trends from 12+ countries worldwide 
-          (US, UK, Germany, Japan, Australia, Canada, France, Italy, Spain, Brazil, India, South Africa), 
-          identify trending topics across all categories, and automatically generate high-quality articles 
-          written by Hunain Qureshi with AI-generated hero images.
+          <strong>How it works:</strong> This will scan Google Trends from 30+ countries worldwide 
+          AND major cities (NY, LA, Chicago, Houston, Miami, London, Paris, Tokyo, etc.), 
+          identify trending topics across all categories, and automatically generate hyper-local articles 
+          with AI-generated hero images.
         </AlertDescription>
       </Alert>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center p-4 bg-muted rounded-lg">
-          <p className="text-2xl font-bold text-primary">12+</p>
+          <p className="text-2xl font-bold text-primary">30+</p>
           <p className="text-xs text-muted-foreground mt-1">Countries</p>
         </div>
         <div className="text-center p-4 bg-muted rounded-lg">
-          <p className="text-2xl font-bold text-primary">50+</p>
-          <p className="text-xs text-muted-foreground mt-1">Trends per Scan</p>
+          <p className="text-2xl font-bold text-primary">16</p>
+          <p className="text-xs text-muted-foreground mt-1">Major Cities</p>
         </div>
         <div className="text-center p-4 bg-muted rounded-lg">
-          <p className="text-2xl font-bold text-primary">Auto</p>
-          <p className="text-xs text-muted-foreground mt-1">Publishing</p>
+          <p className="text-2xl font-bold text-primary">200+</p>
+          <p className="text-xs text-muted-foreground mt-1">Trends Scanned</p>
         </div>
         <div className="text-center p-4 bg-muted rounded-lg">
-          <p className="text-2xl font-bold text-primary">AI</p>
-          <p className="text-xs text-muted-foreground mt-1">Images</p>
+          <p className="text-2xl font-bold text-primary">Local</p>
+          <p className="text-xs text-muted-foreground mt-1">City Stories</p>
         </div>
       </div>
 
@@ -131,17 +131,21 @@ export const GenerateWorldwideArticles = () => {
                 </p>
                 {result.success && (
                   <>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="grid grid-cols-4 gap-2 text-sm">
                       <div>
-                        <p className="text-muted-foreground">Regions Scanned</p>
-                        <p className="font-bold">{result.regionsScanned}</p>
+                        <p className="text-muted-foreground">Countries</p>
+                        <p className="font-bold">{result.countriesScanned || result.regionsScanned}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Trends Found</p>
+                        <p className="text-muted-foreground">Cities</p>
+                        <p className="font-bold">{result.citiesScanned || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Trends</p>
                         <p className="font-bold">{result.totalTrends}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Articles Created</p>
+                        <p className="text-muted-foreground">Articles</p>
                         <p className="font-bold text-primary">{result.totalArticles}</p>
                       </div>
                     </div>
