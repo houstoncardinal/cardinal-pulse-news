@@ -222,17 +222,6 @@ const Auth = () => {
               ← Back to Home
             </Link>
           </div>
-
-          {/* TEMPORARY TESTING BYPASS - REMOVE IN PRODUCTION */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <Button 
-              onClick={() => navigate("/admin")}
-              variant="outline"
-              className="w-full border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
-            >
-              ⚠️ Bypass Auth (Testing Only)
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

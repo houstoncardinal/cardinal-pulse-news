@@ -7,37 +7,37 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.import-yahoo-finance]
-verify_jwt = false
+verify_jwt = true
 
 [functions.regenerate-yahoo-articles]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-diverse-articles]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-sitemap]
 verify_jwt = false
 
 [functions.fetch-trends]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-article]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-trending-articles]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-jamaica-weather-story]
-verify_jwt = false
+verify_jwt = true
 
 [functions.publish-article]
-verify_jwt = false
+verify_jwt = true
 
 [functions.run-automation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-article-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.setup-super-admin]
 verify_jwt = false
@@ -52,4 +52,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-worldwide-articles]
-verify_jwt = false
+verify_jwt = true
