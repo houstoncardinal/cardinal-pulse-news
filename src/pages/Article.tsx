@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileToolbar } from "@/components/MobileToolbar";
 import { ArticleContent } from "@/components/ArticleContent";
+import { ImageAttribution } from "@/components/ImageAttribution";
 import { AdSense } from "@/components/AdSense";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -254,15 +255,15 @@ const Article = () => {
 
         {/* Featured Image */}
         {article.featured_image && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img 
-              src={article.featured_image} 
-              alt={article.title}
-              className="w-full h-auto object-cover"
-            />
-            {article.image_credit && (
-              <p className="text-xs text-muted-foreground mt-2">Photo credit: {article.image_credit}</p>
-            )}
+          <div className="mb-8">
+            <div className="rounded-lg overflow-hidden">
+              <img 
+                src={article.featured_image} 
+                alt={article.title}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <ImageAttribution credit={article.image_credit} />
           </div>
         )}
 

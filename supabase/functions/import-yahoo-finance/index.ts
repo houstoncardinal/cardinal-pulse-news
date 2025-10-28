@@ -215,7 +215,7 @@ Return ONLY valid JSON with no markdown formatting or additional text.`
           throw new Error('AI did not return valid JSON');
         }
 
-        // Fetch real news image from web instead of generating
+        // ALWAYS prioritize real news images from web sources
         console.log('🔍 Searching for real news images from web sources...');
         let imageUrl = null;
         let imageCredit = null;
@@ -233,10 +233,15 @@ Return ONLY valid JSON with no markdown formatting or additional text.`
             imageCredit = imageData.imageCredit;
             console.log('✓ Real news image sourced:', imageCredit);
           } else {
-            console.warn('No suitable news image found, continuing without image');
+            console.warn('⚠️ No suitable news image found - article will be saved without image to avoid AI-generated content');
+            // DO NOT generate AI images - leave blank if no real image found
+            imageUrl = null;
+            imageCredit = null;
           }
         } catch (imageError) {
           console.error('Image fetch failed:', imageError);
+          imageUrl = null;
+          imageCredit = null;
         }
 
         // Calculate read time and word count
