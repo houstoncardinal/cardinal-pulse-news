@@ -11,34 +11,34 @@ export const useAuth = () => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('[useAuth] Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check admin status if user exists
+        // Defer admin check to avoid deadlock - NEVER call Supabase inside onAuthStateChange
         if (session?.user) {
-          await checkAdminStatus(session.user.id);
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
-        
-        // Always set loading to false after auth state change
-        setLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[useAuth] Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await checkAdminStatus(session.user.id);
+        checkAdminStatus(session.user.id);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -66,6 +66,9 @@ export const useAuth = () => {
     } catch (error) {
       console.error('[useAuth] Error checking admin status:', error);
       setIsAdmin(false);
+    } finally {
+      // Always set loading to false after admin check completes
+      setLoading(false);
     }
   };
 
