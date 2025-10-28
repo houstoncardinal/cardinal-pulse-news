@@ -82,6 +82,16 @@ export const Footer = () => {
             )}
           </div>
         </div>
+
+        {/* Contact Information */}
+        <div className="mt-8 pt-6 border-t border-border/50 text-center">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Interested in writing for Cardinal News? Contact Hunain Qureshi at{" "}
+            <a href="tel:+12819017016" className="text-primary hover:underline font-medium">
+              (281) 901-7016
+            </a>
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-news.jpg";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -36,13 +37,14 @@ export const Hero = () => {
           </p>
 
           <div className="flex flex-wrap gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <Button size="lg" className="gap-2 text-base px-8 hover-scale">
-              Read Full Story
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="text-base px-8 hover-scale" asChild>
-              <a href="/admin">Admin Dashboard</a>
-            </Button>
+            {featuredArticle?.slug && (
+              <Button size="lg" className="gap-2 text-base px-8 hover-scale" asChild>
+                <Link to={`/article/${featuredArticle.slug}`}>
+                  Read Full Story
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
