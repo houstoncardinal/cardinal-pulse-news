@@ -6,77 +6,14 @@ import { NewsWidget } from "@/components/NewsWidget";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useArticles } from "@/hooks/useArticles";
-import { Loader2 } from "lucide-react";
-
-const newsArticles = [
-  {
-    title: "Global Markets Reach New Heights Amid Economic Recovery",
-    excerpt:
-      "Stock markets worldwide continue their upward trajectory as economic indicators signal sustained growth across major economies.",
-    category: "Business",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070",
-    author: "Sarah Mitchell",
-    readTime: "5 min read",
-    views: "1.8M",
-  },
-  {
-    title: "Revolutionary Clean Energy Technology Unveiled",
-    excerpt:
-      "Scientists announce breakthrough in renewable energy storage that could transform the global power grid.",
-    category: "Science",
-    image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=2070",
-    author: "Dr. James Chen",
-    readTime: "6 min read",
-    views: "1.5M",
-  },
-  {
-    title: "Championship Finals Break All-Time Viewership Records",
-    excerpt:
-      "Historic sporting event captivates global audience with record-breaking attendance and streaming numbers.",
-    category: "Sports",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=2070",
-    author: "Marcus Rodriguez",
-    readTime: "4 min read",
-    views: "3.2M",
-  },
-  {
-    title: "Tech Giants Announce Major Cybersecurity Initiative",
-    excerpt:
-      "Leading technology companies unite to establish new standards for digital security and privacy protection.",
-    category: "Technology",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070",
-    author: "Emily Park",
-    readTime: "7 min read",
-    views: "2.1M",
-  },
-  {
-    title: "Global Climate Summit Reaches Historic Agreement",
-    excerpt:
-      "World leaders commit to unprecedented environmental protections in landmark international accord.",
-    category: "World",
-    image: "https://images.unsplash.com/photo-1569163139394-de4798aa62b6?q=80&w=2070",
-    author: "Cardinal World",
-    readTime: "9 min read",
-    views: "4.5M",
-  },
-  {
-    title: "Revolutionary Film Receives Critical Acclaim",
-    excerpt:
-      "New cinematic release breaks box office records while earning praise from critics worldwide.",
-    category: "Entertainment",
-    image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2070",
-    author: "Lisa Anderson",
-    readTime: "5 min read",
-    views: "1.9M",
-  },
-];
+import { Loader2, Sparkles, Zap } from "lucide-react";
 
 const Index = () => {
   const { data: publishedArticles, isLoading } = useArticles();
 
-  // Use published articles if available, otherwise fall back to mock data
+  // Only show real AI-generated articles from the database
   const articlesToDisplay = publishedArticles && publishedArticles.length > 0 
-    ? publishedArticles.slice(0, 6).map(article => ({
+    ? publishedArticles.map(article => ({
         title: article.title,
         excerpt: article.excerpt || '',
         category: article.category,
@@ -86,15 +23,24 @@ const Index = () => {
         views: `${(article.views_count || 0).toLocaleString()}`,
         slug: article.slug,
       }))
-    : newsArticles;
+    : [];
 
   const featured = articlesToDisplay[0];
-  const hasRealArticles = publishedArticles && publishedArticles.length > 0;
+  const hasRealArticles = articlesToDisplay.length > 0;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="mb-8 relative">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          </div>
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+          Loading Your Newsroom
+        </h2>
+        <p className="text-muted-foreground">Fetching the latest AI-generated articles...</p>
       </div>
     );
   }
@@ -129,13 +75,18 @@ const Index = () => {
             <section className="mb-16 animate-fade-in">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="font-display text-4xl font-bold">Featured Stories</h2>
-                  <p className="text-muted-foreground">Real-time AI-powered news</p>
+                  <h2 className="font-display text-3xl md:text-4xl font-bold">Featured Stories</h2>
+                  <p className="text-sm md:text-base text-muted-foreground">
+                    {articlesToDisplay.length} AI-Generated Article{articlesToDisplay.length !== 1 ? 's' : ''}
+                  </p>
                 </div>
-                <Button variant="outline" className="hover-scale">View All</Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <NewsCard {...featured} featured />
+                {articlesToDisplay.slice(0, 1).map((article, i) => (
+                  <div key={i} className="animate-fade-in md:col-span-2 md:row-span-2">
+                    <NewsCard {...article} featured />
+                  </div>
+                ))}
                 {articlesToDisplay.slice(1, 3).map((article, i) => (
                   <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
                     <NewsCard {...article} />
@@ -144,39 +95,69 @@ const Index = () => {
               </div>
             </section>
 
-            {/* Latest News */}
-            <section className="mb-16 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="font-display text-4xl font-bold">Latest News</h2>
-                  <p className="text-muted-foreground">Updated in real-time</p>
-                </div>
-                <Button variant="outline" className="hover-scale">View All</Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articlesToDisplay.slice(3).map((article, i) => (
-                  <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 4) * 0.1}s` }}>
-                    <NewsCard {...article} />
+            {/* Latest News - Show if more than 3 articles */}
+            {articlesToDisplay.length > 3 && (
+              <section className="mb-16 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h2 className="font-display text-3xl md:text-4xl font-bold">Latest News</h2>
+                    <p className="text-sm md:text-base text-muted-foreground">Fresh from the newsroom</p>
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {articlesToDisplay.slice(3).map((article, i) => (
+                    <div key={i} className="animate-fade-in" style={{ animationDelay: `${(i + 4) * 0.1}s` }}>
+                      <NewsCard {...article} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </>
         ) : (
-          <div className="text-center py-20 animate-fade-in">
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 mb-4">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          <div className="text-center py-20 animate-fade-in max-w-2xl mx-auto">
+            <div className="mb-8 relative">
+              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 mb-4 relative">
+                <Sparkles className="h-12 w-12 text-primary animate-pulse" />
+                <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
               </div>
             </div>
-            <h2 className="text-3xl font-display font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-              Generating Your First Articles
+            
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Your AI Newsroom Awaits
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Our AI is creating powerful, engaging articles with stunning images. Visit the Admin Dashboard to manage content generation.
+            
+            <p className="text-muted-foreground mb-8 text-lg">
+              No articles yet. Generate powerful, AI-written stories with stunning images in seconds.
             </p>
-            <Button asChild size="lg" className="hover-scale">
-              <a href="/admin">Open Admin Dashboard</a>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start gap-3 text-left p-4 rounded-lg bg-muted/50">
+                <Zap className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-1">Instant Generation</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create professional articles from Google Trends in seconds
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 text-left p-4 rounded-lg bg-muted/50">
+                <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-1">AI-Powered Images</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Every article gets a stunning, custom hero image via OpenAI
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <Button asChild size="lg" className="hover-scale group">
+              <a href="/admin" className="flex items-center gap-2">
+                <Zap className="h-4 w-4 group-hover:animate-pulse" />
+                Open Admin Dashboard
+              </a>
             </Button>
           </div>
         )}
