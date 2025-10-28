@@ -42,6 +42,9 @@ verify_jwt = false
 [functions.setup-super-admin]
 verify_jwt = false
 
+[functions.update-author]
+verify_jwt = false
+
 [functions.reset-admin-password]
 verify_jwt = false
 

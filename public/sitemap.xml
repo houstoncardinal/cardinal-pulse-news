@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Sitemap: All articles, categories, and static pages -->
   <sitemap>
     <loc>https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap</loc>
-    <lastmod>2025-01-01T00:00:00Z</lastmod>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
   </sitemap>
+  
+  <!-- Google News Sitemap: Last 48 hours only -->
   <sitemap>
     <loc>https://uxmrmiuwpofulgfjckzy.supabase.co/functions/v1/generate-sitemap?type=news</loc>
-    <lastmod>2025-01-01T00:00:00Z</lastmod>
+    <lastmod>2025-10-28T10:00:00Z</lastmod>
   </sitemap>
 </sitemapindex>
