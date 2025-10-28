@@ -12,6 +12,7 @@ import { WeatherRadar } from "@/components/weather/WeatherRadar";
 import { WeatherForecast } from "@/components/weather/WeatherForecast";
 import { WeatherAlerts } from "@/components/weather/WeatherAlerts";
 import { AnimatedWeatherIcon } from "@/components/weather/AnimatedWeatherIcon";
+import { DetailedWeatherPanel } from "@/components/weather/DetailedWeatherPanel";
 
 interface WeatherCity {
   name: string;
@@ -27,6 +28,7 @@ export default function Weather() {
   const [selectedCity, setSelectedCity] = useState<WeatherCity | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
 
   useEffect(() => {
     fetchGlobalWeather();
@@ -140,7 +142,10 @@ export default function Weather() {
                 className={`p-6 cursor-pointer transition-all hover:scale-105 hover:shadow-xl ${
                   selectedCity?.name === city.name ? 'ring-2 ring-primary' : ''
                 }`}
-                onClick={() => setSelectedCity(city)}
+                onClick={() => {
+                  setSelectedCity(city);
+                  setShowDetailPanel(true);
+                }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -301,6 +306,14 @@ export default function Weather() {
 
         <Footer />
         <MobileToolbar />
+        
+        {/* Detailed Weather Panel */}
+        {showDetailPanel && selectedCity && (
+          <DetailedWeatherPanel
+            city={selectedCity}
+            onClose={() => setShowDetailPanel(false)}
+          />
+        )}
       </div>
     </>
   );
