@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MobileToolbar } from "@/components/MobileToolbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -246,6 +247,7 @@ export default function Weather() {
         </main>
 
         <Footer />
+        <MobileToolbar />
       </div>
     </>
   );

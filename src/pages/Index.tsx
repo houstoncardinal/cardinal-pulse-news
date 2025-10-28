@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/NewsCard";
 import { NewsWidget } from "@/components/NewsWidget";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { Footer } from "@/components/Footer";
+import { MobileToolbar } from "@/components/MobileToolbar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useArticles } from "@/hooks/useArticles";
@@ -221,6 +222,7 @@ const Index = () => {
       <WeatherWidget />
 
       <Footer />
+      <MobileToolbar />
     </div>
   );
 };

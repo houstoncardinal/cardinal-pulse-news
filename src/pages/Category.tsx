@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { NewsCard } from "@/components/NewsCard";
+import { MobileToolbar } from "@/components/MobileToolbar";
 import { Button } from "@/components/ui/button";
 import { useArticles } from "@/hooks/useArticles";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -123,6 +124,7 @@ const Category = () => {
       </main>
 
       <Footer />
+      <MobileToolbar />
     </div>
   );
 };

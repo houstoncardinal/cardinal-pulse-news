@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MobileToolbar } from "@/components/MobileToolbar";
 import { ArticleContent } from "@/components/ArticleContent";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -339,6 +340,7 @@ const Article = () => {
       </article>
 
       <Footer />
+      <MobileToolbar />
     </div>
   );
 };

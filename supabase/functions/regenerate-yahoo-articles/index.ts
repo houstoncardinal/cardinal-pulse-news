@@ -144,8 +144,32 @@ Write a full, original article that expands on this story with analysis, context
 
         if (!imageUrl) {
           try {
-            const imagePrompt = articleData.imagePrompt || 
-              `Create a photorealistic, professional business/finance news photograph for: "${articleData.title}". Category: ${article.category}. 16:9 aspect ratio, professional lighting, editorial photography style, ultra high resolution, NO text or watermarks.`;
+            // IMPORTANT: Filter sensitive topics to avoid generating disrespectful imagery
+            const sensitiveKeywords = ['disaster', 'hurricane', 'earthquake', 'tsunami', 'tragedy', 'accident', 'crash', 'death', 'funeral', 'terror', 'attack', 'shooting', 'explosion', 'fire', 'flood', 'victim', 'crisis', 'emergency', 'catastrophe'];
+            const isSensitiveTopic = sensitiveKeywords.some(keyword => 
+              article.title.toLowerCase().includes(keyword) ||
+              articleData.title.toLowerCase().includes(keyword) ||
+              article.category.toLowerCase().includes(keyword)
+            );
+
+            let imagePrompt;
+            if (isSensitiveTopic) {
+              // For sensitive topics, generate symbolic/abstract representations instead
+              imagePrompt = `Create a professional, respectful symbolic image representing: ${article.category} news coverage.
+
+STYLE: Abstract, symbolic, respectful representation
+- Use symbolic imagery like news desk, broadcast equipment, professional journalists at work, or abstract geometric patterns
+- Clean, professional, dignified aesthetic
+- Soft, professional lighting
+- 16:9 aspect ratio, ultra high resolution
+- NO depictions of actual disasters, victims, or distressing scenes
+- NO text, watermarks, or logos
+
+Generate a tasteful, professional image suitable for serious news coverage.`;
+            } else {
+              imagePrompt = articleData.imagePrompt || 
+                `Create a photorealistic, professional business/finance news photograph for: "${articleData.title}". Category: ${article.category}. 16:9 aspect ratio, professional lighting, editorial photography style, ultra high resolution, NO text or watermarks.`;
+            }
             
             const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
               method: 'POST',

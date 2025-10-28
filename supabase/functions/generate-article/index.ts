@@ -73,7 +73,7 @@ serve(async (req) => {
               "metaDescription": "SEO description under 160 characters",
               "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
               "tags": ["tag1", "tag2", "tag3"],
-              "category": "one of: world, business, technology, sports, entertainment, science, politics, ai_innovation, lifestyle",
+              "category": "one of: world, business, technology, sports, entertainment, music, movies, events, science, politics, ai_innovation, lifestyle",
               "sources": [{"name": "Source Name", "url": "https://source.com"}],
               "imagePrompt": "A detailed, specific prompt for generating a photorealistic news photograph. Describe the main subject, setting, lighting, mood, and key visual elements that would accurately represent this specific news story. Be very specific about what should be shown - mention key people, objects, locations, or events. Example: 'A photorealistic image of [specific subject] with [specific details about the scene], dramatic professional lighting, 16:9 news photography composition, ultra high resolution.'"
             }
@@ -153,8 +153,31 @@ serve(async (req) => {
       if (!LOVABLE_API_KEY) {
         console.warn('LOVABLE_API_KEY not set, skipping image generation');
       } else {
-        const imagePrompt = articleData.imagePrompt || 
-          `Create a photorealistic, professional news photograph for this article:
+        // IMPORTANT: Filter sensitive topics to avoid generating disrespectful imagery
+        const sensitiveKeywords = ['disaster', 'hurricane', 'earthquake', 'tsunami', 'tragedy', 'accident', 'crash', 'death', 'funeral', 'terror', 'attack', 'shooting', 'explosion', 'fire', 'flood', 'victim', 'crisis', 'emergency', 'catastrophe'];
+        const isSensitiveTopic = sensitiveKeywords.some(keyword => 
+          topic.topic.toLowerCase().includes(keyword) || 
+          articleData.title.toLowerCase().includes(keyword) ||
+          articleData.category.toLowerCase().includes(keyword)
+        );
+
+        let imagePrompt;
+        if (isSensitiveTopic) {
+          // For sensitive topics, generate symbolic/abstract representations instead
+          imagePrompt = `Create a professional, respectful symbolic image representing: ${articleData.category} news coverage.
+
+STYLE: Abstract, symbolic, respectful representation
+- Use symbolic imagery like news desk, broadcast equipment, professional journalists at work, or abstract geometric patterns
+- Clean, professional, dignified aesthetic
+- Soft, professional lighting
+- 16:9 aspect ratio, ultra high resolution
+- NO depictions of actual disasters, victims, or distressing scenes
+- NO text, watermarks, or logos
+
+Generate a tasteful, professional image suitable for serious news coverage.`;
+        } else {
+          imagePrompt = articleData.imagePrompt || 
+            `Create a photorealistic, professional news photograph for this article:
 
 HEADLINE: "${articleData.title}"
 CATEGORY: ${articleData.category}
@@ -171,6 +194,7 @@ REQUIREMENTS:
 - Ultra high resolution, ultra sharp, premium quality
 
 Generate an image that readers will immediately recognize as related to this specific news story.`;
+        }
         
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
