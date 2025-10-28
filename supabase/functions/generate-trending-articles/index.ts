@@ -95,36 +95,39 @@ Return ONLY a JSON object with this exact structure:
           throw new Error("Invalid JSON response from AI");
         }
 
-        // Generate stunning hero image with OpenAI gpt-image-1
+        // Generate stunning hero image with Lovable AI (Nano banana)
         console.log(`Generating high-quality image for: ${articleData.title}`);
         let imageUrl = null;
         
-        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-        if (OPENAI_API_KEY) {
+        if (LOVABLE_API_KEY) {
           const imagePrompt = `Professional news photography for: ${articleData.title}. Style: Photorealistic, cinematic, high-quality journalism, dramatic lighting, ultra sharp, 16:9 aspect ratio. ${articleData.category} theme.`;
 
-          const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
+          const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${OPENAI_API_KEY}`,
+              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "gpt-image-1",
-              prompt: imagePrompt,
-              size: "1536x1024",
-              quality: "high",
-              output_format: "png",
-              n: 1
+              model: "google/gemini-2.5-flash-image-preview",
+              messages: [
+                {
+                  role: "user",
+                  content: imagePrompt
+                }
+              ],
+              modalities: ["image", "text"]
             }),
           });
 
           if (imageResponse.ok) {
             const imageData = await imageResponse.json();
-            const base64Image = imageData.data?.[0]?.b64_json;
+            const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
           
-            if (base64Image) {
-              const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
+            if (generatedImageUrl) {
+              // Extract base64 data from data URL
+              const base64Data = generatedImageUrl.split(',')[1];
+              const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
               const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
               
               const { data: uploadData, error: uploadError } = await supabaseClient.storage
@@ -140,10 +143,10 @@ Return ONLY a JSON object with this exact structure:
               }
             }
           } else {
-            console.warn('OpenAI image generation failed, continuing without image');
+            console.warn('Lovable AI image generation failed, continuing without image');
           }
         } else {
-          console.warn('OPENAI_API_KEY not set, skipping image generation');
+          console.warn('LOVABLE_API_KEY not set, skipping image generation');
         }
 
         // Generate slug
@@ -172,7 +175,7 @@ Return ONLY a JSON object with this exact structure:
             published_at: now,
             featured_image: imageUrl,
             image_url: imageUrl,
-            image_credit: imageUrl ? 'AI Generated (OpenAI GPT-Image-1)' : null,
+            image_credit: imageUrl ? 'AI Generated (Lovable AI)' : null,
             tags: articleData.tags,
             meta_description: articleData.meta_description,
             meta_keywords: articleData.meta_keywords,

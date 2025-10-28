@@ -78,7 +78,7 @@ export const NewsCard = ({
         </h3>
         <p className="text-muted-foreground mb-4 line-clamp-2 group-hover:text-foreground transition-colors duration-300">{excerpt}</p>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+        <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-foreground transition-colors duration-300 mb-4">
           <span className="font-medium">{author}</span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
@@ -91,6 +91,10 @@ export const NewsCard = ({
             </span>
           </div>
         </div>
+        
+        <button className="w-full mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 group-hover:scale-105">
+          Read Full Story →
+        </button>
       </div>
     </>
   );
