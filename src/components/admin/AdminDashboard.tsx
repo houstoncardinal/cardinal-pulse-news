@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { EnhancedTrendsPanel } from "./EnhancedTrendsPanel";
 import { ArticlesPanel } from "./ArticlesPanel";
+import { ArticleReviewPanel } from "./ArticleReviewPanel";
 import { JobsLog } from "./JobsLog";
 import { SettingsPanel } from "./SettingsPanel";
 import { QuickCreate } from "./QuickCreate";
@@ -27,6 +28,7 @@ export const AdminDashboard = () => {
   
   const mainTabs = [
     { value: "trends", label: "Trends", icon: TrendingUp, mobileLabel: "Trends" },
+    { value: "review", label: "Review Queue", icon: Clock, mobileLabel: "Review" },
     { value: "articles", label: "Articles", icon: FileText, mobileLabel: "Articles" },
     { value: "jobs", label: "Jobs", icon: Clock, mobileLabel: "Jobs" },
   ];
@@ -80,7 +82,7 @@ export const AdminDashboard = () => {
       
       {/* Desktop Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="container mx-auto px-4 md:px-6 lg:px-8 mt-6 max-w-full overflow-hidden">
-        <TabsList className="hidden md:grid w-full grid-cols-4 h-12">
+        <TabsList className="hidden md:grid w-full grid-cols-5 h-12">
           {[...mainTabs, { value: "settings", label: "Settings", icon: Settings, mobileLabel: "Settings" }].map((tab) => (
             <TabsTrigger 
               key={tab.value} 
@@ -95,6 +97,10 @@ export const AdminDashboard = () => {
         
         <TabsContent value="trends" className="mt-6">
           <EnhancedTrendsPanel />
+        </TabsContent>
+        
+        <TabsContent value="review" className="mt-6">
+          <ArticleReviewPanel />
         </TabsContent>
         
         <TabsContent value="articles" className="mt-6">

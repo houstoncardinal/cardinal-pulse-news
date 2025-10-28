@@ -14,7 +14,6 @@ export const YahooFinanceImporter = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [category, setCategory] = useState("finance");
   const [limit, setLimit] = useState(10);
-  const [autoPublish, setAutoPublish] = useState(false);
   const [lastImportResult, setLastImportResult] = useState<{
     success: boolean;
     imported: number;
@@ -41,13 +40,12 @@ export const YahooFinanceImporter = () => {
     setLastImportResult(null);
 
     try {
-      console.log('Invoking Yahoo Finance import with:', { category, limit, autoPublish });
+      console.log('Invoking Yahoo Finance import with:', { category, limit });
 
       const { data, error } = await supabase.functions.invoke('import-yahoo-finance', {
         body: {
           category,
           limit,
-          autoPublish,
         },
       });
 
@@ -66,7 +64,7 @@ export const YahooFinanceImporter = () => {
 
         toast({
           title: "Import Successful!",
-          description: `Imported ${data.imported} out of ${data.total} articles from Yahoo Finance.`,
+          description: `Imported ${data.imported} out of ${data.total} articles. Check the Review Queue to approve them.`,
         });
       } else {
         throw new Error(data.error || 'Import failed');
@@ -155,7 +153,7 @@ export const YahooFinanceImporter = () => {
               </Badge>
             </h3>
             <p className="text-sm text-muted-foreground">
-              Import the latest financial news from Yahoo Finance. Articles can be customized and edited after import.
+              Import Harvard-level financial news from Yahoo Finance. All articles are E-E-A-T compliant and saved as drafts for your review.
             </p>
           </div>
 
@@ -192,18 +190,14 @@ export const YahooFinanceImporter = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 p-3 bg-background/50 rounded-lg border border-border/50">
-            <Switch
-              id="auto-publish"
-              checked={autoPublish}
-              onCheckedChange={setAutoPublish}
-            />
-            <Label htmlFor="auto-publish" className="cursor-pointer flex-1">
-              <span className="font-medium">Auto-publish imported articles</span>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Articles will be published immediately. Otherwise saved as drafts.
-              </p>
-            </Label>
+          <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+            <p className="text-sm font-medium mb-1 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-blue-500" />
+              Quality Assurance Process
+            </p>
+            <p className="text-xs text-muted-foreground">
+              All imported articles are saved as drafts for your review. Check the Review Queue tab to approve and publish in batches.
+            </p>
           </div>
 
           {lastImportResult && (
@@ -288,11 +282,13 @@ export const YahooFinanceImporter = () => {
           </div>
 
           <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/50">
-            <p><strong>Import:</strong> Fetch new articles from Yahoo Finance RSS feeds</p>
-            <p><strong>Regenerate:</strong> Update existing basic articles with full AI-written content (1000-1500 words)</p>
+            <p><strong>Harvard-Level Quality:</strong> All articles written with sophisticated analysis and expert perspectives</p>
+            <p><strong>E-E-A-T Compliant:</strong> Meets Google's Experience, Expertise, Authoritativeness, Trustworthiness standards</p>
+            <p><strong>100% Unique:</strong> Original content with proprietary analysis (1200-1800 words)</p>
+            <p><strong>Google News Optimized:</strong> Structured for maximum visibility and featured snippets</p>
             <p>• Duplicate articles are automatically skipped</p>
             <p>• Source attribution to Yahoo Finance is maintained</p>
-            <p>• All regenerated articles include AI-generated hero images</p>
+            <p>• All articles saved as drafts for review before publishing</p>
           </div>
         </div>
       </div>

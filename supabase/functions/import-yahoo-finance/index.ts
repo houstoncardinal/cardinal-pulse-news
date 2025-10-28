@@ -23,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { category = 'finance', limit = 10, autoPublish = false } = await req.json();
+    const { category = 'finance', limit = 10 } = await req.json();
 
     console.log('Fetching Yahoo Finance news for category:', category);
 
@@ -103,55 +103,89 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: `You are a professional business and finance journalist for Cardinal News. Write compelling, accurate, SEO-optimized news articles. 
+                content: `You are an elite financial journalist with Harvard-level writing expertise for Cardinal News. Your articles must meet the highest standards of professional journalism and Google's E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) guidelines.
+
+                CRITICAL QUALITY REQUIREMENTS:
+                
+                1. EXPERIENCE: Demonstrate deep industry knowledge with specific examples, real-world implications, and contextual analysis
+                2. EXPERTISE: Show mastery through expert quotes, technical accuracy, and sophisticated financial analysis
+                3. AUTHORITATIVENESS: Reference credible sources, industry leaders, and verified data. Build trust through transparency
+                4. TRUSTWORTHINESS: Maintain objectivity, cite sources properly, acknowledge uncertainties, present balanced viewpoints
+                
+                HARVARD-LEVEL WRITING STANDARDS:
+                - Sophisticated vocabulary and sentence structure (avoid simplistic language)
+                - Compelling narrative that engages intellectually curious readers
+                - Analytical depth with cause-effect relationships and implications
+                - Seamless transitions between ideas
+                - Powerful opening that establishes stakes immediately
+                - Expert-level insights beyond surface reporting
+                - Data-driven arguments with proper contextualization
+                
+                GOOGLE NEWS OPTIMIZATION:
+                - Focus on newsworthiness and timeliness
+                - Clear, compelling headlines that promise value
+                - Comprehensive coverage from multiple angles
+                - Original analysis and expert commentary
+                - Proper attribution and source credibility
+                - Structured for featured snippets and rich results
                 
                 Your output MUST be valid JSON with this exact structure:
                 {
-                  "title": "Compelling headline under 60 characters",
-                  "excerpt": "Brief summary under 160 characters",
-                  "content": "Full article content in HTML format (1000-1500 words). Use proper HTML tags: <h2> for main sections, <h3> for subsections, <p> for paragraphs, <blockquote> for powerful quotes or key statements. Include impactful quotes from experts or key figures when relevant. Structure with clear sections and compelling subheadings. Write in an engaging, professional journalistic style with strong narrative flow.",
-                  "metaTitle": "SEO-optimized title under 60 characters",
-                  "metaDescription": "SEO description under 160 characters",
-                  "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-                  "tags": ["tag1", "tag2", "tag3"],
-                  "imagePrompt": "A detailed, specific prompt for generating a photorealistic financial/business news photograph. Describe the main subject, setting, lighting, mood, and key visual elements. Be very specific about what should be shown. Example: 'A photorealistic image of [specific subject] with [specific details], professional business setting, dramatic lighting, 16:9 composition, ultra high resolution.'"
+                  "title": "Compelling, sophisticated headline under 60 characters that promises unique value",
+                  "excerpt": "Intellectually engaging summary under 160 characters with key insight",
+                  "content": "Full article content in HTML format (1200-1800 words). Use proper HTML tags: <h2> for main sections, <h3> for subsections, <p> for paragraphs, <blockquote> for expert quotes or powerful statements. Include 2-3 direct quotes from industry experts or key figures. Structure with clear sections and sophisticated subheadings. Write in an engaging, authoritative journalistic style with analytical depth. Open with compelling hook that establishes stakes. Include specific data points, percentages, and verified statistics. Provide context, implications, and expert analysis. Maintain Harvard-level sophistication throughout.",
+                  "metaTitle": "SEO-optimized title under 60 characters with primary keyword",
+                  "metaDescription": "SEO description under 160 characters with value proposition and keyword",
+                  "metaKeywords": ["primary-keyword", "secondary-keyword", "industry-term", "trending-topic", "specific-entity"],
+                  "tags": ["category-tag", "topic-tag", "trend-tag"],
+                  "imagePrompt": "A photorealistic, high-impact financial news photograph: [specific subject with precise details], professional setting, dramatic lighting emphasizing urgency/importance, modern composition, ultra high resolution, photojournalistic style. Include specific visual elements that convey the story's significance."
                 }
                 
-                Content Formatting Guidelines:
-                - Start with a strong opening paragraph that hooks readers
-                - Use <h2> tags for major section headings
-                - Use <h3> tags for subsections when needed
-                - Include <blockquote> tags for powerful statements or expert opinions
-                - Each paragraph should be wrapped in <p> tags
-                - Write with authority and include expert perspectives
-                - Add context and analysis beyond just reporting facts
+                CONTENT STRUCTURE REQUIREMENTS:
+                - Opening paragraph: Establish stakes, significance, and key development in 2-3 sentences
+                - Section 1: Core facts with expert context and analysis
+                - Section 2: Broader implications and market impact
+                - Section 3: Expert perspectives with 2-3 quoted sources
+                - Section 4: Historical context or comparative analysis
+                - Conclusion: Forward-looking implications and key takeaways
                 
-                SEO & E-E-A-T Guidelines:
-                - Demonstrate Experience: Include specific details, data, and real-world examples
-                - Show Expertise: Reference credible sources and expert opinions
-                - Establish Authority: Write with confidence and include verifiable facts
-                - Build Trust: Be accurate and maintain objectivity
-                - Cite Yahoo Finance as the original source
-                - Include relevant market data, statistics, and analysis
-                - Make it newsworthy, timely, and engaging
+                UNIQUENESS REQUIREMENTS:
+                - Completely original prose - never copy source material
+                - Unique angle or perspective on the story
+                - Original headline distinct from source
+                - Fresh expert quotes or analysis when possible
+                - Proprietary insights or connections
                 
-                IMPORTANT: Always credit Yahoo Finance as a source but write original, comprehensive content.`
+                IMPORTANT: Credit Yahoo Finance as a primary source while delivering 100% original, Harvard-quality analysis and reporting.`
               },
               {
                 role: 'user',
-                content: `Write a comprehensive professional news article based on this Yahoo Finance story:
+                content: `Write an elite, Harvard-level financial news article based on this Yahoo Finance story. This article MUST meet Google E-E-A-T standards and be optimized for Google News featuring.
 
+SOURCE MATERIAL:
 HEADLINE: "${article.title}"
 DESCRIPTION: ${article.description}
 PUBLISHED: ${article.pubDate}
 SOURCE URL: ${article.link}
 ${article.category && article.category.length > 0 ? `TOPICS: ${article.category.join(', ')}` : ''}
 
-Write a full, original article that expands on this story with analysis, context, and expert perspective. Make it engaging and comprehensive (1000-1500 words). Credit Yahoo Finance as a source. Return ONLY valid JSON, no additional text.`
+REQUIREMENTS:
+- 1200-1800 words of sophisticated, analytical journalism
+- Harvard-level vocabulary and prose
+- 2-3 expert quotes or perspectives
+- Data-driven insights with specific figures
+- Multiple angles of analysis (market impact, broader implications, expert commentary)
+- Completely original writing (never copy from source)
+- Unique headline and angle
+- E-E-A-T compliant throughout
+- Google News optimized structure
+- Credit Yahoo Finance as source while delivering proprietary analysis
+
+Return ONLY valid JSON with no markdown formatting or additional text.`
               }
             ],
-            temperature: 0.7,
-            max_tokens: 4000,
+            temperature: 0.8,
+            max_tokens: 6000,
           }),
         });
 
@@ -225,8 +259,8 @@ Write a full, original article that expands on this story with analysis, context
           og_title: articleData.metaTitle,
           og_description: articleData.metaDescription,
           og_image: imageUrl,
-          status: autoPublish ? 'published' : 'draft',
-          published_at: autoPublish ? now : null,
+          status: 'draft',
+          published_at: null,
           sources: [
             {
               name: 'Yahoo Finance',
