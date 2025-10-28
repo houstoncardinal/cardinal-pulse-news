@@ -9,6 +9,7 @@ import { QuickCreate } from "./QuickCreate";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
+import { YahooFinanceImporter } from "./YahooFinanceImporter";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,7 @@ export const AdminDashboard = () => {
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <QuickCreate />
+          <YahooFinanceImporter />
           <ManualTrendsRefresh />
           <GenerateDiverseArticles />
           <BulkArticleGenerator />

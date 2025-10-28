@@ -1,5 +1,8 @@
 project_id = "uxmrmiuwpofulgfjckzy"
 
+[functions.import-yahoo-finance]
+verify_jwt = false
+
 [functions.generate-diverse-articles]
 verify_jwt = false
 
