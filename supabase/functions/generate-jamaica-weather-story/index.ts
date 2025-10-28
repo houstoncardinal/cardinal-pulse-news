@@ -76,7 +76,7 @@ ${weatherData.rain ? `- Rainfall: ${JSON.stringify(weatherData.rain)}` : ''}
 ${weatherData.clouds ? `- Cloud Coverage: ${weatherData.clouds.all}%` : ''}
 `;
 
-    // Generate powerful article using AI
+    // Generate powerful article using AI with structured output
     const articlePrompt = `You are Hunain Qureshi, a powerful investigative journalist covering critical weather events. Write an URGENT, COMPELLING news article about the current weather situation in Jamaica.
 
 ${weatherContext}
@@ -88,21 +88,9 @@ Write a hard-hitting, emotionally resonant article that:
 - Includes expert context about hurricanes/tropical storms in the Caribbean
 - Provides actionable safety information for residents
 - Uses dramatic but factual language
-- 1000-1500 words of gripping journalism
+- 1000-1500 words of gripping journalism`;
 
-Return ONLY valid JSON:
-{
-  "title": "Urgent, powerful headline (under 60 chars)",
-  "excerpt": "Gripping 2-3 sentence summary",
-  "content": "Full article in markdown format with powerful, vivid language",
-  "category": "world",
-  "tags": ["jamaica", "hurricane", "weather", "caribbean", "breaking news"],
-  "meta_description": "SEO description (150-160 chars)",
-  "meta_keywords": ["jamaica weather", "hurricane", "tropical storm", "caribbean", "breaking news"],
-  "imagePrompt": "Detailed prompt for a dramatic, powerful image showing the weather conditions in Jamaica. Be specific about showing storm clouds, wind, rain, coastal areas, or hurricane impacts. Photojournalistic style, dramatic lighting, 16:9 composition."
-}`;
-
-    console.log('Generating article with AI...');
+    console.log('Generating article with AI using structured output...');
     const contentResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -112,9 +100,34 @@ Return ONLY valid JSON:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a professional investigative journalist. Return only valid JSON.' },
+          { role: 'system', content: 'You are a professional investigative journalist. Use the provided tool to return structured article data.' },
           { role: 'user', content: articlePrompt }
         ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'create_article',
+              description: 'Create a news article with structured data',
+              parameters: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', description: 'Urgent, powerful headline under 60 characters' },
+                  excerpt: { type: 'string', description: 'Gripping 2-3 sentence summary' },
+                  content: { type: 'string', description: 'Full article in markdown format with powerful, vivid language' },
+                  category: { type: 'string', enum: ['world'] },
+                  tags: { type: 'array', items: { type: 'string' } },
+                  meta_description: { type: 'string', description: 'SEO description 150-160 chars' },
+                  meta_keywords: { type: 'array', items: { type: 'string' } },
+                  imagePrompt: { type: 'string', description: 'Detailed prompt for dramatic weather image' }
+                },
+                required: ['title', 'excerpt', 'content', 'category', 'tags', 'meta_description', 'meta_keywords', 'imagePrompt'],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'create_article' } }
       }),
     });
 
@@ -125,33 +138,15 @@ Return ONLY valid JSON:
     }
 
     const contentData = await contentResponse.json();
-    let generatedContent = contentData.choices[0].message.content;
+    console.log('AI response received');
 
-    console.log('AI generated content (first 500 chars):', generatedContent.substring(0, 500));
-
-    // Strip markdown code blocks if present
-    generatedContent = generatedContent.trim();
-    if (generatedContent.startsWith('```json')) {
-      generatedContent = generatedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (generatedContent.startsWith('```')) {
-      generatedContent = generatedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    // Extract structured output from tool call
+    const toolCall = contentData.choices[0].message.tool_calls?.[0];
+    if (!toolCall || toolCall.function.name !== 'create_article') {
+      throw new Error('AI did not return article data via tool call');
     }
 
-    // Parse JSON more robustly
-    let articleData;
-    try {
-      // First try to find JSON in the response
-      const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON found in AI response');
-      }
-      articleData = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', generatedContent);
-      console.error('Parse error:', parseError);
-      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
-      throw new Error('AI did not return valid JSON: ' + errorMessage);
-    }
+    const articleData = JSON.parse(toolCall.function.arguments);
 
     // Generate dramatic hero image
     console.log('Generating dramatic weather image...');
