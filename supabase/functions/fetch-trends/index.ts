@@ -11,9 +11,12 @@ async function fetchGoogleTrends(region: string = 'US') {
   try {
     const serpApiKey = Deno.env.get('SERPAPI_KEY');
     if (!serpApiKey) {
-      console.error('SERPAPI_KEY not configured');
+      console.error('⚠️ SERPAPI_KEY not configured - using fallback data');
+      console.error('Configure SERPAPI_KEY to fetch real Google Trends data');
       return getFallbackTrends(region);
     }
+    
+    console.log('✓ SERPAPI_KEY found, fetching real trends...');
 
     const geoMap: { [key: string]: string } = {
       'global': 'US',
@@ -30,6 +33,7 @@ async function fetchGoogleTrends(region: string = 'US') {
     const geoCode = geoMap[region.toLowerCase()] || 'US';
     
     console.log(`Fetching trends from SerpAPI for region: ${geoCode}`);
+    console.log(`API URL: https://serpapi.com/search.json?engine=google_trends_trending_now&geo=${geoCode}`);
     
     // Use SerpAPI Google Trends Trending Now endpoint
     const apiUrl = `https://serpapi.com/search.json?engine=google_trends_trending_now&geo=${geoCode}&hl=en&api_key=${serpApiKey}`;
@@ -37,15 +41,25 @@ async function fetchGoogleTrends(region: string = 'US') {
     const response = await fetch(apiUrl);
     
     if (!response.ok) {
-      console.error(`SerpAPI returned status ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ SerpAPI returned status ${response.status}`);
+      console.error(`Error response: ${errorText}`);
       return getFallbackTrends(region);
     }
     
+    console.log('✓ SerpAPI request successful');
+    
     const data = await response.json();
-    console.log(`Received ${data.trending_searches?.length || 0} trends from SerpAPI`);
+    console.log(`✓ Received ${data.trending_searches?.length || 0} trends from SerpAPI`);
+    
+    if (data.error) {
+      console.error(`❌ SerpAPI error: ${data.error}`);
+      return getFallbackTrends(region);
+    }
     
     if (!data.trending_searches || data.trending_searches.length === 0) {
-      console.log('No trending searches found in response');
+      console.log('⚠️ No trending searches found in response');
+      console.log('Response structure:', JSON.stringify(data).substring(0, 200));
       return getFallbackTrends(region);
     }
     
@@ -193,15 +207,25 @@ serve(async (req) => {
 
     console.log(`Fetching trends for region: ${region}, limit: ${limit}`)
 
-    // Clean up old trends (older than 24 hours) and placeholder data
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    console.log(`Cleaning up trends older than ${oneDayAgo}`)
+    // Clean up old trends (older than 6 hours) and ALL existing placeholder/fallback data
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    console.log(`🧹 Cleaning up trends older than ${sixHoursAgo} and all placeholder data...`)
     
-    // Delete old trends and any placeholder trends
+    // First, delete all placeholder trends regardless of age
+    const { error: cleanupError, count } = await supabaseClient
+      .from('trending_topics')
+      .delete()
+      .or(`trend_data->>fetched_from.eq.google_trends_rss,topic.like.*Global Technology Summit*,topic.like.*International Space Station*,topic.like.*Global Economic Summit*,topic.like.*Climate Action Initiative*,topic.like.*Major Sports Championship*`)
+    
+    if (!cleanupError) {
+      console.log(`✓ Cleaned up ${count || 0} placeholder/old trends`)
+    }
+    
+    // Also delete old trends
     await supabaseClient
       .from('trending_topics')
       .delete()
-      .or(`fetched_at.lt.${oneDayAgo},topic.like.*Global Technology Summit*,topic.like.*International Space Station*,topic.like.*Global Economic Summit*,topic.like.*Climate Action Initiative*,topic.like.*Major Sports Championship*`)
+      .lt('fetched_at', sixHoursAgo)
 
     // Fetch real Google Trends data
     const trendingTopics = await fetchGoogleTrends(region)
