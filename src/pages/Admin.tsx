@@ -34,12 +34,14 @@ const Admin = () => {
   // }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="min-h-[80vh]">
+      <main className="flex-1 pb-20 md:pb-8">
         <AdminDashboard />
       </main>
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 };

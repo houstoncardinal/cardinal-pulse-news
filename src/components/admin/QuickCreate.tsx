@@ -54,40 +54,43 @@ export const QuickCreate = () => {
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-r from-primary/5 to-red-400/5 border-primary/20 animate-scale-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-primary/10 rounded-lg">
+    <Card className="p-4 md:p-6 bg-gradient-to-r from-primary/5 to-red-400/5 border-primary/20 animate-scale-in">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="p-2 bg-primary/10 rounded-lg w-fit">
           <Zap className="h-5 w-5 text-primary" />
         </div>
-        <div>
-          <h3 className="font-bold text-lg">Quick Article Generator</h3>
-          <p className="text-sm text-muted-foreground">Enter any topic to instantly create an article</p>
+        <div className="flex-1">
+          <h3 className="font-bold text-base md:text-lg">Quick Article Generator</h3>
+          <p className="text-xs md:text-sm text-muted-foreground">Enter any topic to instantly create an article</p>
         </div>
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="Enter trending topic (e.g., AI Breakthrough in Medicine)"
+          placeholder="Enter trending topic..."
           onKeyPress={(e) => e.key === 'Enter' && handleQuickGenerate()}
           disabled={isGenerating}
-          className="flex-1"
+          className="flex-1 h-11"
         />
         <Button 
           onClick={handleQuickGenerate}
           disabled={isGenerating || !topic.trim()}
-          className="gap-2"
+          className="gap-2 h-11 w-full sm:w-auto"
+          size="default"
         >
           {isGenerating ? (
             <>
               <Sparkles className="h-4 w-4 animate-spin" />
-              Generating...
+              <span className="hidden sm:inline">Generating...</span>
+              <span className="sm:hidden">Generating</span>
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              Generate Now
+              <span className="hidden sm:inline">Generate Now</span>
+              <span className="sm:hidden">Generate</span>
             </>
           )}
         </Button>
