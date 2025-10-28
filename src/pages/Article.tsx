@@ -10,6 +10,7 @@ import { Clock, Eye, Calendar, Share2, Facebook, Twitter, Linkedin } from "lucid
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { SchemaOrg } from "@/components/seo/SchemaOrg";
 
 const Article = () => {
   const { slug } = useParams();
@@ -104,49 +105,62 @@ const Article = () => {
     );
   }
 
-  const shareUrl = window.location.href;
+  const shareUrl = `https://www.cardinal-news.com/article/${article.slug}`;
   const shareText = article.title;
-  const schema = generateSchema();
+  const canonicalUrl = shareUrl;
 
   return (
     <div className="min-h-screen bg-background">
       {article && (
-        <Helmet>
-          {/* Primary Meta Tags */}
-          <title>{article.meta_title || article.title} | Cardinal News</title>
-          <meta name="title" content={article.meta_title || article.title} />
-          <meta name="description" content={article.meta_description || article.excerpt} />
-          <meta name="keywords" content={article.meta_keywords?.join(", ")} />
-          <meta name="author" content={article.author || "Cardinal AI"} />
-          
-          {/* Open Graph / Facebook */}
-          <meta property="og:type" content="article" />
-          <meta property="og:url" content={shareUrl} />
-          <meta property="og:title" content={article.title} />
-          <meta property="og:description" content={article.excerpt || article.meta_description} />
-          <meta property="og:image" content={article.image_url || article.featured_image} />
-          <meta property="article:published_time" content={article.published_at || article.created_at} />
-          <meta property="article:modified_time" content={article.date_modified || article.updated_at} />
-          <meta property="article:author" content={article.author || "Cardinal AI"} />
-          <meta property="article:section" content={article.category} />
-          {article.tags?.map((tag: string) => (
-            <meta key={tag} property="article:tag" content={tag} />
-          ))}
-          
-          {/* Twitter */}
-          <meta property="twitter:card" content="summary_large_image" />
-          <meta property="twitter:url" content={shareUrl} />
-          <meta property="twitter:title" content={article.title} />
-          <meta property="twitter:description" content={article.excerpt || article.meta_description} />
-          <meta property="twitter:image" content={article.image_url || article.featured_image} />
-          
-          {/* Schema.org NewsArticle */}
-          {schema && (
-            <script type="application/ld+json">
-              {JSON.stringify(schema)}
-            </script>
-          )}
-        </Helmet>
+        <>
+          <SchemaOrg type="article" article={article} url={canonicalUrl} />
+          <Helmet>
+            {/* Primary Meta Tags */}
+            <title>{article.meta_title || article.title} | Cardinal News</title>
+            <meta name="title" content={article.meta_title || article.title} />
+            <meta name="description" content={article.meta_description || article.excerpt} />
+            <meta name="keywords" content={article.meta_keywords?.join(", ")} />
+            <meta name="author" content={article.author || "Cardinal AI"} />
+            <link rel="canonical" href={canonicalUrl} />
+            
+            {/* Google News specific */}
+            <meta name="news_keywords" content={article.news_keywords?.join(", ") || article.meta_keywords?.join(", ")} />
+            <meta name="syndication-source" content="https://www.cardinal-news.com" />
+            <meta name="original-source" content={canonicalUrl} />
+            
+            {/* Open Graph / Facebook */}
+            <meta property="og:type" content="article" />
+            <meta property="og:url" content={canonicalUrl} />
+            <meta property="og:site_name" content="Cardinal News" />
+            <meta property="og:title" content={article.og_title || article.title} />
+            <meta property="og:description" content={article.og_description || article.excerpt || article.meta_description} />
+            <meta property="og:image" content={article.og_image || article.image_url || article.featured_image} />
+            <meta property="og:image:width" content="1200" />
+            <meta property="og:image:height" content="675" />
+            <meta property="og:image:alt" content={article.title} />
+            <meta property="article:published_time" content={article.published_at || article.created_at} />
+            <meta property="article:modified_time" content={article.date_modified || article.updated_at} />
+            <meta property="article:author" content={article.author || "Cardinal AI"} />
+            <meta property="article:section" content={article.category} />
+            <meta property="fb:app_id" content="your-facebook-app-id" />
+            {article.tags?.map((tag: string) => (
+              <meta key={tag} property="article:tag" content={tag} />
+            ))}
+            
+            {/* Twitter */}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:site" content="@cardinalnews" />
+            <meta name="twitter:creator" content="@cardinalnews" />
+            <meta name="twitter:url" content={canonicalUrl} />
+            <meta name="twitter:title" content={article.title} />
+            <meta name="twitter:description" content={article.excerpt || article.meta_description} />
+            <meta name="twitter:image" content={article.image_url || article.featured_image} />
+            
+            {/* Additional SEO */}
+            <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+            <meta property="og:locale" content="en_US" />
+          </Helmet>
+        </>
       )}
       
       <Header />

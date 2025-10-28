@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useArticles } from "@/hooks/useArticles";
 import { Loader2, Sparkles, Zap } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { SchemaOrg } from "@/components/seo/SchemaOrg";
 
 const Index = () => {
   const { data: publishedArticles, isLoading } = useArticles();
@@ -48,6 +50,31 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <SchemaOrg type="website" />
+      <Helmet>
+        <title>Cardinal News - Breaking News, Analysis & Insights</title>
+        <meta name="description" content="Stay informed with Cardinal News. Breaking news, in-depth analysis, and comprehensive coverage of world events, business, technology, sports, politics, and entertainment. Your trusted source for real-time journalism." />
+        <meta name="keywords" content="breaking news, world news, business news, technology news, sports news, politics, entertainment, AI journalism, real-time news, Cardinal News" />
+        <link rel="canonical" href="https://www.cardinal-news.com/" />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.cardinal-news.com/" />
+        <meta property="og:site_name" content="Cardinal News" />
+        <meta property="og:title" content="Cardinal News - Breaking News & Analysis" />
+        <meta property="og:description" content="Your trusted source for breaking news, analysis, and insights on global events" />
+        <meta property="og:image" content="https://www.cardinal-news.com/og-image.png" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@cardinalnews" />
+        <meta name="twitter:title" content="Cardinal News - Breaking News & Analysis" />
+        <meta name="twitter:description" content="Your trusted source for breaking news, analysis, and insights on global events" />
+        <meta name="twitter:image" content="https://www.cardinal-news.com/og-image.png" />
+        
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+      </Helmet>
+      
       <Header />
       <TrendingTicker />
       <Hero />

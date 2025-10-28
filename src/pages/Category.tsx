@@ -5,6 +5,8 @@ import { NewsCard } from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { useArticles } from "@/hooks/useArticles";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { SchemaOrg } from "@/components/seo/SchemaOrg";
 
 const Category = () => {
   const { category } = useParams<{ category: string }>();
@@ -49,8 +51,32 @@ const Category = () => {
     );
   }
 
+  const canonicalUrl = `https://www.cardinal-news.com/category/${category}`;
+  const categoryDescription = `Latest ${categoryName.toLowerCase()} news, breaking stories, analysis, and updates. Stay informed with comprehensive coverage from Cardinal News.`;
+
   return (
     <div className="min-h-screen bg-background">
+      <SchemaOrg type="category" categoryName={categoryName} url={canonicalUrl} />
+      <Helmet>
+        <title>{categoryName} News - Cardinal News</title>
+        <meta name="description" content={categoryDescription} />
+        <meta name="keywords" content={`${categoryName.toLowerCase()} news, ${categoryName.toLowerCase()} updates, breaking ${categoryName.toLowerCase()} news, Cardinal News`} />
+        <link rel="canonical" href={canonicalUrl} />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="Cardinal News" />
+        <meta property="og:title" content={`${categoryName} News - Cardinal News`} />
+        <meta property="og:description" content={categoryDescription} />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@cardinalnews" />
+        <meta name="twitter:title" content={`${categoryName} News - Cardinal News`} />
+        <meta name="twitter:description" content={categoryDescription} />
+        
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+      
       <Header />
       
       <main className="container mx-auto px-4 py-12">
