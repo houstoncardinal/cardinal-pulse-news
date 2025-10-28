@@ -178,6 +178,35 @@ serve(async (req) => {
           console.log(`Generating article for ${category}: ${topic}`);
           
           const article = await generateArticleContent(category, topic);
+          
+          // Fetch real news image from web
+          console.log(`🔍 Searching for real news images for: ${topic}`);
+          let imageUrl = null;
+          let imageCredit = null;
+          
+          try {
+            const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
+              body: { 
+                topic: topic,
+                category: category
+              }
+            });
+
+            if (!imageError && imageData?.success) {
+              imageUrl = imageData.imageUrl;
+              imageCredit = imageData.imageCredit;
+              article.featured_image = imageUrl;
+              article.image_url = imageUrl;
+              article.image_credit = imageCredit;
+              article.og_image = imageUrl;
+              console.log('✓ Real news image sourced:', imageCredit);
+            } else {
+              console.warn('No suitable news image found, continuing without image');
+            }
+          } catch (imageError) {
+            console.error('Image fetch failed:', imageError);
+          }
+          
           allArticles.push(article);
           
           results.push({

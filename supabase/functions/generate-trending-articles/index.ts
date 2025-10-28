@@ -95,74 +95,28 @@ Return ONLY a JSON object with this exact structure:
           throw new Error("Invalid JSON response from AI");
         }
 
-        // Generate stunning hero image with Lovable AI (Nano banana)
-        console.log(`Generating high-quality image for: ${articleData.title}`);
+        // Fetch real news image from web
+        console.log(`🔍 Searching for real news images for: ${articleData.title}`);
         let imageUrl = null;
+        let imageCredit = null;
         
-        if (LOVABLE_API_KEY) {
-          const imagePrompt = `Create a photorealistic, professional news photograph for this article:
-
-HEADLINE: "${articleData.title}"
-CATEGORY: ${articleData.category}
-TOPIC: ${topic}
-EXCERPT: ${articleData.excerpt}
-
-REQUIREMENTS:
-- The image MUST accurately represent the subject matter in the headline about: ${topic}
-- Photojournalistic style: realistic, dramatic, high-quality editorial photography
-- 16:9 aspect ratio for news hero image
-- Professional cinematic lighting and composition
-- NO text, watermarks, logos, or overlaid graphics
-- Capture the mood and key subject of this specific story
-- Ultra high resolution, ultra sharp, premium quality
-
-The image should immediately communicate what this news article is about to readers.`;
-
-          const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash-image-preview",
-              messages: [
-                {
-                  role: "user",
-                  content: imagePrompt
-                }
-              ],
-              modalities: ["image", "text"]
-            }),
+        try {
+          const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('fetch-news-image', {
+            body: { 
+              topic: topic,
+              category: articleData.category
+            }
           });
 
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-          
-            if (generatedImageUrl) {
-              // Extract base64 data from data URL
-              const base64Data = generatedImageUrl.split(',')[1];
-              const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-              
-              const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from("article-images")
-                .upload(fileName, imageBuffer, { contentType: "image/png" });
-
-              if (!uploadError && uploadData) {
-                const { data: { publicUrl } } = supabaseClient.storage
-                  .from("article-images")
-                  .getPublicUrl(fileName);
-                imageUrl = publicUrl;
-                console.log('✓ High-quality image uploaded:', publicUrl);
-              }
-            }
+          if (!imageError && imageData?.success) {
+            imageUrl = imageData.imageUrl;
+            imageCredit = imageData.imageCredit;
+            console.log('✓ Real news image sourced:', imageCredit);
           } else {
-            console.warn('Lovable AI image generation failed, continuing without image');
+            console.warn('No suitable news image found, continuing without image');
           }
-        } else {
-          console.warn('LOVABLE_API_KEY not set, skipping image generation');
+        } catch (imageError) {
+          console.error('Image fetch failed:', imageError);
         }
 
         // Generate slug
@@ -191,7 +145,7 @@ The image should immediately communicate what this news article is about to read
             published_at: now,
             featured_image: imageUrl,
             image_url: imageUrl,
-            image_credit: imageUrl ? 'AI Generated (Lovable AI)' : null,
+            image_credit: imageCredit,
             tags: articleData.tags,
             meta_description: articleData.meta_description,
             meta_keywords: articleData.meta_keywords,
