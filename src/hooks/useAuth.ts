@@ -22,6 +22,9 @@ export const useAuth = () => {
         } else {
           setIsAdmin(false);
         }
+        
+        // Always set loading to false after auth state change
+        setLoading(false);
       }
     );
 
