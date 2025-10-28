@@ -75,7 +75,7 @@ serve(async (req) => {
               "tags": ["tag1", "tag2", "tag3"],
               "category": "one of: world, business, technology, sports, entertainment, science, politics, ai_innovation, lifestyle",
               "sources": [{"name": "Source Name", "url": "https://source.com"}],
-              "imagePrompt": "A detailed prompt for generating a relevant hero image for this article"
+              "imagePrompt": "A detailed, specific prompt for generating a photorealistic news photograph. Describe the main subject, setting, lighting, mood, and key visual elements that would accurately represent this specific news story. Be very specific about what should be shown - mention key people, objects, locations, or events. Example: 'A photorealistic image of [specific subject] with [specific details about the scene], dramatic professional lighting, 16:9 news photography composition, ultra high resolution.'"
             }
             
             Guidelines:
@@ -85,7 +85,7 @@ serve(async (req) => {
             - Cite at least 2-3 credible sources in the sources array
             - Optimize for search engines naturally without keyword stuffing
             - Make it newsworthy, timely, and engaging
-            - Create a detailed, visually descriptive imagePrompt for the article's hero image`
+            - Create a HIGHLY DETAILED and SPECIFIC imagePrompt that describes exactly what visual elements should appear in the hero image to accurately represent THIS SPECIFIC story. Include details about the main subjects, setting, actions, mood, and composition.`
           },
           {
             role: 'user',
@@ -141,7 +141,23 @@ serve(async (req) => {
         console.warn('LOVABLE_API_KEY not set, skipping image generation');
       } else {
         const imagePrompt = articleData.imagePrompt || 
-          `Professional news photography for: ${articleData.title}. Style: Photorealistic, cinematic, high-quality journalism, dramatic lighting, ultra sharp, 16:9 aspect ratio. ${articleData.category} theme.`;
+          `Create a photorealistic, professional news photograph for this article:
+
+HEADLINE: "${articleData.title}"
+CATEGORY: ${articleData.category}
+TOPIC: ${topic.topic}
+EXCERPT: ${articleData.excerpt}
+
+REQUIREMENTS:
+- The image MUST accurately depict the main subject of this news story: ${topic.topic}
+- Photojournalistic style: realistic, dramatic, high-quality editorial photography
+- 16:9 aspect ratio for news hero image
+- Professional cinematic lighting and composition
+- NO text, watermarks, logos, or overlaid graphics
+- Capture the specific mood and subject matter of this story
+- Ultra high resolution, ultra sharp, premium quality
+
+Generate an image that readers will immediately recognize as related to this specific news story.`;
         
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',

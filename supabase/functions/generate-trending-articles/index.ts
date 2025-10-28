@@ -100,7 +100,23 @@ Return ONLY a JSON object with this exact structure:
         let imageUrl = null;
         
         if (LOVABLE_API_KEY) {
-          const imagePrompt = `Professional news photography for: ${articleData.title}. Style: Photorealistic, cinematic, high-quality journalism, dramatic lighting, ultra sharp, 16:9 aspect ratio. ${articleData.category} theme.`;
+          const imagePrompt = `Create a photorealistic, professional news photograph for this article:
+
+HEADLINE: "${articleData.title}"
+CATEGORY: ${articleData.category}
+TOPIC: ${topic}
+EXCERPT: ${articleData.excerpt}
+
+REQUIREMENTS:
+- The image MUST accurately represent the subject matter in the headline about: ${topic}
+- Photojournalistic style: realistic, dramatic, high-quality editorial photography
+- 16:9 aspect ratio for news hero image
+- Professional cinematic lighting and composition
+- NO text, watermarks, logos, or overlaid graphics
+- Capture the mood and key subject of this specific story
+- Ultra high resolution, ultra sharp, premium quality
+
+The image should immediately communicate what this news article is about to readers.`;
 
           const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",

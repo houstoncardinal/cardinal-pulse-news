@@ -23,14 +23,24 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Create a powerful, journalistic image prompt
-    const excerpt = content?.substring(0, 300) || '';
-    const imagePrompt = `Create a professional, high-quality news article hero image for: "${title}". 
-Style: Modern editorial photography, cinematic, professional journalism. 
-Category: ${category || 'News'}. 
-Context: ${excerpt}
-The image should be dramatic, attention-grabbing, and suitable for a premium news publication. 
-16:9 aspect ratio. Ultra high resolution.`;
+    // Create a powerful, journalistic image prompt with detailed context
+    const excerpt = content?.substring(0, 500) || '';
+    const imagePrompt = `Create a photorealistic, professional news photograph for this article:
+
+HEADLINE: "${title}"
+CATEGORY: ${category || 'News'}
+ARTICLE CONTEXT: ${excerpt}
+
+REQUIREMENTS:
+- The image MUST directly illustrate the main subject or event described in the headline and article
+- Use photojournalistic style: realistic, dramatic, high-quality editorial photography
+- 16:9 aspect ratio for hero image placement
+- Cinematic lighting and composition suitable for premium news publication
+- NO text, logos, or graphics overlaid on the image
+- Focus on capturing the essence and emotion of the story
+- Ultra high resolution, professional grade
+
+Generate an image that a reader would immediately recognize as related to this specific news story.`;
 
     console.log('Generating image with prompt:', imagePrompt);
 
