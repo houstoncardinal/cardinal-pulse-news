@@ -20,6 +20,13 @@ export const YahooFinanceImporter = () => {
     imported: number;
     total: number;
   } | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [lastRegenerationResult, setLastRegenerationResult] = useState<{
+    success: boolean;
+    regenerated: number;
+    failed: number;
+    total: number;
+  } | null>(null);
 
   const categories = [
     { value: "finance", label: "General Finance" },
@@ -78,6 +85,56 @@ export const YahooFinanceImporter = () => {
       });
     } finally {
       setIsImporting(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    setLastRegenerationResult(null);
+
+    try {
+      console.log('Regenerating existing Yahoo Finance articles...');
+
+      const { data, error } = await supabase.functions.invoke('regenerate-yahoo-articles', {
+        body: {},
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Regeneration result:', data);
+
+      if (data.success) {
+        setLastRegenerationResult({
+          success: true,
+          regenerated: data.regenerated,
+          failed: data.failed,
+          total: data.total,
+        });
+
+        toast({
+          title: "Regeneration Complete!",
+          description: `Regenerated ${data.regenerated} articles with AI-powered content. ${data.failed > 0 ? `${data.failed} failed.` : ''}`,
+        });
+      } else {
+        throw new Error(data.error || 'Regeneration failed');
+      }
+    } catch (error) {
+      console.error('Error regenerating articles:', error);
+      toast({
+        title: "Regeneration Failed",
+        description: error instanceof Error ? error.message : "Failed to regenerate articles",
+        variant: "destructive",
+      });
+      setLastRegenerationResult({
+        success: false,
+        regenerated: 0,
+        failed: 0,
+        total: 0,
+      });
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -170,29 +227,72 @@ export const YahooFinanceImporter = () => {
             </div>
           )}
 
-          <Button
-            onClick={handleImport}
-            disabled={isImporting}
-            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-          >
-            {isImporting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing from Yahoo Finance...
-              </>
-            ) : (
-              <>
-                <DollarSign className="mr-2 h-4 w-4" />
-                Import Yahoo Finance News
-              </>
-            )}
-          </Button>
+          {lastRegenerationResult && (
+            <div className={`p-4 rounded-lg border ${
+              lastRegenerationResult.success 
+                ? 'bg-blue-500/5 border-blue-500/20' 
+                : 'bg-red-500/5 border-red-500/20'
+            }`}>
+              <div className="flex items-center gap-2">
+                {lastRegenerationResult.success ? (
+                  <CheckCircle className="h-5 w-5 text-blue-500" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  {lastRegenerationResult.success 
+                    ? `Regenerated ${lastRegenerationResult.regenerated} of ${lastRegenerationResult.total} articles${lastRegenerationResult.failed > 0 ? ` (${lastRegenerationResult.failed} failed)` : ''}`
+                    : 'Regeneration failed'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              onClick={handleImport}
+              disabled={isImporting || isRegenerating}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+            >
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing from Yahoo Finance...
+                </>
+              ) : (
+                <>
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Import Yahoo Finance News
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleRegenerate}
+              disabled={isImporting || isRegenerating}
+              variant="outline"
+              className="w-full border-blue-500/30 hover:bg-blue-500/10"
+            >
+              {isRegenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Regenerating Articles...
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Regenerate Existing Articles with AI
+                </>
+              )}
+            </Button>
+          </div>
 
           <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/50">
-            <p>• Articles are fetched from Yahoo Finance RSS feeds</p>
+            <p><strong>Import:</strong> Fetch new articles from Yahoo Finance RSS feeds</p>
+            <p><strong>Regenerate:</strong> Update existing basic articles with full AI-written content (1000-1500 words)</p>
             <p>• Duplicate articles are automatically skipped</p>
-            <p>• You can edit and customize articles after import</p>
-            <p>• Source attribution is automatically added to each article</p>
+            <p>• Source attribution to Yahoo Finance is maintained</p>
+            <p>• All regenerated articles include AI-generated hero images</p>
           </div>
         </div>
       </div>

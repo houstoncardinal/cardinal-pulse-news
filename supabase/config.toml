@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.import-yahoo-finance]
 verify_jwt = false
 
+[functions.regenerate-yahoo-articles]
+verify_jwt = false
+
 [functions.generate-diverse-articles]
 verify_jwt = false
 
