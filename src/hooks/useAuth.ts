@@ -11,15 +11,14 @@ export const useAuth = () => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('[useAuth] Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         // Check admin status if user exists
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id);
-          }, 0);
+          await checkAdminStatus(session.user.id);
         } else {
           setIsAdmin(false);
         }
@@ -27,14 +26,13 @@ export const useAuth = () => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[useAuth] Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        setTimeout(() => {
-          checkAdminStatus(session.user.id);
-        }, 0);
+        await checkAdminStatus(session.user.id);
       }
       
       setLoading(false);
@@ -44,6 +42,7 @@ export const useAuth = () => {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
+    console.log('[useAuth] Checking admin status for user:', userId);
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -52,13 +51,17 @@ export const useAuth = () => {
         .in('role', ['super_admin', 'admin'])
         .maybeSingle();
 
+      console.log('[useAuth] Admin check result:', { data, error });
+      
       if (!error && data) {
+        console.log('[useAuth] User is admin with role:', data.role);
         setIsAdmin(true);
       } else {
+        console.log('[useAuth] User is not admin');
         setIsAdmin(false);
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('[useAuth] Error checking admin status:', error);
       setIsAdmin(false);
     }
   };

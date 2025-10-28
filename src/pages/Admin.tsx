@@ -11,11 +11,16 @@ const Admin = () => {
   const { user, loading, isAdmin } = useAuth();
 
   useEffect(() => {
+    console.log('[Admin Page] Auth state:', { loading, user: !!user, isAdmin });
     if (!loading) {
       if (!user) {
+        console.log('[Admin Page] No user, redirecting to /auth');
         navigate("/auth");
       } else if (!isAdmin) {
+        console.log('[Admin Page] User exists but not admin, redirecting to /');
         navigate("/");
+      } else {
+        console.log('[Admin Page] User is admin, showing dashboard');
       }
     }
   }, [user, loading, isAdmin, navigate]);
