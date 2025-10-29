@@ -56,10 +56,17 @@ serve(async (req) => {
       }
     }
     
-    // Add random variation to get different results
-    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update'];
-    const randomVariation = variations[Math.floor(Math.random() * variations.length)];
-    searchQuery = `${randomVariation} ${searchQuery}`;
+    // Add random variation with timestamp to ensure uniqueness across parallel calls
+    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update', 'current', 'top', 'exclusive'];
+    const timestamp = Date.now();
+    const seed = timestamp % variations.length;
+    const randomVariation = variations[seed];
+    
+    // Add additional random terms for more variety
+    const additionalTerms = ['photo', 'image', 'picture', 'coverage', 'report', 'story'];
+    const additionalTerm = additionalTerms[Math.floor(Math.random() * additionalTerms.length)];
+    
+    searchQuery = `${randomVariation} ${searchQuery} ${additionalTerm} ${timestamp}`;
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -71,7 +78,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 30, // Increased to get many more options
+        num: 50, // Increased even more for better variety
         gl: 'us',
         hl: 'en',
         safe: 'active',
@@ -174,19 +181,26 @@ serve(async (req) => {
       );
     }
 
-    // Try to find images from news sources first
-    let selectedImage = availableImages.find((img: any) => {
+    // Use timestamp-based selection for better distribution across parallel calls
+    const timestamp = Date.now();
+    const selectionSeed = timestamp % availableImages.length;
+    
+    // Try to find images from news sources first, but use timestamp-based offset
+    const newsSourceImages = availableImages.filter((img: any) => {
       const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
       return newsSourceKeywords.some(source => imgUrl.includes(source));
     });
 
-    // If no news source image, select randomly from available images
-    if (!selectedImage) {
-      const randomIndex = Math.floor(Math.random() * availableImages.length);
-      selectedImage = availableImages[randomIndex];
-      console.log(`🎲 Selected random image ${randomIndex + 1} of ${availableImages.length}`);
+    let selectedImage;
+    if (newsSourceImages.length > 0) {
+      // Use timestamp to select from news sources
+      const newsIndex = selectionSeed % newsSourceImages.length;
+      selectedImage = newsSourceImages[newsIndex];
+      console.log(`📰 Selected news source image ${newsIndex + 1} of ${newsSourceImages.length}`);
     } else {
-      console.log(`📰 Selected image from news source`);
+      // Use timestamp for selection from all available
+      selectedImage = availableImages[selectionSeed];
+      console.log(`🎲 Selected image ${selectionSeed + 1} of ${availableImages.length} (timestamp-based)`);
     }
 
     const imageUrl = selectedImage.imageUrl;
