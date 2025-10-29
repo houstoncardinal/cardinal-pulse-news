@@ -56,17 +56,11 @@ serve(async (req) => {
       }
     }
     
-    // Add random variation with timestamp to ensure uniqueness across parallel calls
-    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update', 'current', 'top', 'exclusive'];
-    const timestamp = Date.now();
-    const seed = timestamp % variations.length;
-    const randomVariation = variations[seed];
-    
-    // Add additional random terms for more variety
-    const additionalTerms = ['photo', 'image', 'picture', 'coverage', 'report', 'story'];
-    const additionalTerm = additionalTerms[Math.floor(Math.random() * additionalTerms.length)];
-    
-    searchQuery = `${randomVariation} ${searchQuery} ${additionalTerm} ${timestamp}`;
+    // Add random variation to get different results each time
+    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update'];
+    const randomIndex = Math.floor(Math.random() * variations.length);
+    const randomVariation = variations[randomIndex];
+    searchQuery = `${randomVariation} ${searchQuery}`;
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -78,11 +72,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 50, // Increased even more for better variety
+        num: 40,
         gl: 'us',
         hl: 'en',
         safe: 'active',
-        type: 'news', // Prioritize news images
+        type: 'news',
       }),
     });
 
@@ -181,11 +175,7 @@ serve(async (req) => {
       );
     }
 
-    // Use timestamp-based selection for better distribution across parallel calls
-    const timestamp = Date.now();
-    const selectionSeed = timestamp % availableImages.length;
-    
-    // Try to find images from news sources first, but use timestamp-based offset
+    // Prioritize news sources but add randomization to selection
     const newsSourceImages = availableImages.filter((img: any) => {
       const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
       return newsSourceKeywords.some(source => imgUrl.includes(source));
@@ -193,14 +183,13 @@ serve(async (req) => {
 
     let selectedImage;
     if (newsSourceImages.length > 0) {
-      // Use timestamp to select from news sources
-      const newsIndex = selectionSeed % newsSourceImages.length;
-      selectedImage = newsSourceImages[newsIndex];
-      console.log(`📰 Selected news source image ${newsIndex + 1} of ${newsSourceImages.length}`);
+      const randomNewsIndex = Math.floor(Math.random() * newsSourceImages.length);
+      selectedImage = newsSourceImages[randomNewsIndex];
+      console.log(`📰 Selected news source image ${randomNewsIndex + 1} of ${newsSourceImages.length}`);
     } else {
-      // Use timestamp for selection from all available
-      selectedImage = availableImages[selectionSeed];
-      console.log(`🎲 Selected image ${selectionSeed + 1} of ${availableImages.length} (timestamp-based)`);
+      const randomIndex = Math.floor(Math.random() * availableImages.length);
+      selectedImage = availableImages[randomIndex];
+      console.log(`🎲 Selected image ${randomIndex + 1} of ${availableImages.length}`);
     }
 
     const imageUrl = selectedImage.imageUrl;
