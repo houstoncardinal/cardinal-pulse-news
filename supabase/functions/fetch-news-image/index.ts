@@ -31,6 +31,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Create a unique hash from the topic for consistent but unique image selection
+    const topicHash = topic.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+    
     // Create highly diverse search queries with multiple random variations
     let searchQuery = topic;
     
@@ -39,32 +42,34 @@ serve(async (req) => {
     if (category) {
       const categoryLower = category.toLowerCase();
       if (categoryLower.includes('weather')) {
-        visualTerms.push('weather', 'storm', 'satellite', 'forecast', 'meteorology', 'climate');
+        visualTerms.push('weather', 'storm', 'satellite', 'forecast', 'meteorology', 'climate', 'conditions', 'atmosphere');
       } else if (categoryLower.includes('business')) {
-        visualTerms.push('executive', 'corporate', 'meeting', 'office', 'professional', 'boardroom', 'conference');
+        visualTerms.push('executive', 'corporate', 'meeting', 'office', 'professional', 'boardroom', 'conference', 'business leader', 'ceo', 'entrepreneur');
       } else if (categoryLower.includes('tech')) {
-        visualTerms.push('technology', 'innovation', 'device', 'digital', 'startup', 'launch');
+        visualTerms.push('technology', 'innovation', 'device', 'digital', 'startup', 'launch', 'software', 'hardware', 'tech event');
       } else if (categoryLower.includes('sports')) {
-        visualTerms.push('athlete', 'stadium', 'competition', 'game', 'championship', 'tournament');
+        visualTerms.push('athlete', 'stadium', 'competition', 'game', 'championship', 'tournament', 'player', 'team', 'match');
       } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
-        visualTerms.push('celebrity', 'premiere', 'performance', 'concert', 'show', 'festival');
+        visualTerms.push('celebrity', 'premiere', 'performance', 'concert', 'show', 'festival', 'actor', 'musician', 'red carpet');
       } else if (categoryLower.includes('science')) {
-        visualTerms.push('laboratory', 'research', 'scientist', 'discovery', 'experiment', 'innovation');
+        visualTerms.push('laboratory', 'research', 'scientist', 'discovery', 'experiment', 'innovation', 'lab', 'equipment', 'breakthrough');
       } else if (categoryLower.includes('politics')) {
-        visualTerms.push('politician', 'summit', 'conference', 'government', 'parliament', 'congress');
+        visualTerms.push('politician', 'summit', 'conference', 'government', 'parliament', 'congress', 'debate', 'election', 'leader');
       } else {
-        visualTerms.push('photo', 'image', 'scene', 'captured', 'moment');
+        visualTerms.push('photo', 'image', 'scene', 'captured', 'moment', 'journalism', 'news', 'event');
       }
     }
     
-    // Randomly select 2-3 visual terms for diversity
-    const numTerms = Math.floor(Math.random() * 2) + 2; // 2 or 3 terms
-    const shuffledTerms = visualTerms.sort(() => Math.random() - 0.5).slice(0, numTerms);
+    // Use topic hash to select different terms for each unique topic
+    const numTerms = (topicHash % 3) + 2; // 2-4 terms based on topic
+    const startIndex = topicHash % (visualTerms.length - numTerms);
+    const selectedTerms = visualTerms.slice(startIndex, startIndex + numTerms);
     
-    // Add timestamp and random number for additional uniqueness
+    // Add multiple layers of uniqueness
     const timestamp = Date.now();
-    const randomSeed = Math.floor(Math.random() * 10000);
-    searchQuery = `${topic} ${shuffledTerms.join(' ')} ${timestamp % 1000} ${randomSeed}`;
+    const randomSeed = Math.floor(Math.random() * 100000);
+    const uniqueModifier = (topicHash + timestamp) % 9999;
+    searchQuery = `${topic} ${selectedTerms.join(' ')} ${uniqueModifier} ${randomSeed}`;
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -76,7 +81,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 50,
+        num: 100, // Fetch more images for better diversity
         gl: 'us',
         hl: 'en',
         safe: 'active',
@@ -181,6 +186,9 @@ serve(async (req) => {
       );
     }
 
+    // Use topic hash to deterministically but uniquely select from different parts of the results
+    // (topicHash already calculated at the top)
+    
     // Prioritize news sources but add strong randomization to selection
     const newsSourceImages = availableImages.filter((img: any) => {
       const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
@@ -188,17 +196,16 @@ serve(async (req) => {
     });
 
     let selectedImage;
-    if (newsSourceImages.length > 0) {
-      // Select from random position, not just the beginning
-      const randomNewsIndex = Math.floor(Math.random() * newsSourceImages.length);
-      selectedImage = newsSourceImages[randomNewsIndex];
-      console.log(`📰 Selected news source image ${randomNewsIndex + 1} of ${newsSourceImages.length}`);
-    } else {
-      // Select from random position in all available images
-      const randomIndex = Math.floor(Math.random() * availableImages.length);
-      selectedImage = availableImages[randomIndex];
-      console.log(`🎲 Selected image ${randomIndex + 1} of ${availableImages.length}`);
-    }
+    const imagePool = newsSourceImages.length > 0 ? newsSourceImages : availableImages;
+    
+    // Use a combination of topic hash and random number to select from different positions
+    // This ensures different topics get different images even when called simultaneously
+    const hashOffset = topicHash % imagePool.length;
+    const randomOffset = Math.floor(Math.random() * Math.min(20, imagePool.length));
+    const selectedIndex = (hashOffset + randomOffset) % imagePool.length;
+    
+    selectedImage = imagePool[selectedIndex];
+    console.log(`🎯 Selected unique image ${selectedIndex + 1} of ${imagePool.length} (hash: ${topicHash % 1000})`);
 
     const imageUrl = selectedImage.imageUrl;
     
