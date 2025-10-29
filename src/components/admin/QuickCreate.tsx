@@ -56,12 +56,12 @@ export const QuickCreate = () => {
 
   const handleSeedDiverseTopics = async () => {
     setIsSeeding(true);
-    const toastId = toast.loading('Seeding diverse trending topics across all categories...');
+    const toastId = toast.loading('Clearing old topics and seeding fresh trending topics...');
     
     try {
       const { data, error } = await supabase.functions.invoke('seed-trending-topics', {
         body: { 
-          forceRefresh: false,
+          forceRefresh: true,  // Always force refresh to seed new topics
           articlesPerTopic: 1
         }
       });
@@ -69,12 +69,15 @@ export const QuickCreate = () => {
       if (error) throw error;
       
       toast.success(
-        `✅ Seeded ${data.topicsInserted || 0} topics and generated ${data.articlesGenerated || 0} articles across ${data.categoriesRepresented?.length || 0} categories!`, 
+        `✅ Seeded ${data.topicsInserted || 0} fresh topics and generated ${data.articlesGenerated || 0} articles across ${data.categoriesRepresented?.length || 0} categories!`, 
         { id: toastId, duration: 6000 }
       );
+      
+      // Reload the page to show new topics
+      setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to seed topics', { id: toastId });
+      toast.error('Failed to seed topics: ' + (error instanceof Error ? error.message : 'Unknown error'), { id: toastId });
     } finally {
       setIsSeeding(false);
     }
