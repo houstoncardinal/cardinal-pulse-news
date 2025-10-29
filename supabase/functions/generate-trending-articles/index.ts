@@ -38,6 +38,9 @@ serve(async (req) => {
     
     const existingTitles = existingArticles?.map(a => a.title) || [];
 
+    // Track used images in this batch to prevent duplicates
+    const usedImagesInBatch = new Set<string>();
+
     const results = [];
 
     for (const topic of topics) {
@@ -122,28 +125,50 @@ Return ONLY a JSON object with this exact structure:
           throw new Error("Invalid JSON response from AI");
         }
 
-        // Fetch real news image from web
+        // Fetch real news image from web with retry for uniqueness
         console.log(`🔍 Searching for real news images for: ${articleData.title}`);
         let imageUrl = null;
         let imageCredit = null;
         
-        try {
-          const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('fetch-news-image', {
-            body: { 
-              topic: topic,
-              category: articleData.category
-            }
-          });
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (attempts < maxAttempts) {
+          try {
+            const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('fetch-news-image', {
+              body: { 
+                topic: topic,
+                category: articleData.category
+              }
+            });
 
-          if (!imageError && imageData?.success) {
-            imageUrl = imageData.imageUrl;
-            imageCredit = imageData.imageCredit;
-            console.log('✓ Real news image sourced:', imageCredit);
-          } else {
-            console.warn('No suitable news image found, continuing without image');
+            if (!imageError && imageData?.success) {
+              // Check if this image was already used in this batch
+              if (!usedImagesInBatch.has(imageData.imageUrl)) {
+                imageUrl = imageData.imageUrl;
+                imageCredit = imageData.imageCredit;
+                usedImagesInBatch.add(imageData.imageUrl);
+                console.log('✓ Unique real news image sourced:', imageCredit);
+                break;
+              } else {
+                console.log(`⚠️ Image already used in this batch, retrying... (attempt ${attempts + 1})`);
+                attempts++;
+                if (attempts < maxAttempts) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+            } else {
+              console.warn('No suitable news image found');
+              break;
+            }
+          } catch (imageError) {
+            console.error('Image fetch failed:', imageError);
+            break;
           }
-        } catch (imageError) {
-          console.error('Image fetch failed:', imageError);
+        }
+        
+        if (!imageUrl) {
+          console.warn('Could not find unique image after retries, continuing without image');
         }
 
         // Enhanced duplicate detection - check both title similarity and content overlap

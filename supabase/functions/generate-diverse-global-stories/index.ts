@@ -214,6 +214,9 @@ serve(async (req) => {
 
     const generatedArticles = [];
     let totalGenerated = 0;
+    
+    // Track used images in this batch to prevent duplicates
+    const usedImagesInBatch = new Set<string>();
 
     // Generate diverse stories with priority for US hubs
     // Priority hubs get more coverage (5 stories each)
@@ -322,24 +325,44 @@ Return ONLY a JSON object with this exact structure:
           const wordCount = articleData.content.split(/\s+/).length;
           const readTime = Math.max(1, Math.round(wordCount / 200)) + " min read";
 
-          // Fetch news image
+          // Fetch news image with retry for uniqueness
           let imageUrl = null;
           let imageCredit = null;
           
-          try {
-            const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('fetch-news-image', {
-              body: { 
-                topic: `${storyType.type} ${location.city}`,
-                category: "world"
-              }
-            });
+          let attempts = 0;
+          const maxAttempts = 5;
+          
+          while (attempts < maxAttempts) {
+            try {
+              const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('fetch-news-image', {
+                body: { 
+                  topic: `${storyType.type} ${location.city}`,
+                  category: "world"
+                }
+              });
 
-            if (!imageError && imageData?.success) {
-              imageUrl = imageData.imageUrl;
-              imageCredit = imageData.imageCredit;
+              if (!imageError && imageData?.success) {
+                // Check if this image was already used in this batch
+                if (!usedImagesInBatch.has(imageData.imageUrl)) {
+                  imageUrl = imageData.imageUrl;
+                  imageCredit = imageData.imageCredit;
+                  usedImagesInBatch.add(imageData.imageUrl);
+                  console.log('✓ Unique image sourced');
+                  break;
+                } else {
+                  console.log(`⚠️ Image already used in batch, retrying... (${attempts + 1})`);
+                  attempts++;
+                  if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+              } else {
+                break;
+              }
+            } catch (imageError) {
+              console.error('Image fetch failed:', imageError);
+              break;
             }
-          } catch (imageError) {
-            console.error('Image fetch failed:', imageError);
           }
 
           // Insert article - AUTO-PUBLISH

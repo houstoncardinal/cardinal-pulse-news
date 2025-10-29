@@ -199,6 +199,9 @@ serve(async (req) => {
 
     const allArticles = [];
     const results = [];
+    
+    // Track used images in this batch to prevent duplicates
+    const usedImagesInBatch = new Set<string>();
 
     // Generate articles for each category
     for (const category of categories) {
@@ -224,32 +227,54 @@ serve(async (req) => {
           
           existingTitles.push(article.title);
           
-          // Fetch real news image from web
+          // Fetch real news image from web with retry for uniqueness
           console.log(`🔍 Searching for real news images for: ${topic}`);
           let imageUrl = null;
           let imageCredit = null;
           
-          try {
-            const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
-              body: { 
-                topic: topic,
-                category: category
-              }
-            });
+          let attempts = 0;
+          const maxAttempts = 5;
+          
+          while (attempts < maxAttempts) {
+            try {
+              const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
+                body: { 
+                  topic: topic,
+                  category: category
+                }
+              });
 
-            if (!imageError && imageData?.success) {
-              imageUrl = imageData.imageUrl;
-              imageCredit = imageData.imageCredit;
-              article.featured_image = imageUrl;
-              article.image_url = imageUrl;
-              article.image_credit = imageCredit;
-              article.og_image = imageUrl;
-              console.log('✓ Real news image sourced:', imageCredit);
-            } else {
-              console.warn('No suitable news image found, continuing without image');
+              if (!imageError && imageData?.success) {
+                // Check if this image was already used in this batch
+                if (!usedImagesInBatch.has(imageData.imageUrl)) {
+                  imageUrl = imageData.imageUrl;
+                  imageCredit = imageData.imageCredit;
+                  usedImagesInBatch.add(imageData.imageUrl);
+                  article.featured_image = imageUrl;
+                  article.image_url = imageUrl;
+                  article.image_credit = imageCredit;
+                  article.og_image = imageUrl;
+                  console.log('✓ Unique real news image sourced:', imageCredit);
+                  break;
+                } else {
+                  console.log(`⚠️ Image already used in batch, retrying... (${attempts + 1})`);
+                  attempts++;
+                  if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+              } else {
+                console.warn('No suitable news image found');
+                break;
+              }
+            } catch (imageError) {
+              console.error('Image fetch failed:', imageError);
+              break;
             }
-          } catch (imageError) {
-            console.error('Image fetch failed:', imageError);
+          }
+          
+          if (!imageUrl) {
+            console.warn('Could not find unique image after retries, continuing without image');
           }
           
           allArticles.push(article);

@@ -63,8 +63,9 @@ const trendingTopics = {
 async function generateArticleFromTrend(
   category: string, 
   trend: string, 
-  existingTitles: string[],
-  supabase: any
+  existingTitles: string[], 
+  supabase: any,
+  usedImagesInBatch: Set<string>
 ): Promise<any> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -171,23 +172,47 @@ This must be distinctive, original, and demonstrate exceptional journalistic qua
     ? 'ai_innovation' 
     : category;
 
-  // Fetch real news image
+  // Fetch real news image with retry for uniqueness
   console.log(`🔍 Searching for real image: ${title}`);
   let imageUrl = null;
   let imageCredit = null;
 
-  try {
-    const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
-      body: { topic: title, category: dbCategory }
-    });
+  let attempts = 0;
+  const maxAttempts = 5;
+  
+  while (attempts < maxAttempts) {
+    try {
+      const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
+        body: { topic: title, category: dbCategory }
+      });
 
-    if (!imageError && imageData?.success) {
-      imageUrl = imageData.imageUrl;
-      imageCredit = imageData.imageCredit;
-      console.log('✓ Real image sourced:', imageCredit);
+      if (!imageError && imageData?.success) {
+        // Check if this image was already used in this batch
+        if (!usedImagesInBatch.has(imageData.imageUrl)) {
+          imageUrl = imageData.imageUrl;
+          imageCredit = imageData.imageCredit;
+          usedImagesInBatch.add(imageData.imageUrl);
+          console.log('✓ Unique real image sourced:', imageCredit);
+          break;
+        } else {
+          console.log(`⚠️ Image already used in batch, retrying... (${attempts + 1})`);
+          attempts++;
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      } else {
+        console.warn('No suitable image found');
+        break;
+      }
+    } catch (err) {
+      console.warn('Image fetch failed:', err);
+      break;
     }
-  } catch (err) {
-    console.warn('Image fetch failed:', err);
+  }
+  
+  if (!imageUrl) {
+    console.warn('Could not find unique image after retries, continuing without image');
   }
 
   return {
@@ -239,6 +264,9 @@ serve(async (req) => {
 
     const allArticles = [];
     const results = [];
+    
+    // Track used images in this batch to prevent duplicates
+    const usedImagesInBatch = new Set<string>();
 
     for (const category of categoriesToGenerate) {
       const trends = trendingTopics[category as keyof typeof trendingTopics];
@@ -253,7 +281,7 @@ serve(async (req) => {
         try {
           console.log(`📝 Generating: [${category}] ${trend}`);
 
-          const article = await generateArticleFromTrend(category, trend, existingTitles, supabase);
+          const article = await generateArticleFromTrend(category, trend, existingTitles, supabase, usedImagesInBatch);
 
           // Enhanced duplicate check
           const titleWords = new Set(
