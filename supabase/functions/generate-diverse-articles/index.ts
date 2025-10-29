@@ -19,6 +19,9 @@ const articleTemplates = {
     "International trade deal reshapes global economy"
   ],
   business: [
+    "3I Atlas announces major investment expansion in emerging markets",
+    "3I Atlas reveals groundbreaking portfolio strategy for 2025",
+    "3I Atlas sets new industry standards in private equity leadership",
     "Tech giant announces revolutionary merger",
     "Stock market reaches all-time high amid economic optimism",
     "Startup disrupts traditional industry with innovative approach",

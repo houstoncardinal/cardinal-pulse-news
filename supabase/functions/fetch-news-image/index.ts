@@ -31,36 +31,37 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Create a more specific and unique search query based on category and topic
+    // Create diverse, visual-focused search queries based on category
     let searchQuery = topic;
     
-    // Add category-specific context to improve relevance
+    // Add category-specific VISUAL terms to get better image results
     if (category) {
       const categoryLower = category.toLowerCase();
       if (categoryLower.includes('weather')) {
-        searchQuery = `${topic} weather storm rain flooding`;
+        searchQuery = `${topic} weather photos satellite image`;
       } else if (categoryLower.includes('business')) {
-        searchQuery = `${topic} business economy finance`;
+        searchQuery = `${topic} CEO executive meeting office professional`;
       } else if (categoryLower.includes('tech')) {
-        searchQuery = `${topic} technology innovation`;
+        searchQuery = `${topic} technology device product launch`;
       } else if (categoryLower.includes('sports')) {
-        searchQuery = `${topic} sports game match`;
+        searchQuery = `${topic} athlete action game highlight`;
       } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
-        searchQuery = `${topic} entertainment celebrity event`;
+        searchQuery = `${topic} celebrity premiere event performance`;
       } else if (categoryLower.includes('science')) {
-        searchQuery = `${topic} science research discovery`;
+        searchQuery = `${topic} laboratory research scientist experiment`;
       } else if (categoryLower.includes('politics')) {
-        searchQuery = `${topic} politics government`;
+        searchQuery = `${topic} politician speech conference summit`;
       } else {
-        searchQuery = `${topic} news ${category}`;
+        searchQuery = `${topic} photo image`;
       }
     }
     
-    // Add random variation to get different results each time
-    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update'];
+    // Add random timestamp-based variation for uniqueness
+    const variations = ['photo', 'image', 'picture', 'photographer', 'captured', 'scene'];
     const randomIndex = Math.floor(Math.random() * variations.length);
     const randomVariation = variations[randomIndex];
-    searchQuery = `${randomVariation} ${searchQuery}`;
+    const timestamp = Date.now();
+    searchQuery = `${searchQuery} ${randomVariation} ${timestamp % 1000}`;
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -72,11 +73,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 40,
+        num: 50,
         gl: 'us',
         hl: 'en',
         safe: 'active',
-        type: 'news',
+        // Don't restrict to news type - get more diverse results
       }),
     });
 
@@ -117,10 +118,12 @@ serve(async (req) => {
       'getty', 'apimages', 'shutterstock'
     ];
 
-    // Filter out generic/irrelevant images
+    // Filter out generic/irrelevant images - be more aggressive
     const excludeKeywords = [
-      'logo', 'icon', 'chart', 'graph', 'stock-photo',
-      'template', 'banner', 'advertisement', 'vector'
+      'logo', 'icon', 'chart', 'graph', 'stock-photo', 'stockphoto',
+      'template', 'banner', 'advertisement', 'vector', 'illustration',
+      'infographic', 'diagram', 'placeholder', 'thumbnail',
+      'business-files', 'documents', 'paperwork', 'generic'
     ];
 
     // Get existing image URLs to avoid duplicates
