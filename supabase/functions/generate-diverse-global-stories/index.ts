@@ -36,88 +36,118 @@ serve(async (req) => {
       .select()
       .single();
 
-    // Comprehensive global regions and major cities
-    const globalLocations = [
-      // North America
-      { city: "New York", country: "USA", region: "US-NY", type: "metro" },
-      { city: "Los Angeles", country: "USA", region: "US-CA", type: "metro" },
-      { city: "Chicago", country: "USA", region: "US-IL", type: "metro" },
-      { city: "Houston", country: "USA", region: "US-TX", type: "metro" },
-      { city: "Miami", country: "USA", region: "US-FL", type: "metro" },
-      { city: "Toronto", country: "Canada", region: "CA-ON", type: "metro" },
-      { city: "Vancouver", country: "Canada", region: "CA-BC", type: "metro" },
-      { city: "Mexico City", country: "Mexico", region: "MX-CMX", type: "metro" },
-      
-      // South America
-      { city: "Sao Paulo", country: "Brazil", region: "BR-SP", type: "metro" },
-      { city: "Rio de Janeiro", country: "Brazil", region: "BR-RJ", type: "metro" },
-      { city: "Buenos Aires", country: "Argentina", region: "AR-B", type: "metro" },
-      { city: "Bogota", country: "Colombia", region: "CO-DC", type: "metro" },
-      { city: "Lima", country: "Peru", region: "PE-LIM", type: "metro" },
-      { city: "Santiago", country: "Chile", region: "CL-RM", type: "metro" },
-      
-      // Europe
-      { city: "London", country: "UK", region: "GB-LND", type: "metro" },
-      { city: "Paris", country: "France", region: "FR-J", type: "metro" },
-      { city: "Berlin", country: "Germany", region: "DE-BE", type: "metro" },
-      { city: "Madrid", country: "Spain", region: "ES-MD", type: "metro" },
-      { city: "Rome", country: "Italy", region: "IT-RM", type: "metro" },
-      { city: "Amsterdam", country: "Netherlands", region: "NL-NH", type: "metro" },
-      { city: "Stockholm", country: "Sweden", region: "SE-AB", type: "metro" },
-      { city: "Copenhagen", country: "Denmark", region: "DK-84", type: "metro" },
-      { city: "Moscow", country: "Russia", region: "RU-MOW", type: "metro" },
-      
-      // Asia
-      { city: "Tokyo", country: "Japan", region: "JP-13", type: "metro" },
-      { city: "Seoul", country: "South Korea", region: "KR-11", type: "metro" },
-      { city: "Beijing", country: "China", region: "CN-BJ", type: "metro" },
-      { city: "Shanghai", country: "China", region: "CN-SH", type: "metro" },
-      { city: "Mumbai", country: "India", region: "IN-MH", type: "metro" },
-      { city: "Delhi", country: "India", region: "IN-DL", type: "metro" },
-      { city: "Bangalore", country: "India", region: "IN-KA", type: "metro" },
-      { city: "Singapore", country: "Singapore", region: "SG", type: "metro" },
-      { city: "Bangkok", country: "Thailand", region: "TH-10", type: "metro" },
-      { city: "Jakarta", country: "Indonesia", region: "ID-JK", type: "metro" },
-      { city: "Manila", country: "Philippines", region: "PH-00", type: "metro" },
-      { city: "Hong Kong", country: "Hong Kong", region: "HK", type: "metro" },
-      
-      // Middle East
-      { city: "Dubai", country: "UAE", region: "AE-DU", type: "metro" },
-      { city: "Tel Aviv", country: "Israel", region: "IL-TA", type: "metro" },
-      { city: "Istanbul", country: "Turkey", region: "TR-34", type: "metro" },
-      
-      // Africa
-      { city: "Cairo", country: "Egypt", region: "EG-C", type: "metro" },
-      { city: "Lagos", country: "Nigeria", region: "NG-LA", type: "metro" },
-      { city: "Johannesburg", country: "South Africa", region: "ZA-GT", type: "metro" },
-      { city: "Nairobi", country: "Kenya", region: "KE-110", type: "metro" },
-      
-      // Oceania
-      { city: "Sydney", country: "Australia", region: "AU-NSW", type: "metro" },
-      { city: "Melbourne", country: "Australia", region: "AU-VIC", type: "metro" },
-      { city: "Auckland", country: "New Zealand", region: "NZ-AUK", type: "metro" },
+    // Major US City Hubs - Priority cities with enhanced local coverage
+    const priorityUSHubs = [
+      { city: "Houston", country: "USA", region: "US-TX", type: "metro", priority: true },
+      { city: "Los Angeles", country: "USA", region: "US-CA", type: "metro", priority: true },
+      { city: "Miami", country: "USA", region: "US-FL", type: "metro", priority: true },
+      { city: "Chicago", country: "USA", region: "US-IL", type: "metro", priority: true },
+      { city: "New York", country: "USA", region: "US-NY", type: "metro", priority: true },
     ];
 
-    // Diverse story types to cover
+    // Comprehensive global regions and major cities
+    const otherLocations = [
+      // North America - Other cities
+      { city: "Toronto", country: "Canada", region: "CA-ON", type: "metro", priority: false },
+      { city: "Vancouver", country: "Canada", region: "CA-BC", type: "metro", priority: false },
+      { city: "Mexico City", country: "Mexico", region: "MX-CMX", type: "metro", priority: false },
+      { city: "Phoenix", country: "USA", region: "US-AZ", type: "metro", priority: false },
+      { city: "Philadelphia", country: "USA", region: "US-PA", type: "metro", priority: false },
+      { city: "San Antonio", country: "USA", region: "US-TX", type: "metro", priority: false },
+      { city: "San Diego", country: "USA", region: "US-CA", type: "metro", priority: false },
+      { city: "Dallas", country: "USA", region: "US-TX", type: "metro", priority: false },
+      
+      // South America
+      { city: "Sao Paulo", country: "Brazil", region: "BR-SP", type: "metro", priority: false },
+      { city: "Rio de Janeiro", country: "Brazil", region: "BR-RJ", type: "metro", priority: false },
+      { city: "Buenos Aires", country: "Argentina", region: "AR-B", type: "metro", priority: false },
+      { city: "Bogota", country: "Colombia", region: "CO-DC", type: "metro", priority: false },
+      { city: "Lima", country: "Peru", region: "PE-LIM", type: "metro", priority: false },
+      { city: "Santiago", country: "Chile", region: "CL-RM", type: "metro", priority: false },
+      
+      // Europe
+      { city: "London", country: "UK", region: "GB-LND", type: "metro", priority: false },
+      { city: "Paris", country: "France", region: "FR-J", type: "metro", priority: false },
+      { city: "Berlin", country: "Germany", region: "DE-BE", type: "metro", priority: false },
+      { city: "Madrid", country: "Spain", region: "ES-MD", type: "metro", priority: false },
+      { city: "Rome", country: "Italy", region: "IT-RM", type: "metro", priority: false },
+      { city: "Amsterdam", country: "Netherlands", region: "NL-NH", type: "metro", priority: false },
+      { city: "Stockholm", country: "Sweden", region: "SE-AB", type: "metro", priority: false },
+      { city: "Copenhagen", country: "Denmark", region: "DK-84", type: "metro", priority: false },
+      { city: "Moscow", country: "Russia", region: "RU-MOW", type: "metro", priority: false },
+      
+      // Asia
+      { city: "Tokyo", country: "Japan", region: "JP-13", type: "metro", priority: false },
+      { city: "Seoul", country: "South Korea", region: "KR-11", type: "metro", priority: false },
+      { city: "Beijing", country: "China", region: "CN-BJ", type: "metro", priority: false },
+      { city: "Shanghai", country: "China", region: "CN-SH", type: "metro", priority: false },
+      { city: "Mumbai", country: "India", region: "IN-MH", type: "metro", priority: false },
+      { city: "Delhi", country: "India", region: "IN-DL", type: "metro", priority: false },
+      { city: "Bangalore", country: "India", region: "IN-KA", type: "metro", priority: false },
+      { city: "Singapore", country: "Singapore", region: "SG", type: "metro", priority: false },
+      { city: "Bangkok", country: "Thailand", region: "TH-10", type: "metro", priority: false },
+      { city: "Jakarta", country: "Indonesia", region: "ID-JK", type: "metro", priority: false },
+      { city: "Manila", country: "Philippines", region: "PH-00", type: "metro", priority: false },
+      { city: "Hong Kong", country: "Hong Kong", region: "HK", type: "metro", priority: false },
+      
+      // Middle East
+      { city: "Dubai", country: "UAE", region: "AE-DU", type: "metro", priority: false },
+      { city: "Tel Aviv", country: "Israel", region: "IL-TA", type: "metro", priority: false },
+      { city: "Istanbul", country: "Turkey", region: "TR-34", type: "metro", priority: false },
+      
+      // Africa
+      { city: "Cairo", country: "Egypt", region: "EG-C", type: "metro", priority: false },
+      { city: "Lagos", country: "Nigeria", region: "NG-LA", type: "metro", priority: false },
+      { city: "Johannesburg", country: "South Africa", region: "ZA-GT", type: "metro", priority: false },
+      { city: "Nairobi", country: "Kenya", region: "KE-110", type: "metro", priority: false },
+      
+      // Oceania
+      { city: "Sydney", country: "Australia", region: "AU-NSW", type: "metro", priority: false },
+      { city: "Melbourne", country: "Australia", region: "AU-VIC", type: "metro", priority: false },
+      { city: "Auckland", country: "New Zealand", region: "NZ-AUK", type: "metro", priority: false },
+    ];
+
+    const allLocations = [...priorityUSHubs, ...otherLocations];
+
+    // Diverse story types to cover - Hyper-local focus
     const storyTypes = [
       {
         type: "crime",
         prompts: [
-          "major crime investigation updates",
-          "local law enforcement reports",
-          "community safety initiatives",
-          "crime prevention programs",
-          "police department announcements"
+          "breaking crime news and investigations",
+          "local police department updates",
+          "community safety alerts",
+          "neighborhood watch initiatives",
+          "gang violence prevention",
+          "theft and burglary reports",
+          "drug enforcement operations",
+          "court proceedings and arrests"
         ]
       },
       {
         type: "neighborhood",
         prompts: [
-          "local community events and gatherings",
-          "neighborhood development projects",
-          "community organization initiatives",
-          "local volunteer programs",
-          "neighborhood business openings"
+          "local community events this weekend",
+          "neighborhood block parties",
+          "community center programs",
+          "local school district news",
+          "park improvements and openings",
+          "street closures and construction",
+          "neighborhood association meetings",
+          "local charity drives"
+        ]
+      },
+      {
+        type: "street_level",
+        prompts: [
+          "potholes and road repairs",
+          "street cleaning schedules",
+          "local parking regulations",
+          "sidewalk improvements",
+          "streetlight maintenance",
+          "traffic signal updates",
+          "bike lane installations",
+          "pedestrian safety measures"
         ]
       },
       {
@@ -185,17 +215,24 @@ serve(async (req) => {
     const generatedArticles = [];
     let totalGenerated = 0;
 
-    // Generate diverse stories from different locations and categories
-    // Select random locations to cover
-    const selectedLocations = globalLocations
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 20); // Generate from 20 different locations
+    // Generate diverse stories with priority for US hubs
+    // Priority hubs get more coverage (5 stories each)
+    // Other locations get 2 stories each
+    const selectedLocations = [
+      ...priorityUSHubs.map(hub => ({ ...hub, storyCount: 5 })), // 5 stories for priority hubs
+      ...otherLocations
+        .filter(loc => !loc.priority)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 15)
+        .map(loc => ({ ...loc, storyCount: 2 })) // 2 stories for other cities
+    ];
 
     for (const location of selectedLocations) {
-      // Select 2-3 random story types for each location
+      // Priority hubs get more story types covered
+      const storyTypesToCover = location.priority ? location.storyCount : 2;
       const selectedStoryTypes = storyTypes
         .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
+        .slice(0, storyTypesToCover);
 
       for (const storyType of selectedStoryTypes) {
         const randomPrompt = storyType.prompts[Math.floor(Math.random() * storyType.prompts.length)];

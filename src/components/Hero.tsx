@@ -12,14 +12,28 @@ export const Hero = () => {
 
   return (
     <section className="relative min-h-[70vh] flex items-center overflow-hidden animate-reveal-from-bottom">
-      {/* Background Image */}
+      {/* Animated Background with Parallax */}
       <div className="absolute inset-0">
         <img
           src={featuredArticle?.featured_image || heroImage}
           alt={featuredArticle?.title || "Global news network studio"}
-          className="w-full h-full object-cover animate-reveal-scale"
+          className="w-full h-full object-cover animate-reveal-scale transform scale-110 transition-transform duration-[20s] hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent animate-gradient" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
+        
+        {/* Animated particles effect */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full animate-float" style={{ animationDelay: '0s' }} />
+          <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-primary/60 rounded-full animate-float" style={{ animationDelay: '2s' }} />
+          <div className="absolute bottom-1/3 left-1/3 w-2.5 h-2.5 bg-primary/40 rounded-full animate-float" style={{ animationDelay: '4s' }} />
+          <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-primary/80 rounded-full animate-float" style={{ animationDelay: '1s' }} />
+          <div className="absolute bottom-1/4 right-1/2 w-2 h-2 bg-primary/50 rounded-full animate-float" style={{ animationDelay: '3s' }} />
+        </div>
+        
+        {/* Animated scan lines effect */}
+        <div className="absolute inset-0 opacity-10 bg-[linear-gradient(transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] bg-[length:100%_4px] animate-scan" />
       </div>
 
       {/* Content */}
