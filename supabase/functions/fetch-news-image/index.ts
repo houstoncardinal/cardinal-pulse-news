@@ -25,7 +25,13 @@ serve(async (req) => {
       throw new Error('SERPER_API_KEY not configured');
     }
 
-    // Create a more specific search query based on category and topic
+    // Initialize Supabase client for duplicate checking
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Create a more specific and unique search query based on category and topic
     let searchQuery = topic;
     
     // Add category-specific context to improve relevance
@@ -50,6 +56,11 @@ serve(async (req) => {
       }
     }
     
+    // Add random variation to get different results
+    const variations = ['latest', 'recent', 'breaking', 'new', 'today', 'update'];
+    const randomVariation = variations[Math.floor(Math.random() * variations.length)];
+    searchQuery = `${randomVariation} ${searchQuery}`;
+    
     console.log(`📸 Image search query: ${searchQuery}`);
 
     const imageSearchResponse = await fetch('https://google.serper.dev/images', {
@@ -60,7 +71,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         q: searchQuery,
-        num: 15, // Increased to get more options
+        num: 30, // Increased to get many more options
         gl: 'us',
         hl: 'en',
         safe: 'active',
@@ -111,36 +122,71 @@ serve(async (req) => {
       'template', 'banner', 'advertisement', 'vector'
     ];
 
-    // Try to find images from news sources first
-    let selectedImage = imageSearchData.images.find((img: any) => {
-      const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
-      const imgTitle = (img.title || '').toLowerCase();
-      
-      // Check if from news source
-      const isFromNewsSource = newsSourceKeywords.some(source => imgUrl.includes(source));
-      
-      // Check if not a generic image
-      const isNotGeneric = !excludeKeywords.some(keyword => 
-        imgUrl.includes(keyword) || imgTitle.includes(keyword)
-      );
-      
-      return isFromNewsSource && isNotGeneric;
-    });
-
-    // If no news source image, find first non-generic high-quality result
-    if (!selectedImage) {
-      selectedImage = imageSearchData.images.find((img: any) => {
-        const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
-        const imgTitle = (img.title || '').toLowerCase();
-        return !excludeKeywords.some(keyword => 
-          imgUrl.includes(keyword) || imgTitle.includes(keyword)
-        );
+    // Get existing image URLs to avoid duplicates
+    const { data: existingArticles } = await supabaseClient
+      .from('articles')
+      .select('image_url, featured_image')
+      .not('image_url', 'is', null)
+      .limit(500);
+    
+    const usedImageUrls = new Set<string>();
+    if (existingArticles) {
+      existingArticles.forEach(article => {
+        if (article.image_url) usedImageUrls.add(article.image_url);
+        if (article.featured_image) usedImageUrls.add(article.featured_image);
       });
     }
 
-    // Final fallback to first image
+    console.log(`📊 Found ${usedImageUrls.size} existing image URLs to avoid`);
+
+    // Filter available images
+    const availableImages = imageSearchData.images.filter((img: any) => {
+      const imgUrl = img.imageUrl || img.link;
+      const imgUrlLower = (imgUrl || '').toLowerCase();
+      const imgTitle = (img.title || '').toLowerCase();
+      
+      // Check if already used
+      if (usedImageUrls.has(imgUrl)) {
+        console.log(`⚠️ Skipping duplicate image: ${imgUrl}`);
+        return false;
+      }
+      
+      // Check if not a generic image
+      const isNotGeneric = !excludeKeywords.some(keyword => 
+        imgUrlLower.includes(keyword) || imgTitle.includes(keyword)
+      );
+      
+      return isNotGeneric && imgUrl;
+    });
+
+    console.log(`✓ ${availableImages.length} unique images available after filtering`);
+
+    if (availableImages.length === 0) {
+      console.log('No unique images found after filtering');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          imageUrl: null,
+          imageCredit: null,
+          message: 'No unique image found'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Try to find images from news sources first
+    let selectedImage = availableImages.find((img: any) => {
+      const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
+      return newsSourceKeywords.some(source => imgUrl.includes(source));
+    });
+
+    // If no news source image, select randomly from available images
     if (!selectedImage) {
-      selectedImage = imageSearchData.images[0];
+      const randomIndex = Math.floor(Math.random() * availableImages.length);
+      selectedImage = availableImages[randomIndex];
+      console.log(`🎲 Selected random image ${randomIndex + 1} of ${availableImages.length}`);
+    } else {
+      console.log(`📰 Selected image from news source`);
     }
 
     const imageUrl = selectedImage.imageUrl;
