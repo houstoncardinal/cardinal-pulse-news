@@ -1,116 +1,141 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { GenerationProgressDialog } from "./GenerationProgressDialog";
+
+interface GenerationStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'loading' | 'complete' | 'error';
+  details?: string;
+}
 
 export const GenerateDiverseArticles = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [articlesPerCategory, setArticlesPerCategory] = useState(3);
-  const [results, setResults] = useState<any>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [steps, setSteps] = useState<GenerationStep[]>([]);
+
+  const categories = ['world', 'business', 'technology', 'sports', 'entertainment', 'science', 'politics'];
 
   const generateArticles = async () => {
     setIsGenerating(true);
-    setResults(null);
-    
+    setShowProgress(true);
+
+    // Initialize steps
+    const initialSteps: GenerationStep[] = [
+      { id: 'init', label: 'Initializing generation process', status: 'loading' },
+      ...categories.map(cat => ({
+        id: cat,
+        label: `Generating ${articlesPerCategory} ${cat} article(s)`,
+        status: 'pending' as const
+      })),
+      { id: 'complete', label: 'Finalizing and refreshing', status: 'pending' }
+    ];
+    setSteps(initialSteps);
+
     try {
-      toast.info("Starting article generation across all categories...");
-      
+      // Step 1: Initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setSteps(prev => prev.map(s => 
+        s.id === 'init' ? { ...s, status: 'complete', details: 'Ready to generate articles' } : s
+      ));
+
+      // Step 2: Generate articles for each category
       const { data, error } = await supabase.functions.invoke('generate-diverse-articles', {
         body: { articlesPerCategory }
       });
 
       if (error) throw error;
 
-      setResults(data);
-      toast.success(data.message);
+      // Update steps as categories complete
+      for (const cat of categories) {
+        const categoryResult = data.results?.find((r: any) => r.category === cat);
+        setSteps(prev => prev.map(s => 
+          s.id === cat ? {
+            ...s,
+            status: categoryResult ? 'complete' : 'error',
+            details: categoryResult 
+              ? `Generated ${categoryResult.count || 0} articles`
+              : 'Failed to generate'
+          } : s
+        ));
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      // Step 3: Complete
+      setSteps(prev => prev.map(s => 
+        s.id === 'complete' ? { ...s, status: 'complete', details: `Total: ${data.totalGenerated || 0} articles` } : s
+      ));
+
+      toast.success(`Generated ${data.totalGenerated || 0} articles across ${categories.length} categories!`);
       
-      // Refresh the page after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-      
+
     } catch (error: any) {
       console.error('Error generating articles:', error);
       toast.error(error.message || 'Failed to generate articles');
+      setSteps(prev => prev.map(s => 
+        s.status === 'loading' ? { ...s, status: 'error', details: 'Generation failed' } : s
+      ));
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <Card className="p-6">
-      <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Generate Diverse Articles
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Automatically generate high-quality articles across all categories
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            Generate Diverse Articles
+          </CardTitle>
+          <CardDescription>
+            Create articles across all categories with AI-powered content
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="articlesPerCategory">Articles per Category</Label>
+            <Input
+              id="articlesPerCategory"
+              type="number"
+              min={1}
+              max={10}
+              value={articlesPerCategory}
+              onChange={(e) => setArticlesPerCategory(parseInt(e.target.value) || 1)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Will generate {articlesPerCategory * categories.length} total articles
             </p>
           </div>
-        </div>
+          <Button
+            onClick={generateArticles}
+            disabled={isGenerating}
+            className="w-full"
+            size="lg"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {isGenerating ? 'Generating...' : 'Generate Articles'}
+          </Button>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-2">
-          <Label htmlFor="articles-per-category">Articles per Category</Label>
-          <Input
-            id="articles-per-category"
-            type="number"
-            min="1"
-            max="5"
-            value={articlesPerCategory}
-            onChange={(e) => setArticlesPerCategory(parseInt(e.target.value) || 1)}
-            className="w-32"
-          />
-          <p className="text-xs text-muted-foreground">
-            Total: {articlesPerCategory * 8} articles (8 categories)
-          </p>
-        </div>
-
-        <Button 
-          onClick={generateArticles} 
-          disabled={isGenerating}
-          className="w-full"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Articles...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate Articles
-            </>
-          )}
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-            <h4 className="font-semibold mb-2">Generation Results</h4>
-            <div className="space-y-1 text-sm">
-              <p>Total Articles Generated: <strong>{results.totalArticles}</strong></p>
-              <div className="mt-2 space-y-1">
-                {results.results?.map((result: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <span className={result.status === 'generated' ? 'text-green-500' : 'text-red-500'}>
-                      {result.status === 'generated' ? '✓' : '✗'}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {result.category}: {result.topic.substring(0, 50)}...
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
+      <GenerationProgressDialog
+        open={showProgress}
+        title="Generating Diverse Articles"
+        description={`Creating ${articlesPerCategory} article(s) for each of ${categories.length} categories`}
+        steps={steps}
+        onClose={() => setShowProgress(false)}
+      />
+    </>
   );
 };

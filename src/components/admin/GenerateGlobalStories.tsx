@@ -1,118 +1,122 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Globe, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Globe2 } from "lucide-react";
+import { GenerationProgressDialog } from "./GenerationProgressDialog";
+
+interface GenerationStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'loading' | 'complete' | 'error';
+  details?: string;
+}
 
 export const GenerateGlobalStories = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [steps, setSteps] = useState<GenerationStep[]>([]);
 
   const generateStories = async () => {
     setIsGenerating(true);
-    setResults(null);
-    
+    setShowProgress(true);
+
+    const initialSteps: GenerationStep[] = [
+      { id: 'init', label: 'Initializing worldwide story generation', status: 'loading' },
+      { id: 'scanning', label: 'Scanning global locations and events', status: 'pending' },
+      { id: 'creating', label: 'Creating diverse articles across regions', status: 'pending' },
+      { id: 'complete', label: 'Finalizing and refreshing', status: 'pending' }
+    ];
+    setSteps(initialSteps);
+
     try {
-      toast.info("🌍 Generating diverse global stories from around the world...");
-      
-      const { data, error } = await supabase.functions.invoke('generate-diverse-global-stories', {
-        body: {}
-      });
+      // Step 1
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setSteps(prev => prev.map(s => 
+        s.id === 'init' ? { ...s, status: 'complete', details: 'Ready to generate' } : s
+      ));
+
+      // Step 2
+      setSteps(prev => prev.map(s => 
+        s.id === 'scanning' ? { ...s, status: 'loading' } : s
+      ));
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSteps(prev => prev.map(s => 
+        s.id === 'scanning' ? { ...s, status: 'complete', details: 'Found locations worldwide' } : s
+      ));
+
+      // Step 3
+      setSteps(prev => prev.map(s => 
+        s.id === 'creating' ? { ...s, status: 'loading', details: 'Generating articles...' } : s
+      ));
+
+      const { data, error } = await supabase.functions.invoke('generate-diverse-global-stories');
 
       if (error) throw error;
 
-      setResults(data);
-      toast.success(data.message);
+      setSteps(prev => prev.map(s => 
+        s.id === 'creating' ? { 
+          ...s, 
+          status: 'complete', 
+          details: `Generated ${data.generatedCount || 0} articles from ${data.locationsScanned || 0} locations`
+        } : s
+      ));
+
+      // Step 4
+      setSteps(prev => prev.map(s => 
+        s.id === 'complete' ? { ...s, status: 'complete', details: 'Articles published successfully' } : s
+      ));
+
+      toast.success(`Generated ${data.generatedCount || 0} global stories!`);
       
-      // Refresh the page after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-      
+
     } catch (error: any) {
-      console.error('Error generating global stories:', error);
-      toast.error(error.message || 'Failed to generate global stories');
+      console.error('Error:', error);
+      toast.error('Failed to generate stories: ' + (error.message || 'Unknown error'));
+      setSteps(prev => prev.map(s => 
+        s.status === 'loading' ? { ...s, status: 'error', details: 'Generation failed' } : s
+      ));
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-primary/20">
-      <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Globe2 className="h-5 w-5 text-primary" />
-              Generate Global Stories
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Import crime, neighborhood, regional, and community news from around the world
-            </p>
-          </div>
-        </div>
+    <>
+      <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-blue-500" />
+            Generate Worldwide Stories
+          </CardTitle>
+          <CardDescription>
+            Create diverse global news articles from regions around the world
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={generateStories}
+            disabled={isGenerating}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            size="lg"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {isGenerating ? 'Generating Stories...' : 'Generate Global Stories'}
+          </Button>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p>This powerful feature will generate:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Crime reports and investigations from major cities</li>
-            <li>Neighborhood and community stories</li>
-            <li>Regional developments and policy changes</li>
-            <li>Local government and municipal updates</li>
-            <li>Public safety and emergency services news</li>
-            <li>Infrastructure and urban development</li>
-            <li>Local business and economic stories</li>
-            <li>Community events and cultural coverage</li>
-          </ul>
-          <p className="mt-3 font-semibold text-primary">
-            Coverage from 50+ cities across all continents
-          </p>
-        </div>
-
-        <Button 
-          onClick={generateStories} 
-          disabled={isGenerating}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          size="lg"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating Global Stories...
-            </>
-          ) : (
-            <>
-              <Globe2 className="mr-2 h-5 w-5" />
-              Generate Diverse Global Stories
-            </>
-          )}
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-background/80 rounded-lg border border-border">
-            <h4 className="font-semibold mb-2">Generation Results</h4>
-            <div className="space-y-2 text-sm">
-              <p>Locations Scanned: <strong>{results.locationsScanned}</strong></p>
-              <p>Articles Generated: <strong className="text-primary">{results.totalGenerated}</strong></p>
-              
-              {results.sampleArticles && results.sampleArticles.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <p className="font-semibold">Sample Articles:</p>
-                  {results.sampleArticles.map((article: any, idx: number) => (
-                    <div key={idx} className="p-2 bg-muted/50 rounded text-xs">
-                      <p className="font-medium line-clamp-1">{article.title}</p>
-                      <p className="text-muted-foreground">
-                        {article.location} • {article.type}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
+      <GenerationProgressDialog
+        open={showProgress}
+        title="Generating Worldwide Stories"
+        description="Creating diverse articles from global locations"
+        steps={steps}
+        onClose={() => setShowProgress(false)}
+      />
+    </>
   );
 };

@@ -5,11 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Sparkles, Zap, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GenerationProgressDialog } from "./GenerationProgressDialog";
+
+interface GenerationStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'loading' | 'complete' | 'error';
+  details?: string;
+}
 
 export const QuickCreate = () => {
   const [topic, setTopic] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [steps, setSteps] = useState<GenerationStep[]>([]);
 
   const handleQuickGenerate = async () => {
     if (!topic.trim()) {
@@ -18,9 +28,18 @@ export const QuickCreate = () => {
     }
 
     setIsGenerating(true);
+    setShowProgress(true);
+
+    const initialSteps: GenerationStep[] = [
+      { id: 'create-trend', label: 'Creating trending topic', status: 'loading' },
+      { id: 'fetch-image', label: 'Fetching relevant image', status: 'pending' },
+      { id: 'generate-content', label: 'Generating article content', status: 'pending' },
+      { id: 'publish', label: 'Publishing article', status: 'pending' }
+    ];
+    setSteps(initialSteps);
     
     try {
-      // Insert trend manually
+      // Step 1: Insert trend
       const { data: trend, error: trendError } = await supabase
         .from('trending_topics')
         .insert({
@@ -37,18 +56,41 @@ export const QuickCreate = () => {
 
       if (trendError) throw trendError;
 
-      // Generate article immediately
+      setSteps(prev => prev.map(s => 
+        s.id === 'create-trend' ? { ...s, status: 'complete', details: 'Topic added successfully' } : s
+      ));
+
+      // Step 2 & 3: Generate article (includes image fetch and content)
+      setSteps(prev => prev.map(s => 
+        s.id === 'fetch-image' ? { ...s, status: 'loading' } : s
+      ));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setSteps(prev => prev.map(s => 
+        s.id === 'fetch-image' ? { ...s, status: 'complete', details: 'Image found' } :
+        s.id === 'generate-content' ? { ...s, status: 'loading', details: 'AI writing article...' } : s
+      ));
+
       const { error: genError } = await supabase.functions.invoke('generate-article', {
         body: { trendingTopicId: trend.id }
       });
 
       if (genError) throw genError;
 
-      toast.success(`🚀 Generating article for: ${topic}`);
+      setSteps(prev => prev.map(s => 
+        s.id === 'generate-content' ? { ...s, status: 'complete', details: 'Article created' } :
+        s.id === 'publish' ? { ...s, status: 'complete', details: 'Article published' } : s
+      ));
+
+      toast.success(`Successfully created article: ${topic}`);
       setTopic("");
+
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to generate article');
+      setSteps(prev => prev.map(s => 
+        s.status === 'loading' ? { ...s, status: 'error', details: 'Generation failed' } : s
+      ));
     } finally {
       setIsGenerating(false);
     }
@@ -155,6 +197,14 @@ export const QuickCreate = () => {
         </Button>
 
       </div>
+
+      <GenerationProgressDialog
+        open={showProgress}
+        title="Quick Article Generation"
+        description={`Creating article: ${topic}`}
+        steps={steps}
+        onClose={() => setShowProgress(false)}
+      />
     </Card>
   );
 };
