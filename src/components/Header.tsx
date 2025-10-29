@@ -117,11 +117,11 @@ export const Header = () => {
           </Sheet>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+          <Link to="/" className="flex items-center gap-3 shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shrink-0">
               <div className="w-4 h-4 bg-primary-foreground rounded-full" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight whitespace-nowrap">
               <span className="text-primary">Cardinal</span>{" "}
               <span className="text-foreground">News</span>
             </h1>
