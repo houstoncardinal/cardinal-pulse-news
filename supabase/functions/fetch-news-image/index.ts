@@ -31,37 +31,40 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Create diverse, visual-focused search queries based on category
+    // Create highly diverse search queries with multiple random variations
     let searchQuery = topic;
     
-    // Add category-specific VISUAL terms to get better image results
+    // Add category-specific VISUAL terms with random variations
+    const visualTerms: string[] = [];
     if (category) {
       const categoryLower = category.toLowerCase();
       if (categoryLower.includes('weather')) {
-        searchQuery = `${topic} weather photos satellite image`;
+        visualTerms.push('weather', 'storm', 'satellite', 'forecast', 'meteorology', 'climate');
       } else if (categoryLower.includes('business')) {
-        searchQuery = `${topic} CEO executive meeting office professional`;
+        visualTerms.push('executive', 'corporate', 'meeting', 'office', 'professional', 'boardroom', 'conference');
       } else if (categoryLower.includes('tech')) {
-        searchQuery = `${topic} technology device product launch`;
+        visualTerms.push('technology', 'innovation', 'device', 'digital', 'startup', 'launch');
       } else if (categoryLower.includes('sports')) {
-        searchQuery = `${topic} athlete action game highlight`;
+        visualTerms.push('athlete', 'stadium', 'competition', 'game', 'championship', 'tournament');
       } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
-        searchQuery = `${topic} celebrity premiere event performance`;
+        visualTerms.push('celebrity', 'premiere', 'performance', 'concert', 'show', 'festival');
       } else if (categoryLower.includes('science')) {
-        searchQuery = `${topic} laboratory research scientist experiment`;
+        visualTerms.push('laboratory', 'research', 'scientist', 'discovery', 'experiment', 'innovation');
       } else if (categoryLower.includes('politics')) {
-        searchQuery = `${topic} politician speech conference summit`;
+        visualTerms.push('politician', 'summit', 'conference', 'government', 'parliament', 'congress');
       } else {
-        searchQuery = `${topic} photo image`;
+        visualTerms.push('photo', 'image', 'scene', 'captured', 'moment');
       }
     }
     
-    // Add random timestamp-based variation for uniqueness
-    const variations = ['photo', 'image', 'picture', 'photographer', 'captured', 'scene'];
-    const randomIndex = Math.floor(Math.random() * variations.length);
-    const randomVariation = variations[randomIndex];
+    // Randomly select 2-3 visual terms for diversity
+    const numTerms = Math.floor(Math.random() * 2) + 2; // 2 or 3 terms
+    const shuffledTerms = visualTerms.sort(() => Math.random() - 0.5).slice(0, numTerms);
+    
+    // Add timestamp and random number for additional uniqueness
     const timestamp = Date.now();
-    searchQuery = `${searchQuery} ${randomVariation} ${timestamp % 1000}`;
+    const randomSeed = Math.floor(Math.random() * 10000);
+    searchQuery = `${topic} ${shuffledTerms.join(' ')} ${timestamp % 1000} ${randomSeed}`;
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -178,7 +181,7 @@ serve(async (req) => {
       );
     }
 
-    // Prioritize news sources but add randomization to selection
+    // Prioritize news sources but add strong randomization to selection
     const newsSourceImages = availableImages.filter((img: any) => {
       const imgUrl = (img.link || img.imageUrl || '').toLowerCase();
       return newsSourceKeywords.some(source => imgUrl.includes(source));
@@ -186,10 +189,12 @@ serve(async (req) => {
 
     let selectedImage;
     if (newsSourceImages.length > 0) {
+      // Select from random position, not just the beginning
       const randomNewsIndex = Math.floor(Math.random() * newsSourceImages.length);
       selectedImage = newsSourceImages[randomNewsIndex];
       console.log(`📰 Selected news source image ${randomNewsIndex + 1} of ${newsSourceImages.length}`);
     } else {
+      // Select from random position in all available images
       const randomIndex = Math.floor(Math.random() * availableImages.length);
       selectedImage = availableImages[randomIndex];
       console.log(`🎲 Selected image ${randomIndex + 1} of ${availableImages.length}`);
