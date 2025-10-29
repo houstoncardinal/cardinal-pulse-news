@@ -22,6 +22,7 @@ import { SEOOptimizer } from "./SEOOptimizer";
 import { RealtimeMetrics } from "./RealtimeMetrics";
 import { ContentWorkflow } from "./ContentWorkflow";
 import { TrendingCoverage } from "./TrendingCoverage";
+import { WipeArticles } from "./WipeArticles";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +76,7 @@ export const AdminDashboard = () => {
 
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
+          <WipeArticles />
           <QuickCreate />
           <GenerateGlobalStories />
           <YahooFinanceImporter />
