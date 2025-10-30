@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { TrendingTicker } from "@/components/TrendingTicker";
+import { StockTicker } from "@/components/StockTicker";
 import { NewsCard } from "@/components/NewsCard";
 import { NewsWidget } from "@/components/NewsWidget";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -83,6 +84,7 @@ const Index = () => {
       
       <Header />
       <TrendingTicker />
+      <StockTicker />
       <Hero />
       
       {/* Smart Watch Widget - Shows on all devices */}

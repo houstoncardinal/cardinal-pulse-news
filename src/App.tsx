@@ -13,6 +13,7 @@ import Article from "./pages/Article";
 import Category from "./pages/Category";
 import Weather from "./pages/Weather";
 import Community from "./pages/Community";
+import Stocks from "./pages/Stocks";
 import AboutUs from "./pages/AboutUs";
 import Advertise from "./pages/Advertise";
 import Careers from "./pages/Careers";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/category/:category" element={<Category />} />
             <Route path="/weather" element={<Weather />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/stocks" element={<Stocks />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/advertise" element={<Advertise />} />
             <Route path="/careers" element={<Careers />} />

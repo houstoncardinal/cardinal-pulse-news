@@ -32,6 +32,7 @@ const categories = [
 
 const navigationLinks = [
   { label: "Weather", path: "/weather", emoji: "🌍" },
+  { label: "Stocks", path: "/stocks", emoji: "📈" },
   { label: "Community", path: "/community", emoji: "👥" },
   ...categories.map(cat => ({ 
     label: cat, 
