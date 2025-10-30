@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StockTicker } from "@/components/StockTicker";
+import { AdvancedStockChart } from "@/components/stock/AdvancedStockChart";
+import { TechnicalIndicators } from "@/components/stock/TechnicalIndicators";
+import { MarketDepth } from "@/components/stock/MarketDepth";
+import { StockNews } from "@/components/stock/StockNews";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, TrendingUp, TrendingDown, DollarSign, BarChart3 } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, DollarSign, BarChart3, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
 
 interface StockQuote {
   symbol: string;
@@ -46,7 +49,6 @@ const Stocks = () => {
   const [stockProfile, setStockProfile] = useState<CompanyProfile | null>(null);
   const [stockQuote, setStockQuote] = useState<StockQuote | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const fetchMarketData = async () => {
     try {
@@ -198,86 +200,75 @@ const Stocks = () => {
             </Card>
           </div>
 
-          {/* Stock Details */}
-          <div className="lg:col-span-2">
+          {/* Advanced Stock Analysis */}
+          <div className="lg:col-span-2 space-y-6">
             {selectedStock && stockQuote ? (
-              <Card className="luxury-card">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-3xl">{selectedStock}</CardTitle>
-                      {stockProfile && (
-                        <p className="text-muted-foreground mt-1">{stockProfile.name}</p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold">${stockQuote.price.toFixed(2)}</div>
-                      <div className={cn(
-                        "flex items-center gap-1 text-lg font-medium mt-1",
-                        stockQuote.change >= 0 ? "text-green-500" : "text-red-500"
-                      )}>
-                        {stockQuote.change >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                        <span>{stockQuote.change >= 0 ? '+' : ''}{stockQuote.change.toFixed(2)} ({stockQuote.changePercent.toFixed(2)}%)</span>
+              <>
+                {/* Stock Header */}
+                <Card className="luxury-card">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-3xl flex items-center gap-3">
+                          {selectedStock}
+                          <LineChart className="h-8 w-8 text-primary" />
+                        </CardTitle>
+                        {stockProfile && (
+                          <p className="text-muted-foreground mt-1">{stockProfile.name}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-4xl font-bold">${stockQuote.price.toFixed(2)}</div>
+                        <div className={cn(
+                          "flex items-center gap-1 text-xl font-medium mt-1 justify-end",
+                          stockQuote.change >= 0 ? "text-green-500" : "text-red-500"
+                        )}>
+                          {stockQuote.change >= 0 ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
+                          <span>{stockQuote.change >= 0 ? '+' : ''}{stockQuote.change.toFixed(2)} ({stockQuote.changePercent.toFixed(2)}%)</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="overview">Overview</TabsTrigger>
-                      <TabsTrigger value="stats">Statistics</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="overview" className="space-y-4 mt-4">
-                      {stockProfile && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Exchange</p>
-                            <p className="font-semibold">{stockProfile.exchange}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Industry</p>
-                            <p className="font-semibold">{stockProfile.finnhubIndustry}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Market Cap</p>
-                            <p className="font-semibold">${(stockProfile.marketCapitalization / 1000).toFixed(2)}B</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Country</p>
-                            <p className="font-semibold">{stockProfile.country}</p>
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="stats" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Open</p>
-                          <p className="font-semibold">${stockQuote.open.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Previous Close</p>
-                          <p className="font-semibold">${stockQuote.previousClose.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Day High</p>
-                          <p className="font-semibold text-green-500">${stockQuote.high.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Day Low</p>
-                          <p className="font-semibold text-red-500">${stockQuote.low.toFixed(2)}</p>
-                        </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground mb-1">Open</p>
+                        <p className="font-bold">${stockQuote.open.toFixed(2)}</p>
                       </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground mb-1">High</p>
+                        <p className="font-bold text-green-500">${stockQuote.high.toFixed(2)}</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground mb-1">Low</p>
+                        <p className="font-bold text-red-500">${stockQuote.low.toFixed(2)}</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground mb-1">Prev Close</p>
+                        <p className="font-bold">${stockQuote.previousClose.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Advanced Chart */}
+                <AdvancedStockChart symbol={selectedStock} />
+
+                {/* Technical Indicators */}
+                <TechnicalIndicators symbol={selectedStock} />
+
+                {/* Market Depth & News */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <MarketDepth symbol={selectedStock} />
+                  <StockNews symbol={selectedStock} />
+                </div>
+              </>
             ) : (
-              <Card className="luxury-card h-full flex items-center justify-center">
+              <Card className="luxury-card h-full flex items-center justify-center min-h-[600px]">
                 <CardContent className="text-center py-12">
-                  <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg text-muted-foreground">Select a stock to view details</p>
+                  <BarChart3 className="h-20 w-20 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-2xl font-bold mb-2">Advanced Trading Platform</p>
+                  <p className="text-lg text-muted-foreground">Select a stock to view detailed analysis</p>
                 </CardContent>
               </Card>
             )}
