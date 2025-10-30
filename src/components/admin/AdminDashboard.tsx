@@ -27,6 +27,7 @@ import { RealtimeMetrics } from "./RealtimeMetrics";
 import { ContentWorkflow } from "./ContentWorkflow";
 import { TrendingCoverage } from "./TrendingCoverage";
 import { WipeArticles } from "./WipeArticles";
+import { AIAssistant } from "./AIAssistant";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,11 @@ export const AdminDashboard = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* AI Assistant */}
+        <div className="mb-6">
+          <AIAssistant />
         </div>
 
         {/* Quick Actions - Responsive */}
