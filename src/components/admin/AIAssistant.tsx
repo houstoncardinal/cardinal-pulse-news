@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Send, Loader2, Sparkles, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { Bot, Send, Loader2, Sparkles, AlertTriangle, CheckCircle2, XCircle, Minimize2, Maximize2, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -22,6 +22,8 @@ export const AIAssistant = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -149,9 +151,9 @@ export const AIAssistant = () => {
   const renderToolResult = (result: any) => {
     if (result.error) {
       return (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-          <XCircle className="h-4 w-4 text-destructive mt-0.5" />
-          <div className="text-sm text-destructive">{result.error}</div>
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-red-950/50 border border-red-600/30">
+          <XCircle className="h-4 w-4 text-red-400 mt-0.5" />
+          <div className="text-sm text-red-300">{result.error}</div>
         </div>
       );
     }
@@ -160,12 +162,12 @@ export const AIAssistant = () => {
       return (
         <div className="space-y-2">
           {result.checks.map((check: any, idx: number) => (
-            <div key={idx} className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
+            <div key={idx} className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/50 border border-amber-600/30">
+              <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5" />
               <div className="text-sm">
-                <div className="font-medium">{check.message}</div>
+                <div className="font-medium text-amber-300">{check.message}</div>
                 {check.items && (
-                  <div className="mt-1 text-xs text-muted-foreground">
+                  <div className="mt-1 text-xs text-amber-200/60">
                     {check.items.slice(0, 3).map((item: any) => (
                       <div key={item.id}>{item.title}</div>
                     ))}
@@ -180,125 +182,218 @@ export const AIAssistant = () => {
     
     if (result.success) {
       return (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <div className="text-sm text-green-500">Operation completed successfully</div>
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-950/50 border border-emerald-600/30">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          <div className="text-sm text-emerald-300">Operation completed successfully</div>
         </div>
       );
     }
     
     return (
-      <div className="p-3 rounded-lg bg-muted text-xs font-mono overflow-x-auto">
+      <div className="p-3 rounded-lg bg-black/50 border border-white/10 text-xs font-mono overflow-x-auto text-red-200/80">
         {JSON.stringify(result, null, 2)}
       </div>
     );
   };
 
   return (
-    <Card className="h-[600px] flex flex-col bg-gradient-to-br from-background to-muted/20 border-primary/20">
-      {/* Header */}
-      <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 to-purple-500/10">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-primary to-purple-500 rounded-lg">
-            <Bot className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-lg">AI Assistant</h3>
-            <p className="text-xs text-muted-foreground">Your intelligent platform manager</p>
-          </div>
-          <Sparkles className="h-4 w-4 text-primary ml-auto animate-pulse" />
-        </div>
-      </div>
-
-      {/* Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((message, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "flex gap-3 animate-fade-in",
-                message.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
-              {message.role === "assistant" && (
-                <div className="p-2 bg-primary/10 rounded-full h-fit">
-                  <Bot className="h-4 w-4 text-primary" />
-                </div>
-              )}
-              
-              <div className={cn(
-                "max-w-[80%] space-y-2",
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm p-3"
-                  : "bg-muted rounded-2xl rounded-tl-sm p-3"
-              )}>
-                <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                
-                {message.toolResults && message.toolResults.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    {message.toolResults.map((result, ridx) => (
-                      <div key={ridx}>{renderToolResult(result)}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {message.role === "user" && (
-                <div className="p-2 bg-primary/10 rounded-full h-fit">
-                  <div className="h-4 w-4 rounded-full bg-primary" />
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="flex gap-3">
-              <div className="p-2 bg-primary/10 rounded-full h-fit">
-                <Loader2 className="h-4 w-4 text-primary animate-spin" />
-              </div>
-              <div className="bg-muted rounded-2xl rounded-tl-sm p-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-
-      {/* Input */}
-      <div className="p-4 border-t border-border/50">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            sendMessage();
-          }}
-          className="flex gap-2"
-        >
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me anything about the platform..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            size="icon"
-            className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90"
+    <>
+      {/* Floating Toggle Button */}
+      {!isOpen && (
+        <div className="fixed bottom-8 right-8 z-50 animate-fade-in">
+          <button
+            onClick={() => setIsOpen(true)}
+            className="group relative"
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-500 rounded-full blur-xl opacity-60 group-hover:opacity-80 transition-opacity animate-pulse" />
+            
+            {/* Button */}
+            <div className="relative flex items-center gap-3 px-6 py-4 bg-gradient-to-br from-red-600 to-red-700 rounded-full shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] transition-all duration-300 border border-red-500/30">
+              <Bot className="h-6 w-6 text-white" />
+              <span className="font-bold text-white">AI Assistant</span>
+              <Sparkles className="h-4 w-4 text-red-200 animate-pulse" />
+            </div>
+            
+            {/* Pulse rings */}
+            <div className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-20" />
+          </button>
+          
+          {/* Powered by AI badge */}
+          <div className="absolute -top-2 -right-2 px-2 py-1 bg-black text-white text-[10px] font-bold rounded-full border border-red-500/50 shadow-lg">
+            <Zap className="h-2 w-2 inline mr-1" />
+            AI
+          </div>
+        </div>
+      )}
+
+      {/* AI Assistant Widget */}
+      {isOpen && (
+        <div className={cn(
+          "fixed z-50 transition-all duration-300 animate-fade-in",
+          isMinimized 
+            ? "bottom-8 right-8 w-80" 
+            : "bottom-8 right-8 w-[480px] h-[600px]"
+        )}>
+          <Card className="h-full flex flex-col bg-gradient-to-br from-black via-zinc-900 to-black border-red-600/30 shadow-[0_0_80px_rgba(220,38,38,0.3)] overflow-hidden">
+            {/* Luxury background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)'
+              }} />
+            </div>
+            
+            {/* Red glow line at top */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+            
+            {/* Header */}
+            <div className="relative p-4 border-b border-red-600/20 bg-gradient-to-r from-red-950/50 to-black/50 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="relative p-2.5 bg-gradient-to-br from-red-600 to-red-700 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)]">
+                  <Bot className="h-5 w-5 text-white" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent to-white/20" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-white">AI Assistant</h3>
+                    <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded-full">
+                      <span className="text-[10px] font-bold text-red-400 flex items-center gap-1">
+                        <Zap className="h-2.5 w-2.5" />
+                        POWERED BY AI
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-red-200/60">Elite Intelligence System</p>
+                </div>
+                
+                {/* Control buttons */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMinimized(!isMinimized)}
+                    className="h-8 w-8 text-red-300 hover:text-white hover:bg-red-600/20"
+                  >
+                    {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsOpen(false)}
+                    className="h-8 w-8 text-red-300 hover:text-white hover:bg-red-600/20"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {!isMinimized && (
+              <>
+                {/* Messages */}
+                <ScrollArea ref={scrollRef} className="flex-1 p-4 relative">
+                  <div className="space-y-4">
+                    {messages.map((message, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex gap-3 animate-fade-in",
+                          message.role === "user" ? "justify-end" : "justify-start"
+                        )}
+                      >
+                        {message.role === "assistant" && (
+                          <div className="relative p-2 bg-gradient-to-br from-red-600 to-red-700 rounded-full h-fit shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+                            <Bot className="h-4 w-4 text-white" />
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-white/20" />
+                          </div>
+                        )}
+                        
+                        <div className={cn(
+                          "max-w-[75%] space-y-2",
+                          message.role === "user"
+                            ? "bg-gradient-to-br from-red-600 to-red-700 text-white rounded-2xl rounded-tr-sm p-3 shadow-[0_0_20px_rgba(220,38,38,0.3)] border border-red-500/30"
+                            : "bg-gradient-to-br from-zinc-800 to-zinc-900 text-white rounded-2xl rounded-tl-sm p-3 border border-white/10"
+                        )}>
+                          <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                          
+                          {message.toolResults && message.toolResults.length > 0 && (
+                            <div className="space-y-2 mt-2">
+                              {message.toolResults.map((result, ridx) => (
+                                <div key={ridx}>{renderToolResult(result)}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {message.role === "user" && (
+                          <div className="p-2 bg-gradient-to-br from-white/10 to-white/5 rounded-full h-fit border border-white/20">
+                            <div className="h-4 w-4 rounded-full bg-gradient-to-br from-red-500 to-red-600" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {isLoading && (
+                      <div className="flex gap-3 animate-fade-in">
+                        <div className="relative p-2 bg-gradient-to-br from-red-600 to-red-700 rounded-full h-fit">
+                          <Loader2 className="h-4 w-4 text-white animate-spin" />
+                        </div>
+                        <div className="bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-2xl rounded-tl-sm p-3 border border-white/10">
+                          <div className="flex gap-1.5">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" />
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {/* Input */}
+                <div className="relative p-4 border-t border-red-600/20 bg-gradient-to-r from-red-950/30 to-black/30 backdrop-blur-xl">
+                  {/* Red glow line at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                  
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      sendMessage();
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask your AI assistant..."
+                      disabled={isLoading}
+                      className="flex-1 bg-black/50 border-red-600/30 text-white placeholder:text-red-200/40 focus:border-red-500 focus:ring-red-500/20"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !input.trim()}
+                      size="icon"
+                      className="bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] border border-red-500/30 transition-all duration-300"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-white" />
+                      ) : (
+                        <Send className="h-4 w-4 text-white" />
+                      )}
+                    </Button>
+                  </form>
+                </div>
+              </>
             )}
-          </Button>
-        </form>
-      </div>
-    </Card>
+
+            {isMinimized && (
+              <div className="p-4 text-center">
+                <p className="text-sm text-red-200/60">Click to expand</p>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+    </>
   );
 };

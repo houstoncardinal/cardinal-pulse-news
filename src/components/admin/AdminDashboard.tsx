@@ -79,11 +79,6 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* AI Assistant */}
-        <div className="mb-6">
-          <AIAssistant />
-        </div>
-
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <WipeArticles />
@@ -357,6 +352,9 @@ export const AdminDashboard = () => {
           </div>
         </nav>
       </div>
+
+      {/* AI Assistant - Floating Widget */}
+      <AIAssistant />
     </div>
   );
 };
