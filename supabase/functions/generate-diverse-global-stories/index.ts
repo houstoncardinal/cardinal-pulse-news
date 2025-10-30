@@ -243,27 +243,29 @@ serve(async (req) => {
         try {
           console.log(`📰 Generating ${storyType.type} story for ${location.city}, ${location.country}: ${randomPrompt}`);
 
-          // Generate article using AI
-          const articlePrompt = `You are Hunain Qureshi, an investigative journalist specializing in ${storyType.type} coverage. Write a compelling, factual news article about ${randomPrompt} in ${location.city}, ${location.country}.
+          // Generate article using AI with tool calling for structured output
+          const articlePrompt = `You are Hunain Qureshi, an award-winning investigative journalist known for breaking viral stories. Write a powerful, compelling news article about ${randomPrompt} in ${location.city}, ${location.country}.
 
-The article should be:
-- 600-900 words
-- Include specific local context and details
-- Professional yet engaging
-- Well-researched with realistic scenarios
-- Include quotes from community members or officials (realistic but illustrative)
-- Structured with clear sections
+VIRAL CONTENT GUIDELINES:
+- Create an attention-grabbing angle that makes readers care
+- Use emotional storytelling while maintaining journalistic integrity
+- Include shocking statistics or revelations when appropriate
+- Add human interest elements - real people affected by the story
+- Create controversy or highlight conflict (responsibly)
+- Make it shareable - include quotable moments
+- 700-1000 words for maximum engagement
 
-Return ONLY a JSON object with this exact structure:
-{
-  "title": "Compelling headline about the story",
-  "excerpt": "Engaging 2-3 sentence summary",
-  "content": "Full article content with proper formatting",
-  "category": "world",
-  "tags": ["${location.city}", "${location.country}", "${storyType.type}", "tag4", "tag5"],
-  "meta_description": "SEO-optimized description (150-160 chars)",
-  "meta_keywords": ["${location.city}", "${location.country}", "${storyType.type}", "keyword4", "keyword5"]
-}`;
+STRUCTURE:
+- Powerful hook that grabs attention in first 2 sentences
+- Clear "why this matters now" angle
+- Human stories and real examples
+- Expert quotes or community voices
+- Call to action or what comes next
+- Strong closing that resonates
+
+TONE: Investigative, authoritative, engaging - make readers FEEL something.
+
+Write the article with HTML formatting for proper display.`;
 
           const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
@@ -274,31 +276,81 @@ Return ONLY a JSON object with this exact structure:
             body: JSON.stringify({
               model: "google/gemini-2.5-flash",
               messages: [
-                { role: "system", content: "You are a professional journalist. Always return valid JSON." },
                 { role: "user", content: articlePrompt }
               ],
+              tools: [
+                {
+                  type: "function",
+                  function: {
+                    name: "create_article",
+                    description: "Create a viral news article with all metadata",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        title: {
+                          type: "string",
+                          description: "Compelling, clickable headline that drives engagement (60-70 chars)"
+                        },
+                        excerpt: {
+                          type: "string",
+                          description: "Powerful 2-3 sentence summary that hooks readers"
+                        },
+                        content: {
+                          type: "string",
+                          description: "Full article content with HTML formatting for proper display"
+                        },
+                        tags: {
+                          type: "array",
+                          items: { type: "string" },
+                          description: "5 relevant tags for discoverability"
+                        },
+                        meta_description: {
+                          type: "string",
+                          description: "SEO-optimized description (150-160 characters)"
+                        },
+                        meta_keywords: {
+                          type: "array",
+                          items: { type: "string" },
+                          description: "5 SEO keywords"
+                        }
+                      },
+                      required: ["title", "excerpt", "content", "tags", "meta_description", "meta_keywords"],
+                      additionalProperties: false
+                    }
+                  }
+                }
+              ],
+              tool_choice: { type: "function", function: { name: "create_article" } }
             }),
           });
 
           if (!response.ok) {
-            console.error(`AI API error:`, response.status);
+            const errorText = await response.text();
+            console.error(`AI API error (${response.status}):`, errorText);
             continue;
           }
 
           const aiData = await response.json();
-          const generatedContent = aiData.choices[0].message.content;
           
-          // Parse JSON response
+          // Extract structured output from tool call
           let articleData;
           try {
-            const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              articleData = JSON.parse(jsonMatch[0]);
-            } else {
-              articleData = JSON.parse(generatedContent);
+            const toolCall = aiData.choices[0].message.tool_calls?.[0];
+            if (!toolCall) {
+              console.error("No tool call in response:", JSON.stringify(aiData).substring(0, 500));
+              continue;
+            }
+            
+            articleData = JSON.parse(toolCall.function.arguments);
+            
+            // Validate required fields
+            if (!articleData.title || !articleData.content || !articleData.excerpt) {
+              console.error("Missing required fields in article data");
+              continue;
             }
           } catch (parseError) {
-            console.error("Failed to parse AI response");
+            console.error("Failed to parse AI response:", parseError.message);
+            console.error("Response preview:", JSON.stringify(aiData).substring(0, 500));
             continue;
           }
 
