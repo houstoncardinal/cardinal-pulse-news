@@ -4,6 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const footerLinks = {
+  "Our Services": [
+    { name: "AI-Generated News", path: "/" },
+    { name: "Real-Time Coverage", path: "/" },
+    { name: "Breaking News Alerts", path: "/" },
+    { name: "Multi-Category Reporting", path: "/" },
+  ],
   Company: [
     { name: "About Us", path: "/about" },
     { name: "Careers", path: "/careers" },
@@ -45,7 +51,7 @@ export const Footer = () => {
         </div>
 
         {/* Links */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
               <h4 className="font-semibold mb-4">{category}</h4>
