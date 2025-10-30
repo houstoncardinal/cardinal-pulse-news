@@ -18,6 +18,7 @@ import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { BatchOperations } from "./BatchOperations";
 import { RegenerateImages } from "./RegenerateImages";
 import { CleanupArticles } from "./CleanupArticles";
+import { FixDuplicateImages } from "./FixDuplicateImages";
 import { SystemMonitor } from "./SystemMonitor";
 import { ContentCalendar } from "./ContentCalendar";
 import { SEOOptimizer } from "./SEOOptimizer";
@@ -148,6 +149,7 @@ export const AdminDashboard = () => {
         
         <TabsContent value="batch" className="mt-6">
           <div className="space-y-6">
+            <FixDuplicateImages />
             <CleanupArticles />
             <RegenerateImages />
             <BatchOperations />

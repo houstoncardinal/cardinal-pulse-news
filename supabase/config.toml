@@ -65,3 +65,21 @@ verify_jwt = false
 
 [functions.generate-diverse-global-stories]
 verify_jwt = true
+
+[functions.fix-duplicate-images]
+verify_jwt = true
+
+[functions.cleanup-articles]
+verify_jwt = true
+
+[functions.fetch-weather-forecast]
+verify_jwt = false
+
+[functions.generate-ai-image]
+verify_jwt = true
+
+[functions.regenerate-article-images]
+verify_jwt = true
+
+[functions.fetch-news-image]
+verify_jwt = true
