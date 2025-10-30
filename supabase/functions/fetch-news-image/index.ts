@@ -37,40 +37,66 @@ serve(async (req) => {
     // Create highly diverse search queries with multiple random variations
     let searchQuery = topic;
     
+    // Extract specific brand/company names from the topic for precise targeting
+    const topicLower = topic.toLowerCase();
+    const brandKeywords: string[] = [];
+    
+    // Extract specific company/brand names to ensure exact matches
+    const commonBrands = [
+      'chipotle', 'mcdonalds', 'starbucks', 'tesla', 'apple', 'google', 'microsoft',
+      'amazon', 'facebook', 'meta', 'netflix', 'uber', 'airbnb', 'walmart', 'target',
+      'nike', 'adidas', 'coca cola', 'pepsi', 'ford', 'toyota', 'honda', 'bmw'
+    ];
+    
+    for (const brand of commonBrands) {
+      if (topicLower.includes(brand)) {
+        brandKeywords.push(brand);
+        // Add the exact brand name with quotes for strict matching
+        brandKeywords.push(`"${brand}"`);
+      }
+    }
+
     // Add category-specific VISUAL terms - focus on newsworthy, specific imagery
     const visualTerms: string[] = [];
     if (category) {
       const categoryLower = category.toLowerCase();
       if (categoryLower.includes('weather')) {
-        visualTerms.push('weather event', 'storm system', 'satellite imagery', 'meteorology', 'climate event', 'atmospheric conditions');
+        visualTerms.push('weather event', 'official', 'news photo');
       } else if (categoryLower.includes('business')) {
-        // CRITICAL: Avoid generic stock imagery - focus on specific newsworthy business events
-        visualTerms.push('company announcement', 'corporate headquarters', 'business leader announcement', 'ceo interview', 'market event', 'company logo building', 'corporate news event');
+        // CRITICAL: For business articles about specific companies, ONLY search for that company
+        if (brandKeywords.length > 0) {
+          visualTerms.push('official', 'headquarters', 'store', 'logo', 'authentic');
+        } else {
+          visualTerms.push('company headquarters', 'business event', 'corporate news');
+        }
       } else if (categoryLower.includes('tech')) {
-        visualTerms.push('technology launch', 'product announcement', 'tech conference', 'innovation showcase', 'startup headquarters', 'device unveiling');
+        visualTerms.push('product launch', 'tech event', 'official announcement');
       } else if (categoryLower.includes('sports')) {
-        visualTerms.push('athlete action', 'stadium event', 'sports competition', 'championship moment', 'player celebration', 'team match');
-      } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
-        visualTerms.push('celebrity event', 'premiere night', 'performance stage', 'concert venue', 'festival crowd', 'award show');
+        visualTerms.push('game', 'match', 'official');
+      } else if (categoryLower.includes('entertainment')) {
+        visualTerms.push('premiere', 'official', 'event');
       } else if (categoryLower.includes('science')) {
-        visualTerms.push('research laboratory', 'scientific discovery', 'researcher team', 'experiment setup', 'innovation lab', 'breakthrough moment');
+        visualTerms.push('research', 'laboratory', 'official');
       } else if (categoryLower.includes('politics')) {
-        visualTerms.push('political leader', 'government summit', 'parliament session', 'election event', 'policy announcement', 'diplomatic meeting');
+        visualTerms.push('official', 'government', 'press');
       } else {
-        visualTerms.push('news photo', 'journalism', 'news event', 'press conference', 'breaking news');
+        visualTerms.push('official', 'news', 'authentic');
       }
     }
     
-    // Use topic hash to select different terms for each unique topic
-    const numTerms = (topicHash % 3) + 2; // 2-4 terms based on topic
-    const startIndex = topicHash % (visualTerms.length - numTerms);
-    const selectedTerms = visualTerms.slice(startIndex, startIndex + numTerms);
-    
-    // Add multiple layers of uniqueness
-    const timestamp = Date.now();
-    const randomSeed = Math.floor(Math.random() * 100000);
-    const uniqueModifier = (topicHash + timestamp) % 9999;
-    searchQuery = `${topic} ${selectedTerms.join(' ')} ${uniqueModifier} ${randomSeed}`;
+    // Build highly targeted search query
+    // PRIORITY: If specific brand detected, use ONLY that brand name for maximum precision
+    if (brandKeywords.length > 0) {
+      // For brand-specific articles, search ONLY for that brand to prevent confusion
+      const primaryBrand = brandKeywords[0];
+      searchQuery = `${primaryBrand} official ${visualTerms[0] || 'news'}`;
+      console.log(`🎯 BRAND-SPECIFIC search for: ${primaryBrand}`);
+    } else {
+      // For general topics, use broader search
+      const numTerms = Math.min(2, visualTerms.length);
+      const selectedTerms = visualTerms.slice(0, numTerms);
+      searchQuery = `${topic} ${selectedTerms.join(' ')} official authentic`;
+    }
     
     console.log(`📸 Image search query: ${searchQuery}`);
 
@@ -127,8 +153,28 @@ serve(async (req) => {
       'getty', 'apimages', 'shutterstock'
     ];
 
+    // CRITICAL: Brand conflict detection - prevent competitor images
+    const brandConflicts: { [key: string]: string[] } = {
+      'chipotle': ['mcdonalds', 'mcdonald', 'burger king', 'wendys', 'taco bell', 'qdoba'],
+      'mcdonalds': ['chipotle', 'burger king', 'wendys', 'five guys'],
+      'starbucks': ['dunkin', 'costa', 'peets', 'coffee bean'],
+      'tesla': ['ford', 'gm', 'toyota', 'rivian', 'lucid'],
+      'apple': ['samsung', 'google', 'microsoft', 'android'],
+      'nike': ['adidas', 'reebok', 'puma', 'under armour'],
+    };
+
+    // Get conflicting brands to exclude if article is about a specific brand
+    const excludeBrands: string[] = [];
+    for (const [brand, competitors] of Object.entries(brandConflicts)) {
+      if (topicLower.includes(brand)) {
+        excludeBrands.push(...competitors);
+        console.log(`⚠️ Excluding competitor brands for ${brand}: ${competitors.join(', ')}`);
+      }
+    }
+
     // Filter out generic/irrelevant images - VERY aggressive filtering
     const excludeKeywords = [
+      ...excludeBrands,
       'logo', 'icon', 'chart', 'graph', 'stock-photo', 'stockphoto', 'stock_photo',
       'template', 'banner', 'advertisement', 'vector', 'illustration',
       'infographic', 'diagram', 'placeholder', 'thumbnail', 'clipart',

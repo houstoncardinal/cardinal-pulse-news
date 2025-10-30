@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { updateCometArticleImages } from "@/utils/updateCometImages";
+import { fixChipotleArticle } from "@/utils/fixChipotleArticle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { EnhancedTrendsPanel } from "./EnhancedTrendsPanel";
@@ -29,6 +30,7 @@ import { ContentWorkflow } from "./ContentWorkflow";
 import { TrendingCoverage } from "./TrendingCoverage";
 import { WipeArticles } from "./WipeArticles";
 import { AIAssistant } from "./AIAssistant";
+import { ImageValidationTool } from "./ImageValidationTool";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,9 +38,18 @@ export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("trends");
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
-  // Update comet article images on mount
+  // Update article images on mount
   useEffect(() => {
-    updateCometArticleImages().catch(console.error);
+    const fixImages = async () => {
+      try {
+        await updateCometArticleImages();
+        await fixChipotleArticle();
+        console.log('✓ Critical article images fixed');
+      } catch (error) {
+        console.error('Error fixing article images:', error);
+      }
+    };
+    fixImages();
   }, []);
   
   const mainTabs = [
@@ -158,6 +169,7 @@ export const AdminDashboard = () => {
         
         <TabsContent value="batch" className="mt-6">
           <div className="space-y-6">
+            <ImageValidationTool />
             <FixDuplicateImages />
             <CleanupArticles />
             <RegenerateImages />

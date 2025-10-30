@@ -39,7 +39,31 @@ serve(async (req) => {
     const imageUrl = imageData.imageUrl;
     const imageCredit = imageData.imageCredit;
 
-    // Update article with sourced image
+    console.log('✓ Image fetched, now validating for brand accuracy...');
+
+    // CRITICAL: Validate image matches article content before saving
+    const { data: validationData, error: validationError } = await supabase.functions.invoke('validate-article-image', {
+      body: {
+        articleTitle: title,
+        imageCredit: imageCredit,
+        imageUrl: imageUrl,
+        articleContent: content?.substring(0, 1000)
+      }
+    });
+
+    if (validationError) {
+      console.error('Image validation error:', validationError);
+      // Proceed with caution but save the image
+      console.log('⚠️ Validation failed, but proceeding with image');
+    } else if (validationData && !validationData.valid && validationData.confidence > 70) {
+      console.error('❌ IMAGE VALIDATION FAILED - BRAND MISMATCH DETECTED');
+      console.error('Reason:', validationData.reason);
+      throw new Error(`Image validation failed: ${validationData.reason}. This image appears to be from the wrong brand/company.`);
+    } else if (validationData) {
+      console.log(`✓ Image validation passed (confidence: ${validationData.confidence}%)`);
+    }
+
+    // Update article with validated image
     const { error: updateError } = await supabase
       .from('articles')
       .update({
@@ -56,7 +80,7 @@ serve(async (req) => {
       throw new Error(`Failed to update article: ${updateError.message}`);
     }
 
-    console.log('✓ Real news image sourced and stored successfully:', imageUrl);
+    console.log('✓ Validated image assigned to article successfully:', imageUrl);
 
     return new Response(
       JSON.stringify({
