@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { updateCometArticleImages } from "@/utils/updateCometImages";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { EnhancedTrendsPanel } from "./EnhancedTrendsPanel";
@@ -34,6 +35,11 @@ import { cn } from "@/lib/utils";
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("trends");
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  // Update comet article images on mount
+  useEffect(() => {
+    updateCometArticleImages().catch(console.error);
+  }, []);
   
   const mainTabs = [
     { value: "trends", label: "Trends", icon: TrendingUp, mobileLabel: "Trends" },
