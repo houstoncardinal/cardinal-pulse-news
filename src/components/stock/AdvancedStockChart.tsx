@@ -183,37 +183,37 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
         console.error(`Error adding series for ${symbol}:`, error);
       }
 
-        // Add moving averages if enabled
-        if (showMA && results.length === 1 && chartType !== 'candlestick') {
-          try {
-            const closes = data.map(d => d.close);
-            const ma20 = calculateMA(closes, 20);
-            const ma50 = calculateMA(closes, 50);
+      // Add moving averages if enabled (outside the series try-catch)
+      if (showMA && results.length === 1 && chartType !== 'candlestick' && data.length > 0) {
+        try {
+          const closes = data.map(d => d.close);
+          const ma20 = calculateMA(closes, 20);
+          const ma50 = calculateMA(closes, 50);
 
-            const ma20Data = data.map((d, i) => ({ time: d.time, value: ma20[i] })).filter(d => !isNaN(d.value));
-            const ma50Data = data.map((d, i) => ({ time: d.time, value: ma50[i] })).filter(d => !isNaN(d.value));
+          const ma20Data = data.map((d, i) => ({ time: d.time, value: ma20[i] })).filter(d => !isNaN(d.value));
+          const ma50Data = data.map((d, i) => ({ time: d.time, value: ma50[i] })).filter(d => !isNaN(d.value));
 
-            if (ma20Data.length > 0) {
-              const ma20Series = chartRef.current!.addSeries('Line' as any, {
-                color: 'rgba(255, 152, 0, 0.8)',
-                lineWidth: 1,
-                title: 'MA20',
-              } as LineSeriesPartialOptions);
-              ma20Series.setData(ma20Data as any);
-            }
-
-            if (ma50Data.length > 0) {
-              const ma50Series = chartRef.current!.addSeries('Line' as any, {
-                color: 'rgba(156, 39, 176, 0.8)',
-                lineWidth: 1,
-                title: 'MA50',
-              } as LineSeriesPartialOptions);
-              ma50Series.setData(ma50Data as any);
-            }
-          } catch (error) {
-            console.error('Error adding MA lines:', error);
+          if (ma20Data.length > 0) {
+            const ma20Series = chartRef.current!.addSeries('Line' as any, {
+              color: 'rgba(255, 152, 0, 0.8)',
+              lineWidth: 1,
+              title: 'MA20',
+            } as LineSeriesPartialOptions);
+            ma20Series.setData(ma20Data as any);
           }
+
+          if (ma50Data.length > 0) {
+            const ma50Series = chartRef.current!.addSeries('Line' as any, {
+              color: 'rgba(156, 39, 176, 0.8)',
+              lineWidth: 1,
+              title: 'MA50',
+            } as LineSeriesPartialOptions);
+            ma50Series.setData(ma50Data as any);
+          }
+        } catch (error) {
+          console.error('Error adding MA lines:', error);
         }
+      }
 
       // Update volume series (only for first symbol)
       if (results.length === 1 && results[0].symbol === symbol && showVolume && data.length > 0) {

@@ -1,18 +1,21 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense, memo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { StockTicker } from "@/components/StockTicker";
-import { AdvancedStockChart } from "@/components/stock/AdvancedStockChart";
-import { TechnicalIndicators } from "@/components/stock/TechnicalIndicators";
-import { MarketDepth } from "@/components/stock/MarketDepth";
-import { StockNews } from "@/components/stock/StockNews";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, TrendingUp, TrendingDown, DollarSign, BarChart3, LineChart, X, Plus, Loader2 } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, X, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
+
+// Lazy load heavy components
+const StockTicker = lazy(() => import("@/components/StockTicker").then(m => ({ default: m.StockTicker })));
+const AdvancedStockChart = lazy(() => import("@/components/stock/AdvancedStockChart").then(m => ({ default: m.AdvancedStockChart })));
+const TechnicalIndicators = lazy(() => import("@/components/stock/TechnicalIndicators").then(m => ({ default: m.TechnicalIndicators })));
+const MarketDepth = lazy(() => import("@/components/stock/MarketDepth").then(m => ({ default: m.MarketDepth })));
+const StockNews = lazy(() => import("@/components/stock/StockNews").then(m => ({ default: m.StockNews })));
 
 interface StockQuote {
   symbol: string;
@@ -49,7 +52,6 @@ interface SearchResult {
 const MARKET_INDICES = ['SPY', 'QQQ', 'DIA', 'IWM'];
 const TRENDING_STOCKS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA', 'AMD'];
 
-// Helper function to check if stock data is complete
 const isValidStockQuote = (stock: any): stock is StockQuote => {
   return stock && 
     typeof stock.price === 'number' && 
@@ -60,6 +62,35 @@ const isValidStockQuote = (stock: any): stock is StockQuote => {
     typeof stock.open === 'number' &&
     typeof stock.previousClose === 'number';
 };
+
+// Memoized Stock Card Component
+const StockCard = memo(({ stock, onClick }: { stock: StockQuote; onClick: () => void }) => {
+  const isPositive = stock.change >= 0;
+  
+  return (
+    <Card 
+      className="luxury-card hover:scale-[1.02] transition-transform cursor-pointer"
+      onClick={onClick}
+    >
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-bold">{stock.symbol}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="text-2xl font-bold">${stock.price.toFixed(2)}</div>
+        <div className={cn("flex items-center gap-1 text-sm font-medium", isPositive ? "text-success" : "text-destructive")}>
+          {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+          <span>{isPositive ? '+' : ''}{stock.change.toFixed(2)} ({isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%)</span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          <div>High: ${stock.high.toFixed(2)}</div>
+          <div>Low: ${stock.low.toFixed(2)}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+StockCard.displayName = 'StockCard';
 
 const Stocks = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,7 +106,8 @@ const Stocks = () => {
   
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const fetchMarketData = async () => {
+  // Memoized fetch functions
+  const fetchMarketData = useCallback(async () => {
     try {
       const [indicesData, trendingData] = await Promise.all([
         supabase.functions.invoke('fetch-stock-data', {
@@ -86,7 +118,6 @@ const Stocks = () => {
         })
       ]);
 
-      // Filter out stocks with incomplete data
       if (indicesData.data?.quotes) {
         const validIndices = indicesData.data.quotes.filter(isValidStockQuote);
         setMarketIndices(validIndices);
@@ -100,9 +131,9 @@ const Stocks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStockDetails = async (symbol: string) => {
+  const fetchStockDetails = useCallback(async (symbol: string) => {
     try {
       const [profileData, quoteData] = await Promise.all([
         supabase.functions.invoke('fetch-stock-data', {
@@ -116,7 +147,6 @@ const Stocks = () => {
       if (profileData.data?.profile) setStockProfile(profileData.data.profile);
       if (quoteData.data?.quotes?.[0]) {
         const quote = quoteData.data.quotes[0];
-        // Only set if data is valid
         if (isValidStockQuote(quote)) {
           setStockQuote(quote);
         }
@@ -124,25 +154,26 @@ const Stocks = () => {
     } catch (error) {
       console.error('Error fetching stock details:', error);
     }
-  };
+  }, []);
 
   const searchStocks = useCallback(async (query: string) => {
-    if (!query || query.length < 2) {
+    if (!query.trim()) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
     }
 
+    setSearchLoading(true);
     try {
-      setSearchLoading(true);
-      const { data, error } = await supabase.functions.invoke('fetch-stock-data', {
-        body: { query, type: 'search' }
+      const { data } = await supabase.functions.invoke('fetch-stock-data', {
+        body: { symbols: [query.toUpperCase()], type: 'search' }
       });
 
-      if (error) throw error;
-      
-      if (data?.results) {
-        setSearchResults(data.results.slice(0, 10));
+      if (data?.results?.result) {
+        const filtered = data.results.result
+          .filter((r: SearchResult) => r.type === 'Common Stock')
+          .slice(0, 10);
+        setSearchResults(filtered);
         setShowSearchResults(true);
       }
     } catch (error) {
@@ -152,266 +183,175 @@ const Stocks = () => {
     }
   }, []);
 
-  const addStockToChart = (symbol: string) => {
-    if (!selectedStocks.includes(symbol) && selectedStocks.length < 3) {
-      setSelectedStocks([...selectedStocks, symbol]);
+  const addStockToChart = useCallback((symbol: string) => {
+    if (selectedStocks.length < 3 && !selectedStocks.includes(symbol)) {
+      setSelectedStocks(prev => [...prev, symbol]);
     }
-    setSearchQuery("");
-    setShowSearchResults(false);
+  }, [selectedStocks]);
+
+  const removeStockFromChart = useCallback((symbol: string) => {
+    setSelectedStocks(prev => prev.filter(s => s !== symbol));
+  }, []);
+
+  const handleStockClick = useCallback((symbol: string) => {
+    setSelectedStocks([symbol]);
     fetchStockDetails(symbol);
-  };
+  }, [fetchStockDetails]);
 
-  const removeStockFromChart = (symbol: string) => {
-    setSelectedStocks(selectedStocks.filter(s => s !== symbol));
-  };
-
+  // Effects
   useEffect(() => {
     fetchMarketData();
     const interval = setInterval(fetchMarketData, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMarketData]);
 
   useEffect(() => {
     if (selectedStocks.length > 0) {
       fetchStockDetails(selectedStocks[0]);
     }
-  }, [selectedStocks]);
+  }, [selectedStocks, fetchStockDetails]);
 
   useEffect(() => {
     searchStocks(debouncedSearchQuery);
   }, [debouncedSearchQuery, searchStocks]);
 
-  const handleStockClick = (symbol: string) => {
-    setSelectedStocks([symbol]);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
       <Header />
       
-      <StockTicker />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-2xl">
-              <BarChart3 className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                Stock Market Center
-              </h1>
-              <p className="text-muted-foreground">Real-time market data and analysis</p>
-            </div>
-          </div>
+      {/* Stock Ticker */}
+      <Suspense fallback={<div className="h-16 bg-muted/20 animate-pulse" />}>
+        <StockTicker />
+      </Suspense>
 
-          {/* Enhanced Search Bar */}
-          <div className="relative max-w-2xl">
+      <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Search Section */}
+        <div className="mb-8 max-w-2xl mx-auto">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search stocks (e.g., AAPL, TSLA, GOOGL)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 h-12 text-lg"
+            />
             {searchLoading && (
               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary animate-spin" />
             )}
-            <Input
-              placeholder="Search stocks by symbol or company name... (e.g., AAPL, Tesla)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
-              className="pl-10 pr-10 h-12 bg-background/50 backdrop-blur-xl border-white/10 text-base"
-            />
-            
-            {/* Search Results Dropdown */}
-            {showSearchResults && searchResults.length > 0 && (
-              <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto">
-                <CardContent className="p-2">
-                  {searchResults.map((result) => (
-                    <button
-                      key={result.symbol}
-                      onClick={() => addStockToChart(result.symbol)}
-                      className="w-full text-left p-3 hover:bg-muted rounded-lg transition-colors flex items-center justify-between group"
-                    >
-                      <div className="flex-1">
-                        <div className="font-bold text-sm">{result.displaySymbol}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">{result.description}</div>
-                      </div>
-                      <Plus className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
-          {/* Selected Stocks Pills */}
-          {selectedStocks.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {selectedStocks.map((symbol) => (
-                <div
-                  key={symbol}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full"
-                >
-                  <span className="font-bold text-sm">{symbol}</span>
-                  {selectedStocks.length > 1 && (
-                    <button
-                      onClick={() => removeStockFromChart(symbol)}
-                      className="hover:bg-destructive/20 rounded-full p-1 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {selectedStocks.length < 3 && (
-                <div className="text-xs text-muted-foreground self-center">
-                  Compare up to 3 stocks simultaneously
-                </div>
-              )}
-            </div>
+          {/* Search Results Dropdown */}
+          {showSearchResults && searchResults.length > 0 && (
+            <Card className="absolute z-50 w-full mt-2 max-w-2xl mx-auto">
+              <CardContent className="p-2">
+                {searchResults.map((result) => (
+                  <button
+                    key={result.symbol}
+                    onClick={() => {
+                      handleStockClick(result.symbol);
+                      setShowSearchResults(false);
+                      setSearchQuery('');
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-muted rounded-lg transition-colors"
+                  >
+                    <div className="font-medium">{result.symbol}</div>
+                    <div className="text-sm text-muted-foreground truncate">{result.description}</div>
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
           )}
         </div>
 
         {/* Market Indices */}
-        <div className="mb-8">
+        <section className="mb-8">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
             Market Indices
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {marketIndices.map((index) => (
-              <Card key={index.symbol} className="luxury-card cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => handleStockClick(index.symbol)}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{index.symbol}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-2">${index.price.toFixed(2)}</div>
-                  <div className={cn(
-                    "flex items-center gap-1 text-sm font-medium",
-                    index.change >= 0 ? "text-green-500" : "text-red-500"
-                  )}>
-                    {index.change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                    <span>{index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {marketIndices.map(stock => (
+                <StockCard key={stock.symbol} stock={stock} onClick={() => handleStockClick(stock.symbol)} />
+              ))}
+            </div>
+          )}
+        </section>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Trending Stocks */}
-          <div className="lg:col-span-1">
-            <Card className="luxury-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Trending Stocks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {trendingStocks.map((stock) => (
-                  <div
-                    key={stock.symbol}
-                    onClick={() => handleStockClick(stock.symbol)}
-                    className="p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold">{stock.symbol}</span>
-                      <span className="text-sm font-semibold">${stock.price.toFixed(2)}</span>
-                    </div>
-                    <div className={cn(
-                      "flex items-center gap-1 text-xs",
-                      stock.change >= 0 ? "text-green-500" : "text-red-500"
-                    )}>
-                      {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      <span>{stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%</span>
-                    </div>
+        {/* Trending Stocks */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Trending Stocks</h2>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {trendingStocks.map(stock => (
+                <StockCard key={stock.symbol} stock={stock} onClick={() => handleStockClick(stock.symbol)} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Selected Stocks Analysis */}
+        {selectedStocks.length > 0 && (
+          <section className="space-y-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h2 className="text-2xl font-bold">Analysis Dashboard</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                {selectedStocks.map(symbol => (
+                  <div key={symbol} className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full">
+                    <span className="font-medium">{symbol}</span>
+                    {selectedStocks.length > 1 && (
+                      <button onClick={() => removeStockFromChart(symbol)} className="hover:text-destructive">
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          </div>
+                {selectedStocks.length < 3 && (
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Stock
+                  </Button>
+                )}
+              </div>
+            </div>
 
-          {/* Advanced Stock Analysis */}
-          <div className="lg:col-span-2 space-y-6">
-            {selectedStocks.length > 0 && stockQuote ? (
-              <>
-                {/* Stock Header */}
-                <Card className="luxury-card">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-3xl flex items-center gap-3">
-                          {selectedStocks[0]}
-                          <LineChart className="h-8 w-8 text-primary" />
-                        </CardTitle>
-                        {stockProfile && (
-                          <p className="text-muted-foreground mt-1">{stockProfile.name}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="text-4xl font-bold">${stockQuote.price.toFixed(2)}</div>
-                        <div className={cn(
-                          "flex items-center gap-1 text-xl font-medium mt-1 justify-end",
-                          stockQuote.change >= 0 ? "text-green-500" : "text-red-500"
-                        )}>
-                          {stockQuote.change >= 0 ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
-                          <span>{stockQuote.change >= 0 ? '+' : ''}{stockQuote.change.toFixed(2)} ({stockQuote.changePercent.toFixed(2)}%)</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">Open</p>
-                        <p className="font-bold">${stockQuote.open.toFixed(2)}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">High</p>
-                        <p className="font-bold text-green-500">${stockQuote.high.toFixed(2)}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">Low</p>
-                        <p className="font-bold text-red-500">${stockQuote.low.toFixed(2)}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">Prev Close</p>
-                        <p className="font-bold">${stockQuote.previousClose.toFixed(2)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+              <AdvancedStockChart symbols={selectedStocks} />
+            </Suspense>
 
-                {/* Advanced Interactive Chart */}
-                <AdvancedStockChart symbols={selectedStocks} />
-
-                {/* Technical Indicators */}
-                <TechnicalIndicators symbol={selectedStocks[0]} />
-
-                {/* Market Depth & News */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {selectedStocks.length === 1 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Suspense fallback={<Skeleton className="h-96" />}>
+                  <TechnicalIndicators symbol={selectedStocks[0]} />
+                </Suspense>
+                <Suspense fallback={<Skeleton className="h-96" />}>
                   <MarketDepth symbol={selectedStocks[0]} />
-                  <StockNews symbol={selectedStocks[0]} />
-                </div>
-              </>
-            ) : (
-              <Card className="luxury-card h-full flex items-center justify-center min-h-[600px]">
-                <CardContent className="text-center py-12">
-                  <BarChart3 className="h-20 w-20 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-2xl font-bold mb-2">Advanced Trading Platform</p>
-                  <p className="text-lg text-muted-foreground mb-4">Search for any stock to begin analysis</p>
-                  <div className="text-sm text-muted-foreground">
-                    Try searching for AAPL, TSLA, GOOGL, or any other stock symbol
-                  </div>
-                </CardContent>
-              </Card>
+                </Suspense>
+              </div>
             )}
-          </div>
-        </div>
+
+            {selectedStocks.length === 1 && (
+              <Suspense fallback={<Skeleton className="h-96" />}>
+                <StockNews symbol={selectedStocks[0]} />
+              </Suspense>
+            )}
+          </section>
+        )}
       </main>
-      
+
       <Footer />
     </div>
   );
