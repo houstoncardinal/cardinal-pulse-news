@@ -243,29 +243,26 @@ serve(async (req) => {
         try {
           console.log(`📰 Generating ${storyType.type} story for ${location.city}, ${location.country}: ${randomPrompt}`);
 
-          // Generate article using AI with tool calling for structured output
-          const articlePrompt = `You are Hunain Qureshi, an award-winning investigative journalist known for breaking viral stories. Write a powerful, compelling news article about ${randomPrompt} in ${location.city}, ${location.country}.
+          // Generate article using AI with clear JSON response format
+          const articlePrompt = `You are Hunain Qureshi, an award-winning investigative journalist. Write a powerful, viral-worthy news article about ${randomPrompt} in ${location.city}, ${location.country}.
 
 VIRAL CONTENT GUIDELINES:
-- Create an attention-grabbing angle that makes readers care
-- Use emotional storytelling while maintaining journalistic integrity
-- Include shocking statistics or revelations when appropriate
-- Add human interest elements - real people affected by the story
-- Create controversy or highlight conflict (responsibly)
-- Make it shareable - include quotable moments
-- 700-1000 words for maximum engagement
+- Attention-grabbing hook in first 2 sentences
+- Emotional storytelling with journalistic integrity
+- Include shocking statistics or revelations
+- Human interest elements and real examples
+- Quotable moments for social sharing
+- 800-1000 words for maximum engagement
 
-STRUCTURE:
-- Powerful hook that grabs attention in first 2 sentences
-- Clear "why this matters now" angle
-- Human stories and real examples
-- Expert quotes or community voices
-- Call to action or what comes next
-- Strong closing that resonates
-
-TONE: Investigative, authoritative, engaging - make readers FEEL something.
-
-Write the article with HTML formatting for proper display.`;
+Return ONLY valid JSON (no markdown, no code blocks):
+{
+  "title": "Compelling headline (60-70 chars)",
+  "excerpt": "Powerful 2-3 sentence hook",
+  "content": "<p>Full article with HTML formatting...</p>",
+  "tags": ["${location.city}", "${location.country}", "${storyType.type}", "tag4", "tag5"],
+  "meta_description": "SEO description 150-160 chars",
+  "meta_keywords": ["${location.city}", "${location.country}", "${storyType.type}", "kw4", "kw5"]
+}`;
 
           const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
@@ -276,81 +273,50 @@ Write the article with HTML formatting for proper display.`;
             body: JSON.stringify({
               model: "google/gemini-2.5-flash",
               messages: [
+                { role: "system", content: "You are a professional journalist. Return ONLY valid JSON without markdown formatting or code blocks." },
                 { role: "user", content: articlePrompt }
               ],
-              tools: [
-                {
-                  type: "function",
-                  function: {
-                    name: "create_article",
-                    description: "Create a viral news article with all metadata",
-                    parameters: {
-                      type: "object",
-                      properties: {
-                        title: {
-                          type: "string",
-                          description: "Compelling, clickable headline that drives engagement (60-70 chars)"
-                        },
-                        excerpt: {
-                          type: "string",
-                          description: "Powerful 2-3 sentence summary that hooks readers"
-                        },
-                        content: {
-                          type: "string",
-                          description: "Full article content with HTML formatting for proper display"
-                        },
-                        tags: {
-                          type: "array",
-                          items: { type: "string" },
-                          description: "5 relevant tags for discoverability"
-                        },
-                        meta_description: {
-                          type: "string",
-                          description: "SEO-optimized description (150-160 characters)"
-                        },
-                        meta_keywords: {
-                          type: "array",
-                          items: { type: "string" },
-                          description: "5 SEO keywords"
-                        }
-                      },
-                      required: ["title", "excerpt", "content", "tags", "meta_description", "meta_keywords"],
-                      additionalProperties: false
-                    }
-                  }
-                }
-              ],
-              tool_choice: { type: "function", function: { name: "create_article" } }
+              temperature: 0.8,
             }),
           });
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`AI API error (${response.status}):`, errorText);
+            console.error(`AI API error (${response.status}):`, errorText.substring(0, 200));
             continue;
           }
 
           const aiData = await response.json();
+          let rawContent = aiData.choices?.[0]?.message?.content;
           
-          // Extract structured output from tool call
+          if (!rawContent) {
+            console.error("No content in AI response");
+            continue;
+          }
+
+          // Parse JSON response - handle markdown code blocks
           let articleData;
           try {
-            const toolCall = aiData.choices[0].message.tool_calls?.[0];
-            if (!toolCall) {
-              console.error("No tool call in response:", JSON.stringify(aiData).substring(0, 500));
+            // Remove markdown code blocks if present
+            rawContent = rawContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+            
+            // Try to extract JSON object
+            const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+              console.error("No JSON object found in response:", rawContent.substring(0, 300));
               continue;
             }
             
-            articleData = JSON.parse(toolCall.function.arguments);
+            articleData = JSON.parse(jsonMatch[0]);
             
             // Validate required fields
             if (!articleData.title || !articleData.content || !articleData.excerpt) {
-              console.error("Missing required fields in article data");
+              console.error("Missing required fields. Has:", Object.keys(articleData).join(', '));
               continue;
             }
           } catch (parseError) {
-            console.error("Failed to parse AI response:", parseError.message);
-            console.error("Response preview:", JSON.stringify(aiData).substring(0, 500));
+            console.error("JSON parse error:", parseError instanceof Error ? parseError.message : String(parseError));
+            console.error("Content sample:", rawContent.substring(0, 300));
             continue;
           }
 
