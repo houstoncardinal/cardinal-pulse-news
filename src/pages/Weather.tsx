@@ -16,7 +16,7 @@ export default function Weather() {
         <meta name="description" content="Get accurate weather forecasts, interactive radar, and severe weather alerts for your location." />
       </Helmet>
 
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">{/* Weather page */}
         <Header />
         
         <main className="flex-1">
