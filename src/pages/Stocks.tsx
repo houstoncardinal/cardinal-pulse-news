@@ -49,6 +49,18 @@ interface SearchResult {
 const MARKET_INDICES = ['SPY', 'QQQ', 'DIA', 'IWM'];
 const TRENDING_STOCKS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA', 'AMD'];
 
+// Helper function to check if stock data is complete
+const isValidStockQuote = (stock: any): stock is StockQuote => {
+  return stock && 
+    typeof stock.price === 'number' && 
+    typeof stock.change === 'number' && 
+    typeof stock.changePercent === 'number' &&
+    typeof stock.high === 'number' &&
+    typeof stock.low === 'number' &&
+    typeof stock.open === 'number' &&
+    typeof stock.previousClose === 'number';
+};
+
 const Stocks = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -74,8 +86,15 @@ const Stocks = () => {
         })
       ]);
 
-      if (indicesData.data?.quotes) setMarketIndices(indicesData.data.quotes);
-      if (trendingData.data?.quotes) setTrendingStocks(trendingData.data.quotes);
+      // Filter out stocks with incomplete data
+      if (indicesData.data?.quotes) {
+        const validIndices = indicesData.data.quotes.filter(isValidStockQuote);
+        setMarketIndices(validIndices);
+      }
+      if (trendingData.data?.quotes) {
+        const validTrending = trendingData.data.quotes.filter(isValidStockQuote);
+        setTrendingStocks(validTrending);
+      }
     } catch (error) {
       console.error('Error fetching market data:', error);
     } finally {
@@ -95,7 +114,13 @@ const Stocks = () => {
       ]);
 
       if (profileData.data?.profile) setStockProfile(profileData.data.profile);
-      if (quoteData.data?.quotes?.[0]) setStockQuote(quoteData.data.quotes[0]);
+      if (quoteData.data?.quotes?.[0]) {
+        const quote = quoteData.data.quotes[0];
+        // Only set if data is valid
+        if (isValidStockQuote(quote)) {
+          setStockQuote(quote);
+        }
+      }
     } catch (error) {
       console.error('Error fetching stock details:', error);
     }
