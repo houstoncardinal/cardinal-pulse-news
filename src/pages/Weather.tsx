@@ -4,15 +4,17 @@ import { Footer } from "@/components/Footer";
 import { MobileToolbar } from "@/components/MobileToolbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Cloud, Droplets, Wind, Eye, Thermometer, Globe2, AlertTriangle, TrendingUp } from "lucide-react";
+import { Cloud, Droplets, Wind, Eye, Thermometer, Globe2, AlertTriangle, TrendingUp, MapPin, Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { WeatherRadar } from "@/components/weather/WeatherRadar";
 import { WeatherForecast } from "@/components/weather/WeatherForecast";
 import { WeatherAlerts } from "@/components/weather/WeatherAlerts";
 import { AnimatedWeatherIcon } from "@/components/weather/AnimatedWeatherIcon";
 import { DetailedWeatherPanel } from "@/components/weather/DetailedWeatherPanel";
+import { toast } from "sonner";
 
 interface WeatherCity {
   name: string;
@@ -21,6 +23,7 @@ interface WeatherCity {
   region: string;
   weather: any;
   timestamp: string;
+  isUserLocation?: boolean;
 }
 
 export default function Weather() {
@@ -29,6 +32,9 @@ export default function Weather() {
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [showDetailPanel, setShowDetailPanel] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [weeklyForecast, setWeeklyForecast] = useState<any>(null);
 
   useEffect(() => {
     fetchGlobalWeather();
@@ -37,6 +43,83 @@ export default function Weather() {
     const interval = setInterval(fetchGlobalWeather, 600000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (selectedCity) {
+      fetchWeeklyForecast(selectedCity.lat, selectedCity.lon);
+    }
+  }, [selectedCity]);
+
+  const getUserLocation = async () => {
+    setLoadingLocation(true);
+    try {
+      if (!navigator.geolocation) {
+        toast.error("Geolocation is not supported by your browser");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lon: longitude });
+          
+          // Fetch weather for user location
+          const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY || 'demo'}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const userCity: WeatherCity = {
+              name: data.name || "Your Location",
+              lat: latitude,
+              lon: longitude,
+              region: "Your Location",
+              weather: data,
+              timestamp: new Date().toISOString(),
+              isUserLocation: true
+            };
+            
+            setGlobalWeather(prev => [userCity, ...prev.filter(c => !c.isUserLocation)]);
+            setSelectedCity(userCity);
+            toast.success(`Showing weather for your location: ${data.name}`);
+          }
+          
+          setLoadingLocation(false);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast.error("Unable to get your location. Please enable location access.");
+          setLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    } catch (error) {
+      console.error("Error getting location:", error);
+      toast.error("Failed to get your location");
+      setLoadingLocation(false);
+    }
+  };
+
+  const fetchWeeklyForecast = async (lat: number, lon: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-weather-forecast', {
+        body: { lat, lon }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setWeeklyForecast(data);
+      }
+    } catch (error) {
+      console.error('Error fetching weekly forecast:', error);
+    }
+  };
 
   const fetchGlobalWeather = async () => {
     try {
@@ -117,10 +200,31 @@ export default function Weather() {
             <p className="text-muted-foreground text-sm sm:text-lg max-w-2xl mx-auto px-4">
               Real-time weather monitoring for major cities worldwide. Updated every 10 minutes.
             </p>
-            <Badge className="mt-3 sm:mt-4 bg-green-500/20 text-green-500 border-green-500/30 text-xs sm:text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
-              LIVE
-            </Badge>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-3 sm:mt-4">
+              <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs sm:text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+                LIVE
+              </Badge>
+              <Button
+                onClick={getUserLocation}
+                disabled={loadingLocation}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                {loadingLocation ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Getting Location...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="h-4 w-4" />
+                    Use My Location
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Region Filter */}
@@ -287,9 +391,25 @@ export default function Weather() {
               <div className="animate-reveal-from-bottom" style={{ animationDelay: '0.4s' }}>
                 <WeatherForecast
                   cityName={selectedCity.name}
-                  forecast={[
+                  forecast={weeklyForecast?.daily ? weeklyForecast.daily.map((day: any, i: number) => ({
+                    date: new Date(day.dt * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    day: i === 0 ? 'Today' : new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' }),
+                    high: Math.round(day.temp.max),
+                    low: Math.round(day.temp.min),
+                    condition: day.weather[0].main,
+                    icon: day.weather[0].main,
+                    precipitation: Math.round((day.pop || 0) * 100),
+                    humidity: day.humidity,
+                    windSpeed: Math.round(day.wind_speed * 3.6),
+                    hourly: day.hourly?.slice(0, 8).map((hour: any) => ({
+                      time: new Date(hour.dt * 1000).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+                      temp: Math.round(hour.temp),
+                      condition: hour.weather[0].main,
+                      icon: hour.weather[0].main.toLowerCase()
+                    })) || []
+                  })) : [
                     {
-                      date: 'Dec 29',
+                      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                       day: 'Today',
                       high: Math.round(selectedCity.weather.main.temp_max) + 2,
                       low: Math.round(selectedCity.weather.main.temp_min),
@@ -298,24 +418,8 @@ export default function Weather() {
                       precipitation: 20,
                       humidity: selectedCity.weather.main.humidity,
                       windSpeed: Math.round(selectedCity.weather.wind.speed * 3.6),
-                      hourly: [
-                        { time: '12 PM', temp: Math.round(selectedCity.weather.main.temp), condition: selectedCity.weather.weather[0].main, icon: 'clear' },
-                        { time: '3 PM', temp: Math.round(selectedCity.weather.main.temp) + 1, condition: selectedCity.weather.weather[0].main, icon: 'clear' },
-                        { time: '6 PM', temp: Math.round(selectedCity.weather.main.temp) - 1, condition: 'Partly Cloudy', icon: 'clouds' },
-                        { time: '9 PM', temp: Math.round(selectedCity.weather.main.temp) - 3, condition: 'Clear', icon: 'clear' },
-                      ]
-                    },
-                    ...Array.from({ length: 6 }, (_, i) => ({
-                      date: `Dec ${30 + i}`,
-                      day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
-                      high: Math.round(selectedCity.weather.main.temp_max) + Math.floor(Math.random() * 5) - 2,
-                      low: Math.round(selectedCity.weather.main.temp_min) + Math.floor(Math.random() * 3) - 1,
-                      condition: ['Clear', 'Partly Cloudy', 'Cloudy', 'Rain'][Math.floor(Math.random() * 4)],
-                      icon: 'clear',
-                      precipitation: Math.floor(Math.random() * 60),
-                      humidity: 50 + Math.floor(Math.random() * 40),
-                      windSpeed: 10 + Math.floor(Math.random() * 20)
-                    }))
+                      hourly: []
+                    }
                   ]}
                 />
               </div>
