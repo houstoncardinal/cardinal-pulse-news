@@ -67,10 +67,10 @@ export const AdminDashboard = () => {
               <h1 className="text-2xl md:text-4xl font-bold text-white">
                 Admin Control Center
               </h1>
-              <p className="text-xs md:text-sm text-green-400 flex items-center gap-2">
+              <p className="text-xs md:text-sm text-white flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
                 AI Newsroom • Real-time • Powered by Trends
               </p>
