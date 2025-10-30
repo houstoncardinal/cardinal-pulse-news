@@ -37,26 +37,27 @@ serve(async (req) => {
     // Create highly diverse search queries with multiple random variations
     let searchQuery = topic;
     
-    // Add category-specific VISUAL terms with random variations
+    // Add category-specific VISUAL terms - focus on newsworthy, specific imagery
     const visualTerms: string[] = [];
     if (category) {
       const categoryLower = category.toLowerCase();
       if (categoryLower.includes('weather')) {
-        visualTerms.push('weather', 'storm', 'satellite', 'forecast', 'meteorology', 'climate', 'conditions', 'atmosphere');
+        visualTerms.push('weather event', 'storm system', 'satellite imagery', 'meteorology', 'climate event', 'atmospheric conditions');
       } else if (categoryLower.includes('business')) {
-        visualTerms.push('executive', 'corporate', 'meeting', 'office', 'professional', 'boardroom', 'conference', 'business leader', 'ceo', 'entrepreneur');
+        // CRITICAL: Avoid generic stock imagery - focus on specific newsworthy business events
+        visualTerms.push('company announcement', 'corporate headquarters', 'business leader announcement', 'ceo interview', 'market event', 'company logo building', 'corporate news event');
       } else if (categoryLower.includes('tech')) {
-        visualTerms.push('technology', 'innovation', 'device', 'digital', 'startup', 'launch', 'software', 'hardware', 'tech event');
+        visualTerms.push('technology launch', 'product announcement', 'tech conference', 'innovation showcase', 'startup headquarters', 'device unveiling');
       } else if (categoryLower.includes('sports')) {
-        visualTerms.push('athlete', 'stadium', 'competition', 'game', 'championship', 'tournament', 'player', 'team', 'match');
+        visualTerms.push('athlete action', 'stadium event', 'sports competition', 'championship moment', 'player celebration', 'team match');
       } else if (categoryLower.includes('entertainment') || categoryLower.includes('music') || categoryLower.includes('movies')) {
-        visualTerms.push('celebrity', 'premiere', 'performance', 'concert', 'show', 'festival', 'actor', 'musician', 'red carpet');
+        visualTerms.push('celebrity event', 'premiere night', 'performance stage', 'concert venue', 'festival crowd', 'award show');
       } else if (categoryLower.includes('science')) {
-        visualTerms.push('laboratory', 'research', 'scientist', 'discovery', 'experiment', 'innovation', 'lab', 'equipment', 'breakthrough');
+        visualTerms.push('research laboratory', 'scientific discovery', 'researcher team', 'experiment setup', 'innovation lab', 'breakthrough moment');
       } else if (categoryLower.includes('politics')) {
-        visualTerms.push('politician', 'summit', 'conference', 'government', 'parliament', 'congress', 'debate', 'election', 'leader');
+        visualTerms.push('political leader', 'government summit', 'parliament session', 'election event', 'policy announcement', 'diplomatic meeting');
       } else {
-        visualTerms.push('photo', 'image', 'scene', 'captured', 'moment', 'journalism', 'news', 'event');
+        visualTerms.push('news photo', 'journalism', 'news event', 'press conference', 'breaking news');
       }
     }
     
@@ -126,12 +127,18 @@ serve(async (req) => {
       'getty', 'apimages', 'shutterstock'
     ];
 
-    // Filter out generic/irrelevant images - be more aggressive
+    // Filter out generic/irrelevant images - VERY aggressive filtering
     const excludeKeywords = [
-      'logo', 'icon', 'chart', 'graph', 'stock-photo', 'stockphoto',
+      'logo', 'icon', 'chart', 'graph', 'stock-photo', 'stockphoto', 'stock_photo',
       'template', 'banner', 'advertisement', 'vector', 'illustration',
-      'infographic', 'diagram', 'placeholder', 'thumbnail',
-      'business-files', 'documents', 'paperwork', 'generic'
+      'infographic', 'diagram', 'placeholder', 'thumbnail', 'clipart',
+      'business-files', 'business_files', 'documents', 'paperwork', 'generic',
+      'office-desk', 'desk', 'keyboard', 'laptop-screen', 'computer-screen',
+      'handshake', 'meeting-table', 'conference-room', 'empty-office',
+      'filing', 'folders', 'paper-stack', 'calculator', 'pen-paper',
+      'abstract', 'concept', 'symbolic', 'metaphor', 'gettyimages-watermark',
+      'shutterstock', 'istockphoto', 'dreamstime', 'depositphotos',
+      'business-concept', 'business-background', 'office-background'
     ];
 
     // Get existing image URLs to avoid duplicates
@@ -151,24 +158,61 @@ serve(async (req) => {
 
     console.log(`📊 Found ${usedImageUrls.size} existing image URLs to avoid`);
 
-    // Filter available images
+    // Filter available images with aggressive duplicate and generic image detection
     const availableImages = imageSearchData.images.filter((img: any) => {
       const imgUrl = img.imageUrl || img.link;
       const imgUrlLower = (imgUrl || '').toLowerCase();
       const imgTitle = (img.title || '').toLowerCase();
+      const imgSource = (img.link || '').toLowerCase();
       
-      // Check if already used
+      // Check for exact duplicate URLs
       if (usedImageUrls.has(imgUrl)) {
-        console.log(`⚠️ Skipping duplicate image: ${imgUrl}`);
+        console.log(`⚠️ Skipping exact duplicate: ${imgUrl.substring(0, 80)}...`);
         return false;
       }
       
-      // Check if not a generic image
-      const isNotGeneric = !excludeKeywords.some(keyword => 
-        imgUrlLower.includes(keyword) || imgTitle.includes(keyword)
+      // Check for similar URLs (same domain and similar path)
+      const urlSimilar = Array.from(usedImageUrls).some(usedUrl => {
+        try {
+          const usedUrlObj = new URL(usedUrl);
+          const currentUrlObj = new URL(imgUrl);
+          // If same domain and filename is very similar, consider it a duplicate
+          if (usedUrlObj.hostname === currentUrlObj.hostname) {
+            const usedPath = usedUrlObj.pathname.split('/').pop() || '';
+            const currentPath = currentUrlObj.pathname.split('/').pop() || '';
+            if (usedPath.substring(0, 30) === currentPath.substring(0, 30)) {
+              return true;
+            }
+          }
+        } catch (e) {
+          // Invalid URL, skip similarity check
+        }
+        return false;
+      });
+      
+      if (urlSimilar) {
+        console.log(`⚠️ Skipping similar image URL: ${imgUrl.substring(0, 80)}...`);
+        return false;
+      }
+      
+      // Aggressively filter generic images
+      const hasGenericKeyword = excludeKeywords.some(keyword => 
+        imgUrlLower.includes(keyword) || imgTitle.includes(keyword) || imgSource.includes(keyword)
       );
       
-      return isNotGeneric && imgUrl;
+      if (hasGenericKeyword) {
+        console.log(`⚠️ Skipping generic image: ${imgTitle.substring(0, 60)}...`);
+        return false;
+      }
+      
+      // Additional check: reject if title is too generic (less than 3 words)
+      const titleWords = imgTitle.trim().split(/\s+/).filter(w => w.length > 2);
+      if (titleWords.length < 3) {
+        console.log(`⚠️ Skipping image with generic title: "${imgTitle}"`);
+        return false;
+      }
+      
+      return imgUrl;
     });
 
     console.log(`✓ ${availableImages.length} unique images available after filtering`);
