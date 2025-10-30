@@ -3,6 +3,7 @@ import { X, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTrendingTopics } from "@/hooks/useTrendingTopics";
+import { Link } from "react-router-dom";
 
 interface NewsWidgetProps {
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
@@ -102,15 +103,19 @@ export const NewsWidget = ({
             <div className="text-xs text-muted-foreground">
               {currentIndex + 1} of {topics.length}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs gap-1"
-              onClick={() => window.open('/watch', '_blank')}
+            <Link
+              to={`/category/${currentTopic.category}`}
+              className="inline-flex"
             >
-              Full View
-              <ExternalLink className="h-3 w-3" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+              >
+                Full View
+                <ExternalLink className="h-3 w-3" />
+              </Button>
+            </Link>
           </div>
 
           {/* Progress indicator */}
