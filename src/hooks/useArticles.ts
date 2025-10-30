@@ -34,7 +34,7 @@ export const useArticles = () => {
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
       return data || [];
