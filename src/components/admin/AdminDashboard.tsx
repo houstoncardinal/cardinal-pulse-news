@@ -16,6 +16,7 @@ import { CategoryArticleGenerator } from "./CategoryArticleGenerator";
 import { YahooFinanceImporter } from "./YahooFinanceImporter";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { BatchOperations } from "./BatchOperations";
+import { RegenerateImages } from "./RegenerateImages";
 import { SystemMonitor } from "./SystemMonitor";
 import { ContentCalendar } from "./ContentCalendar";
 import { SEOOptimizer } from "./SEOOptimizer";
@@ -145,7 +146,10 @@ export const AdminDashboard = () => {
         </TabsContent>
         
         <TabsContent value="batch" className="mt-6">
-          <BatchOperations />
+          <div className="space-y-6">
+            <RegenerateImages />
+            <BatchOperations />
+          </div>
         </TabsContent>
         
         <TabsContent value="monitor" className="mt-6">

@@ -206,7 +206,7 @@ serve(async (req) => {
       }
       
       // Additional check: reject if title is too generic (less than 3 words)
-      const titleWords = imgTitle.trim().split(/\s+/).filter(w => w.length > 2);
+      const titleWords = imgTitle.trim().split(/\s+/).filter((w: string) => w.length > 2);
       if (titleWords.length < 3) {
         console.log(`⚠️ Skipping image with generic title: "${imgTitle}"`);
         return false;
@@ -218,13 +218,39 @@ serve(async (req) => {
     console.log(`✓ ${availableImages.length} unique images available after filtering`);
 
     if (availableImages.length === 0) {
-      console.log('No unique images found after filtering');
+      console.log('⚠️ No unique images found after filtering - falling back to AI generation');
+      
+      // Fallback to AI image generation
+      try {
+        const aiImageResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-ai-image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ title: topic, category }),
+        });
+
+        if (aiImageResponse.ok) {
+          const aiResult = await aiImageResponse.json();
+          if (aiResult.success) {
+            console.log('✓ AI image generated successfully as fallback');
+            return new Response(
+              JSON.stringify(aiResult),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      } catch (aiError) {
+        console.error('AI fallback also failed:', aiError);
+      }
+      
       return new Response(
         JSON.stringify({ 
           success: false,
           imageUrl: null,
           imageCredit: null,
-          message: 'No unique image found'
+          message: 'No unique image found and AI generation failed'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
