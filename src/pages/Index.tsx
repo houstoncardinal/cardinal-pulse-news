@@ -12,6 +12,7 @@ import { useArticles } from "@/hooks/useArticles";
 import { Loader2, Sparkles, Zap } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { SchemaOrg } from "@/components/seo/SchemaOrg";
+import { NewsQueryEngine } from "@/components/NewsQueryEngine";
 
 const Index = () => {
   const { data: publishedArticles, isLoading } = useArticles();
@@ -188,6 +189,17 @@ const Index = () => {
             </div>
           </div>
         )}
+
+        {/* AI News Query Engine */}
+        <section className="mb-16 animate-fade-in">
+          <div className="mb-8">
+            <h2 className="font-display text-4xl font-bold mb-4">Ask Anything About World News</h2>
+            <p className="text-muted-foreground text-lg">
+              Powered by AI, get instant intelligence on any news topic worldwide
+            </p>
+          </div>
+          <NewsQueryEngine />
+        </section>
 
         {/* Categories Preview */}
         <section>
