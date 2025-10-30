@@ -56,6 +56,7 @@ export const AdminDashboard = () => {
     { value: "trends", label: "Trends", icon: TrendingUp, mobileLabel: "Trends" },
     { value: "review", label: "Review Queue", icon: Clock, mobileLabel: "Review" },
     { value: "articles", label: "Articles", icon: FileText, mobileLabel: "Articles" },
+    { value: "batch", label: "Batch Operations", icon: Zap, mobileLabel: "Batch" },
     { value: "jobs", label: "Jobs", icon: Clock, mobileLabel: "Jobs" },
   ];
 
@@ -66,9 +67,7 @@ export const AdminDashboard = () => {
     { value: "realtime", label: "Live Metrics", icon: Radio, description: "Real-time performance" },
     { value: "workflow", label: "Workflow", icon: GitBranch, description: "Manage content pipeline" },
     { value: "analytics", label: "Analytics", icon: BarChart3, description: "View performance metrics" },
-    { value: "batch", label: "Batch Operations", icon: Zap, description: "Bulk article management" },
     { value: "monitor", label: "System Monitor", icon: Activity, description: "Track system health" },
-    { value: "settings", label: "Settings", icon: Settings, description: "Configure your newsroom" },
   ];
 
   return (
@@ -111,7 +110,7 @@ export const AdminDashboard = () => {
       
       {/* Desktop Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="container mx-auto px-4 md:px-6 lg:px-8 mt-6 max-w-full overflow-hidden">
-        <TabsList className="hidden md:grid w-full grid-cols-5 h-12">
+        <TabsList className="hidden md:grid w-full grid-cols-6 h-12">
           {[...mainTabs, { value: "settings", label: "Settings", icon: Settings, mobileLabel: "Settings" }].map((tab) => (
             <TabsTrigger 
               key={tab.value} 
