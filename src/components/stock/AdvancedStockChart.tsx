@@ -201,36 +201,38 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#9ca3af',
+        textColor: 'hsl(var(--muted-foreground))',
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        vertLines: { color: 'hsl(var(--border) / 0.2)' },
+        horzLines: { color: 'hsl(var(--border) / 0.2)' },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 600,
+      height: 700,
       crosshair: {
         mode: 1 as any,
         vertLine: {
-          width: 1,
-          color: 'rgba(224, 227, 235, 0.4)',
+          width: 2,
+          color: 'hsl(var(--primary) / 0.5)',
           style: 0,
+          labelBackgroundColor: 'hsl(var(--primary))',
         },
         horzLine: {
-          width: 1,
-          color: 'rgba(224, 227, 235, 0.4)',
+          width: 2,
+          color: 'hsl(var(--primary) / 0.5)',
           style: 0,
+          labelBackgroundColor: 'hsl(var(--primary))',
         },
       },
       rightPriceScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'hsl(var(--border))',
         scaleMargins: {
           top: 0.1,
           bottom: 0.2,
         },
       },
       timeScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'hsl(var(--border))',
         timeVisible: true,
         secondsVisible: false,
       },

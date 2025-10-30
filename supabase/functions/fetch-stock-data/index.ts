@@ -12,14 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { symbols, type = 'quote' } = await req.json();
+    const { symbols, type = 'quote', symbol, resolution = 'D', from, to } = await req.json();
     const apiKey = Deno.env.get('FINNHUB_API_KEY');
 
     if (!apiKey) {
       throw new Error('FINNHUB_API_KEY not configured');
     }
 
-    console.log(`[Finnhub] Fetching ${type} data for symbols:`, symbols);
+    console.log(`[Finnhub] Fetching ${type} data for symbols:`, symbols || symbol);
 
     // Handle different request types
     if (type === 'quote') {
@@ -60,7 +60,6 @@ serve(async (req) => {
       });
     } else if (type === 'candles') {
       // Fetch historical data for charts
-      const { symbol, resolution = 'D', from, to } = await req.json();
       const response = await fetch(
         `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}&token=${apiKey}`
       );
