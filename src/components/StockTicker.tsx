@@ -28,7 +28,11 @@ export const StockTicker = () => {
       if (error) throw error;
       
       if (data?.quotes) {
-        setStocks(data.quotes);
+        // Filter out quotes without complete data
+        const validQuotes = data.quotes.filter((q: StockQuote) => 
+          q.price != null && q.change != null && q.changePercent != null
+        );
+        setStocks(validQuotes);
       }
     } catch (error) {
       console.error('Error fetching stock data:', error);
@@ -57,6 +61,18 @@ export const StockTicker = () => {
               <div className="h-4 w-12 bg-muted rounded" />
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state if no valid stocks yet
+  if (stocks.length === 0) {
+    return (
+      <div className="bg-background/95 backdrop-blur-xl border-y border-white/10 py-3 overflow-hidden">
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+          Loading market data...
         </div>
       </div>
     );
