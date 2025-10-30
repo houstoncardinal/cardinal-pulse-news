@@ -13,6 +13,9 @@ import { QuickCreate } from "./QuickCreate";
 import { TrendingBatchGenerator } from "./TrendingBatchGenerator";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
+import { VisualTrendExplorer } from "./VisualTrendExplorer";
+import { AIContentLab } from "./AIContentLab";
+import { CreativeBurstGenerator } from "./CreativeBurstGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
 import { GenerateGlobalStories } from "./GenerateGlobalStories";
 import { CategoryArticleGenerator } from "./CategoryArticleGenerator";
@@ -98,6 +101,16 @@ export const AdminDashboard = () => {
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <WipeArticles />
+          
+          {/* New Creative Tools Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <VisualTrendExplorer />
+            <AIContentLab />
+          </div>
+          
+          <CreativeBurstGenerator />
+          
+          {/* Original Tools */}
           <TrendingBatchGenerator />
           <QuickCreate />
           <GenerateGlobalStories />
