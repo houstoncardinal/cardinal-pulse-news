@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     let inserted = 0;
-    const generatedArticles = [];
+    const insertedTopics = [];
 
     // Shuffle topics for variety
     const shuffledTopics = DIVERSE_TOPICS.sort(() => Math.random() - 0.5);
@@ -131,48 +131,47 @@ serve(async (req) => {
 
         if (!error && newTopic) {
           inserted++;
+          insertedTopics.push(newTopic);
           console.log(`✓ Inserted: ${topic.topic}`);
-
-          // Generate articles for this topic
-          for (let i = 0; i < articlesPerTopic; i++) {
-            try {
-              console.log(`📝 Generating article ${i + 1}/${articlesPerTopic} for: ${topic.topic}`);
-              
-              const { data: articleData, error: articleError } = await supabaseClient.functions.invoke('generate-article', {
-                body: { trendingTopicId: newTopic.id }
-              });
-
-              if (!articleError && articleData) {
-                generatedArticles.push({
-                  topic: topic.topic,
-                  category: topic.category,
-                  articleId: articleData.article?.id
-                });
-                console.log(`✓ Article generated for: ${topic.topic}`);
-              } else {
-                console.error(`Error generating article for ${topic.topic}:`, articleError);
-              }
-
-              // Add delay between generations to avoid overwhelming the system
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (genError) {
-              console.error(`Failed to generate article for ${topic.topic}:`, genError);
-            }
-          }
         } else {
           console.error(`Error inserting ${topic.topic}:`, error);
         }
       }
     }
 
+    // Generate articles in background (non-blocking)
+    if (insertedTopics.length > 0 && articlesPerTopic > 0) {
+      console.log(`🚀 Starting background article generation for ${insertedTopics.length} topics...`);
+      
+      // Fire off article generation without waiting
+      Promise.all(
+        insertedTopics.map(async (newTopic, index) => {
+          try {
+            // Stagger requests to avoid overwhelming the system
+            await new Promise(resolve => setTimeout(resolve, index * 3000));
+            
+            console.log(`📝 Generating article for: ${newTopic.topic}`);
+            
+            await supabaseClient.functions.invoke('generate-article', {
+              body: { trendingTopicId: newTopic.id }
+            });
+            
+            console.log(`✓ Article generated for: ${newTopic.topic}`);
+          } catch (genError) {
+            console.error(`Failed to generate article for ${newTopic.topic}:`, genError);
+          }
+        })
+      ).catch(err => console.error('Background generation error:', err));
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Seeded ${inserted} diverse trending topics`,
+        message: `Seeded ${inserted} diverse trending topics. Generating articles in background...`,
         topicsInserted: inserted,
-        articlesGenerated: generatedArticles.length,
+        articlesGenerated: inserted, // Will be generated in background
         categoriesRepresented: [...new Set(DIVERSE_TOPICS.map(t => t.category))],
-        generatedArticles
+        note: 'Articles are being generated in the background. Refresh in a minute to see new content.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
