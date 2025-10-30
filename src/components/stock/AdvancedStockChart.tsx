@@ -51,6 +51,8 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
       const to = Math.floor(Date.now() / 1000);
       const from = to - (resolution === 'D' ? 365 : resolution === 'W' ? 730 : 7) * 24 * 60 * 60;
 
+      console.log(`Fetching historical data for ${symbol}, resolution: ${resolution}`);
+
       const { data, error } = await supabase.functions.invoke('fetch-stock-data', {
         body: {
           symbol,
@@ -61,9 +63,14 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      if (data?.candles && data.candles.s === 'ok') {
+      console.log('Received candles data:', data);
+
+      if (data?.candles && data.candles.s === 'ok' && data.candles.t && data.candles.t.length > 0) {
         const candleData: CandleData[] = data.candles.t.map((time: number, index: number) => ({
           time: new Date(time * 1000).toISOString().split('T')[0],
           open: data.candles.o[index],
@@ -71,12 +78,15 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
           low: data.candles.l[index],
           close: data.candles.c[index],
           value: data.candles.v[index]
-        }));
+        })).filter(d => d.open > 0 && d.high > 0 && d.low > 0 && d.close > 0);
 
+        console.log(`Processed ${candleData.length} candles for ${symbol}`);
         return { symbol, data: candleData, color: CHART_COLORS[colorIndex] };
+      } else {
+        console.warn(`No valid candle data for ${symbol}:`, data?.candles);
       }
     } catch (error) {
-      console.error('Error fetching historical data:', error);
+      console.error('Error fetching historical data for', symbol, ':', error);
     }
     return null;
   };
@@ -100,99 +110,142 @@ export const AdvancedStockChart = ({ symbols }: AdvancedStockChartProps) => {
   };
 
   const updateChart = (results: Array<{ symbol: string; data: CandleData[]; color: string }>) => {
-    if (!chartRef.current) return;
+    if (!chartRef.current || results.length === 0) {
+      console.warn('Cannot update chart - no chart or no results');
+      return;
+    }
+
+    console.log('Updating chart with results:', results.map(r => ({ symbol: r.symbol, dataPoints: r.data.length })));
 
     // Clear existing series
     seriesRefs.current.forEach(series => {
-      if (series) chartRef.current?.removeSeries(series);
+      try {
+        if (series && chartRef.current) chartRef.current.removeSeries(series);
+      } catch (e) {
+        console.warn('Error removing series:', e);
+      }
     });
     seriesRefs.current.clear();
 
+    if (volumeSeriesRef.current && chartRef.current) {
+      try {
+        chartRef.current.removeSeries(volumeSeriesRef.current);
+        volumeSeriesRef.current = null;
+      } catch (e) {
+        console.warn('Error removing volume series:', e);
+      }
+    }
+
     results.forEach(({ symbol, data, color }) => {
-      if (chartType === 'candlestick' && results.length === 1) {
-        const series = chartRef.current!.addSeries('Candlestick' as any, {
-          upColor: '#22c55e',
-          downColor: '#ef4444',
-          borderUpColor: '#22c55e',
-          borderDownColor: '#ef4444',
-          wickUpColor: '#22c55e',
-          wickDownColor: '#ef4444',
-        } as CandlestickSeriesPartialOptions);
-        series.setData(data as any);
-        seriesRefs.current.set(symbol, series);
-      } else {
-        const lineData = data.map(d => ({ time: d.time, value: d.close }));
-        
-        if (chartType === 'area') {
-          const series = chartRef.current!.addSeries('Area' as any, {
-            topColor: `${color}80`,
-            bottomColor: `${color}10`,
-            lineColor: color,
-            lineWidth: 2,
-          } as AreaSeriesPartialOptions);
-          series.setData(lineData as any);
-          seriesRefs.current.set(symbol, series);
-        } else {
-          const series = chartRef.current!.addSeries('Line' as any, {
-            color: color,
-            lineWidth: 2,
-            title: symbol,
-          } as LineSeriesPartialOptions);
-          series.setData(lineData as any);
-          seriesRefs.current.set(symbol, series);
-        }
-
-        // Add moving averages if enabled
-        if (showMA && results.length === 1) {
-          const closes = data.map(d => d.close);
-          const ma20 = calculateMA(closes, 20);
-          const ma50 = calculateMA(closes, 50);
-
-          const ma20Data = data.map((d, i) => ({ time: d.time, value: ma20[i] })).filter(d => !isNaN(d.value));
-          const ma50Data = data.map((d, i) => ({ time: d.time, value: ma50[i] })).filter(d => !isNaN(d.value));
-
-          const ma20Series = chartRef.current!.addSeries('Line' as any, {
-            color: 'rgba(255, 152, 0, 0.8)',
-            lineWidth: 1,
-            title: 'MA20',
-          } as LineSeriesPartialOptions);
-          ma20Series.setData(ma20Data as any);
-
-          const ma50Series = chartRef.current!.addSeries('Line' as any, {
-            color: 'rgba(156, 39, 176, 0.8)',
-            lineWidth: 1,
-            title: 'MA50',
-          } as LineSeriesPartialOptions);
-          ma50Series.setData(ma50Data as any);
-        }
+      if (data.length === 0) {
+        console.warn(`No data for ${symbol}, skipping`);
+        return;
       }
 
-      // Update volume series (only for first symbol)
-      if (results.length === 1 && results[0].symbol === symbol && showVolume) {
-        if (volumeSeriesRef.current) {
-          chartRef.current.removeSeries(volumeSeriesRef.current);
+      try {
+        if (chartType === 'candlestick' && results.length === 1) {
+          const series = chartRef.current!.addSeries('Candlestick' as any, {
+            upColor: '#22c55e',
+            downColor: '#ef4444',
+            borderUpColor: '#22c55e',
+            borderDownColor: '#ef4444',
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4444',
+          } as CandlestickSeriesPartialOptions);
+          series.setData(data as any);
+          seriesRefs.current.set(symbol, series);
+          console.log(`Added candlestick series for ${symbol} with ${data.length} data points`);
+        } else {
+          const lineData = data.map(d => ({ time: d.time, value: d.close }));
+          
+          if (chartType === 'area') {
+            const series = chartRef.current!.addSeries('Area' as any, {
+              topColor: `${color}80`,
+              bottomColor: `${color}10`,
+              lineColor: color,
+              lineWidth: 2,
+            } as AreaSeriesPartialOptions);
+            series.setData(lineData as any);
+            seriesRefs.current.set(symbol, series);
+            console.log(`Added area series for ${symbol} with ${lineData.length} data points`);
+          } else {
+            const series = chartRef.current!.addSeries('Line' as any, {
+              color: color,
+              lineWidth: 2,
+              title: symbol,
+            } as LineSeriesPartialOptions);
+            series.setData(lineData as any);
+            seriesRefs.current.set(symbol, series);
+            console.log(`Added line series for ${symbol} with ${lineData.length} data points`);
+          }
         }
-        
-        const volumeSeries = chartRef.current!.addSeries('Histogram' as any, {
-          color: '#26a69a',
-          priceFormat: { type: 'volume' },
-          priceScaleId: '',
-        } as HistogramSeriesPartialOptions);
+      } catch (error) {
+        console.error(`Error adding series for ${symbol}:`, error);
+      }
 
-        const volumeData = data.map(d => ({
-          time: d.time,
-          value: d.value || 0,
-          color: d.close >= d.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
-        }));
-        volumeSeries.setData(volumeData as any);
-        volumeSeries.priceScale().applyOptions({
-          scaleMargins: { top: 0.7, bottom: 0 },
-        });
-        volumeSeriesRef.current = volumeSeries;
+        // Add moving averages if enabled
+        if (showMA && results.length === 1 && chartType !== 'candlestick') {
+          try {
+            const closes = data.map(d => d.close);
+            const ma20 = calculateMA(closes, 20);
+            const ma50 = calculateMA(closes, 50);
+
+            const ma20Data = data.map((d, i) => ({ time: d.time, value: ma20[i] })).filter(d => !isNaN(d.value));
+            const ma50Data = data.map((d, i) => ({ time: d.time, value: ma50[i] })).filter(d => !isNaN(d.value));
+
+            if (ma20Data.length > 0) {
+              const ma20Series = chartRef.current!.addSeries('Line' as any, {
+                color: 'rgba(255, 152, 0, 0.8)',
+                lineWidth: 1,
+                title: 'MA20',
+              } as LineSeriesPartialOptions);
+              ma20Series.setData(ma20Data as any);
+            }
+
+            if (ma50Data.length > 0) {
+              const ma50Series = chartRef.current!.addSeries('Line' as any, {
+                color: 'rgba(156, 39, 176, 0.8)',
+                lineWidth: 1,
+                title: 'MA50',
+              } as LineSeriesPartialOptions);
+              ma50Series.setData(ma50Data as any);
+            }
+          } catch (error) {
+            console.error('Error adding MA lines:', error);
+          }
+        }
+
+      // Update volume series (only for first symbol)
+      if (results.length === 1 && results[0].symbol === symbol && showVolume && data.length > 0) {
+        try {
+          const volumeSeries = chartRef.current!.addSeries('Histogram' as any, {
+            color: '#26a69a',
+            priceFormat: { type: 'volume' },
+            priceScaleId: '',
+          } as HistogramSeriesPartialOptions);
+
+          const volumeData = data.map(d => ({
+            time: d.time,
+            value: d.value || 0,
+            color: d.close >= d.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+          }));
+          volumeSeries.setData(volumeData as any);
+          volumeSeries.priceScale().applyOptions({
+            scaleMargins: { top: 0.7, bottom: 0 },
+          });
+          volumeSeriesRef.current = volumeSeries;
+          console.log(`Added volume series with ${volumeData.length} data points`);
+        } catch (error) {
+          console.error('Error adding volume series:', error);
+        }
       }
     });
 
-    chartRef.current.timeScale().fitContent();
+    try {
+      chartRef.current.timeScale().fitContent();
+    } catch (error) {
+      console.error('Error fitting content:', error);
+    }
   };
 
   useEffect(() => {
