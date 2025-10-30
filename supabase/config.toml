@@ -3,6 +3,9 @@ project_id = "uxmrmiuwpofulgfjckzy"
 [functions.seed-trending-topics]
 verify_jwt = false
 
+[functions.generate-trending-batch]
+verify_jwt = true
+
 [functions.automation-scheduler]
 verify_jwt = true
 

@@ -8,6 +8,7 @@ import { ArticleReviewPanel } from "./ArticleReviewPanel";
 import { JobsLog } from "./JobsLog";
 import { SettingsPanel } from "./SettingsPanel";
 import { QuickCreate } from "./QuickCreate";
+import { TrendingBatchGenerator } from "./TrendingBatchGenerator";
 import { ManualTrendsRefresh } from "./ManualTrendsRefresh";
 import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
@@ -80,6 +81,7 @@ export const AdminDashboard = () => {
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
           <WipeArticles />
+          <TrendingBatchGenerator />
           <QuickCreate />
           <GenerateGlobalStories />
           <YahooFinanceImporter />
