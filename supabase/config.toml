@@ -87,5 +87,11 @@ verify_jwt = true
 [functions.fetch-news-image]
 verify_jwt = true
 
+[functions.validate-article-image]
+verify_jwt = true
+
+[functions.verify-article-accuracy]
+verify_jwt = true
+
 [functions.admin-ai-assistant]
 verify_jwt = false

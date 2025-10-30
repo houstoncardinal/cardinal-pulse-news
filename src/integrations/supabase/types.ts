@@ -165,6 +165,56 @@ export type Database = {
           },
         ]
       }
+      article_verifications: {
+        Row: {
+          accuracy_score: number
+          article_id: string | null
+          created_at: string
+          fact_check_results: Json
+          id: string
+          legal_risk_assessment: string | null
+          recommendations: string[] | null
+          source_credibility: Json
+          verification_status: string
+          verified_at: string
+          verified_by: string
+        }
+        Insert: {
+          accuracy_score: number
+          article_id?: string | null
+          created_at?: string
+          fact_check_results?: Json
+          id?: string
+          legal_risk_assessment?: string | null
+          recommendations?: string[] | null
+          source_credibility?: Json
+          verification_status: string
+          verified_at?: string
+          verified_by?: string
+        }
+        Update: {
+          accuracy_score?: number
+          article_id?: string | null
+          created_at?: string
+          fact_check_results?: Json
+          id?: string
+          legal_risk_assessment?: string | null
+          recommendations?: string[] | null
+          source_credibility?: Json
+          verification_status?: string
+          verified_at?: string
+          verified_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_verifications_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author: string | null

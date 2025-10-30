@@ -16,6 +16,7 @@ import { BulkArticleGenerator } from "./BulkArticleGenerator";
 import { VisualTrendExplorer } from "./VisualTrendExplorer";
 import { AIContentLab } from "./AIContentLab";
 import { CreativeBurstGenerator } from "./CreativeBurstGenerator";
+import { HectorFactChecker } from "./HectorFactChecker";
 import { GenerateDiverseArticles } from "./GenerateDiverseArticles";
 import { GenerateGlobalStories } from "./GenerateGlobalStories";
 import { CategoryArticleGenerator } from "./CategoryArticleGenerator";
@@ -34,7 +35,7 @@ import { TrendingCoverage } from "./TrendingCoverage";
 import { WipeArticles } from "./WipeArticles";
 import { AIAssistant } from "./AIAssistant";
 import { ImageValidationTool } from "./ImageValidationTool";
-import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target } from "lucide-react";
+import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const AdminDashboard = () => {
@@ -64,6 +65,7 @@ export const AdminDashboard = () => {
   ];
 
   const moreMenuItems = [
+    { value: "hector", label: "Hector AI Fact-Checker", icon: Shield, description: "AI accuracy & legal compliance" },
     { value: "coverage", label: "Trending Coverage", icon: Target, description: "Fill gaps in trending categories" },
     { value: "calendar", label: "Content Calendar", icon: Calendar, description: "Plan and schedule content" },
     { value: "seo", label: "SEO Optimizer", icon: Search, description: "Optimize article SEO" },
@@ -191,6 +193,10 @@ export const AdminDashboard = () => {
         
         <TabsContent value="monitor" className="mt-6">
           <SystemMonitor />
+        </TabsContent>
+        
+        <TabsContent value="hector" className="mt-6">
+          <HectorFactChecker />
         </TabsContent>
         
         <TabsContent value="settings" className="mt-6">
