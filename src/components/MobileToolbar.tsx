@@ -1,13 +1,13 @@
-import { Home, Newspaper, Music, Film, Calendar, TrendingUp, Globe } from "lucide-react";
+import { Home, Newspaper, Music, Film, Calendar, TrendingUp, Globe, Users } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const toolbarItems = [
   { icon: Home, label: "Home", path: "/" },
   { icon: TrendingUp, label: "Trending", path: "/category/trending" },
+  { icon: Users, label: "Community", path: "/community" },
   { icon: Music, label: "Music", path: "/category/music" },
   { icon: Film, label: "Movies", path: "/category/movies" },
-  { icon: Calendar, label: "Events", path: "/category/events" },
   { icon: Globe, label: "World", path: "/category/world" },
 ];
 

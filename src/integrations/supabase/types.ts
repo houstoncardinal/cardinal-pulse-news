@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_bookmarks: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_bookmarks_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_comments: {
+        Row: {
+          article_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_flagged: boolean | null
+          is_pinned: boolean | null
+          likes_count: number | null
+          parent_comment_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_flagged?: boolean | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "article_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_history: {
         Row: {
           action: string
@@ -46,6 +129,41 @@ export type Database = {
           previous_data?: Json | null
         }
         Relationships: []
+      }
+      article_shares: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          id: string
+          platform: string
+          referral_code: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          platform: string
+          referral_code?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          platform?: string
+          referral_code?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_shares_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       articles: {
         Row: {
@@ -154,6 +272,35 @@ export type Database = {
           },
         ]
       }
+      comment_likes: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "article_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           completed_at: string | null
@@ -184,6 +331,33 @@ export type Database = {
           started_at?: string | null
           status?: string
           type?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_verified: boolean | null
+          preferences: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_verified?: boolean | null
+          preferences?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_verified?: boolean | null
+          preferences?: Json | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -315,6 +489,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          badges: Json | null
+          bio: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          reputation_points: number | null
+          social_links: Json | null
+          total_comments: number | null
+          total_likes: number | null
+          total_shares: number | null
+          updated_at: string | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          badges?: Json | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          reputation_points?: number | null
+          social_links?: Json | null
+          total_comments?: number | null
+          total_likes?: number | null
+          total_shares?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          badges?: Json | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          reputation_points?: number | null
+          social_links?: Json | null
+          total_comments?: number | null
+          total_likes?: number | null
+          total_shares?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -359,6 +584,21 @@ export type Database = {
       }
     }
     Views: {
+      community_leaderboard: {
+        Row: {
+          avatar_url: string | null
+          badges: Json | null
+          display_name: string | null
+          rank: number | null
+          reputation_points: number | null
+          total_comments: number | null
+          total_likes: number | null
+          total_shares: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
       trending_analytics: {
         Row: {
           avg_strength: number | null

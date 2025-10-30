@@ -14,6 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { SchemaOrg } from "@/components/seo/SchemaOrg";
+import { CommentsSection } from "@/components/community/CommentsSection";
+import { SocialShare } from "@/components/community/SocialShare";
+import { NewsletterSignup } from "@/components/community/NewsletterSignup";
+import { CommunityLeaderboard } from "@/components/community/CommunityLeaderboard";
 
 const Article = () => {
   const { slug } = useParams();
@@ -296,62 +300,24 @@ const Article = () => {
             )}
 
             {/* Share Buttons */}
-            <div className="mb-8">
-              <h3 className="font-display text-xl font-bold mb-4 flex items-center gap-2">
-                <Share2 className="h-5 w-5" />
-                Share This Article
-              </h3>
-              <div className="flex gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  asChild
-                >
-                  <a 
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Facebook className="h-4 w-4 mr-2" />
-                    Facebook
-                  </a>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  asChild
-                >
-                  <a 
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Twitter className="h-4 w-4 mr-2" />
-                    Twitter
-                  </a>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  asChild
-                >
-                  <a 
-                    href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareText)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Linkedin className="h-4 w-4 mr-2" />
-                    LinkedIn
-                  </a>
-                </Button>
-              </div>
-            </div>
+            <SocialShare
+              articleId={article.id}
+              articleTitle={article.title}
+              articleUrl={shareUrl}
+            />
+
+            {/* Comments Section */}
+            <CommentsSection articleId={article.id} />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-8">
-            {/* Ad Space - Sidebar */}
-            <div className="sticky top-24">
+            {/* Community Leaderboard */}
+            <div className="sticky top-24 space-y-6">
+              <CommunityLeaderboard />
+              <NewsletterSignup />
+              
+              {/* Ad Space - Sidebar */}
               <AdSense slot="9876543210" format="vertical" style={{ minHeight: '600px' }} />
             </div>
           </div>
