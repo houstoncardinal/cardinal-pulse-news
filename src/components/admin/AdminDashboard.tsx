@@ -64,13 +64,13 @@ export const AdminDashboard = () => {
               <Activity className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary via-purple-500 to-red-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl md:text-4xl font-bold text-white">
                 Admin Control Center
               </h1>
-              <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-2">
+              <p className="text-xs md:text-sm text-green-400 flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
                 AI Newsroom • Real-time • Powered by Trends
               </p>
