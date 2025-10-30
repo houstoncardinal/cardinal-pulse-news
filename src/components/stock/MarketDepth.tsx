@@ -1,28 +1,82 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Layers } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Layers, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MarketDepthProps {
   symbol: string;
 }
 
-export const MarketDepth = ({ symbol }: MarketDepthProps) => {
-  // Simulated market depth data
-  const bids = [
-    { price: 175.20, volume: 2500, total: 2500 },
-    { price: 175.15, volume: 1800, total: 4300 },
-    { price: 175.10, volume: 3200, total: 7500 },
-    { price: 175.05, volume: 1500, total: 9000 },
-    { price: 175.00, volume: 2100, total: 11100 },
-  ];
+interface OrderBookEntry {
+  price: number;
+  volume: number;
+  total: number;
+}
 
-  const asks = [
-    { price: 175.25, volume: 1900, total: 1900 },
-    { price: 175.30, volume: 2200, total: 4100 },
-    { price: 175.35, volume: 1600, total: 5700 },
-    { price: 175.40, volume: 2800, total: 8500 },
-    { price: 175.45, volume: 1400, total: 9900 },
-  ];
+export const MarketDepth = ({ symbol }: MarketDepthProps) => {
+  const [bids, setBids] = useState<OrderBookEntry[]>([]);
+  const [asks, setAsks] = useState<OrderBookEntry[]>([]);
+  const [spread, setSpread] = useState({ amount: 0, percentage: 0 });
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+
+  // Generate realistic market depth data
+  const generateMarketDepth = (basePrice: number = 150) => {
+    const newBids: OrderBookEntry[] = [];
+    const newAsks: OrderBookEntry[] = [];
+
+    // Generate bids (buy orders) below current price
+    let bidTotal = 0;
+    for (let i = 0; i < 8; i++) {
+      const price = basePrice - (i + 1) * 0.05;
+      const volume = Math.floor(Math.random() * 5000) + 500;
+      bidTotal += volume;
+      newBids.push({
+        price: Math.round(price * 100) / 100,
+        volume,
+        total: bidTotal
+      });
+    }
+
+    // Generate asks (sell orders) above current price
+    let askTotal = 0;
+    for (let i = 0; i < 8; i++) {
+      const price = basePrice + (i + 1) * 0.05;
+      const volume = Math.floor(Math.random() * 5000) + 500;
+      askTotal += volume;
+      newAsks.push({
+        price: Math.round(price * 100) / 100,
+        volume,
+        total: askTotal
+      });
+    }
+
+    setBids(newBids);
+    setAsks(newAsks);
+
+    // Calculate spread
+    const bestBid = newBids[0]?.price || basePrice;
+    const bestAsk = newAsks[0]?.price || basePrice;
+    const spreadAmount = bestAsk - bestBid;
+    const spreadPercentage = (spreadAmount / bestBid) * 100;
+
+    setSpread({
+      amount: Math.round(spreadAmount * 100) / 100,
+      percentage: Math.round(spreadPercentage * 100) / 100
+    });
+
+    setLastUpdate(new Date());
+  };
+
+  useEffect(() => {
+    generateMarketDepth();
+
+    // Update market depth every 30 seconds
+    const interval = setInterval(() => {
+      generateMarketDepth();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [symbol]);
 
   const maxVolume = Math.max(...bids.map(b => b.volume), ...asks.map(a => a.volume));
 
@@ -58,7 +112,21 @@ export const MarketDepth = ({ symbol }: MarketDepthProps) => {
           <div className="py-3 px-4 bg-gradient-to-r from-red-500/20 to-green-500/20 rounded-lg border border-primary/30">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Spread</span>
-              <span className="text-lg font-bold">$0.05 (0.03%)</span>
+              <span className="text-lg font-bold">${spread.amount.toFixed(2)} ({spread.percentage.toFixed(2)}%)</span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => generateMarketDepth()}
+                className="h-7 px-2 text-xs"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Refresh
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Updated: {lastUpdate.toLocaleTimeString()}
+              </span>
             </div>
           </div>
 

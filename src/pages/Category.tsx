@@ -19,9 +19,22 @@ const Category = () => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ') || '';
 
+  // Map URL categories to database categories
+  const getDatabaseCategory = (urlCategory: string) => {
+    const categoryMapping: { [key: string]: string } = {
+      'music': 'entertainment',
+      'movies': 'entertainment',
+      'events': 'entertainment',
+      'ai-innovation': 'ai_innovation',
+    };
+
+    return categoryMapping[urlCategory] || urlCategory.replace('-', '_');
+  };
+
   // Filter articles by category
+  const databaseCategory = getDatabaseCategory(category?.toLowerCase() || '');
   const categoryArticles = articles?.filter(
-    article => article.category.toLowerCase() === category?.toLowerCase().replace('-', '_')
+    article => article.category.toLowerCase() === databaseCategory
   ) || [];
 
   const articlesToDisplay = categoryArticles.map(article => ({
