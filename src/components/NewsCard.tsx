@@ -30,8 +30,6 @@ export const NewsCard = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  const fallbackImage = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070";
-  
   const content = (
     <>
       <div className={`relative overflow-hidden ${featured ? "h-96" : "h-48"} group-hover:shadow-2xl transition-shadow duration-500 bg-muted`}>
@@ -41,18 +39,26 @@ export const NewsCard = ({
           </div>
         )}
         
-        <img
-          src={imageError ? fallbackImage : image}
-          alt={title}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => {
-            setImageError(true);
-            setImageLoaded(true);
-          }}
-          className={`w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
+        {!imageError && (
+          <img
+            src={image}
+            alt={title}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageError(true);
+              setImageLoaded(true);
+            }}
+            className={`w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-all duration-700 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        )}
+        
+        {imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="text-muted-foreground text-sm">Image unavailable</div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent group-hover:from-black/70 transition-colors duration-500" />
         
         {/* Animated gradient overlay on hover */}
