@@ -126,15 +126,17 @@ export const BatchOperations = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-3xl font-bold">Batch Operations</h2>
           <p className="text-muted-foreground">Manage multiple articles efficiently</p>
         </div>
       </div>
 
-      {/* Image Fix Tool */}
-      <FixAllImages />
+      {/* PROMINENT Image Fix Tool */}
+      <div className="p-6 border-2 border-primary/50 rounded-lg bg-primary/5 shadow-lg">
+        <FixAllImages />
+      </div>
 
       {/* Filters & Actions Bar */}
       <Card>
