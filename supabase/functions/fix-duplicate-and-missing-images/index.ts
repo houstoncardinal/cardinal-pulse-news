@@ -1,0 +1,195 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    console.log('🔍 Finding articles with duplicate or missing images...');
+
+    // Get articles with missing images
+    const { data: missingImageArticles, error: missingError } = await supabase
+      .from('articles')
+      .select('id, title, category, excerpt, content')
+      .or('featured_image.is.null,image_url.is.null')
+      .limit(50);
+
+    if (missingError) {
+      throw new Error(`Failed to fetch articles with missing images: ${missingError.message}`);
+    }
+
+    // Get articles with duplicate images
+    const { data: duplicateImageArticles, error: duplicateError } = await supabase
+      .from('articles')
+      .select('id, title, category, excerpt, content, featured_image')
+      .eq('featured_image', '/assets/3i-atlas-comet-A1hqbPvu.jpg');
+
+    if (duplicateError) {
+      throw new Error(`Failed to fetch articles with duplicate images: ${duplicateError.message}`);
+    }
+
+    const articlesToFix = [
+      ...(missingImageArticles || []),
+      ...(duplicateImageArticles || [])
+    ];
+
+    console.log(`📊 Found ${articlesToFix.length} articles to fix`);
+
+    const results = {
+      success: [],
+      failed: []
+    };
+
+    for (const article of articlesToFix) {
+      try {
+        console.log(`\n🎨 Processing: ${article.title}`);
+
+        // Fetch a real news image with proper citation
+        const { data: imageData, error: imageError } = await supabase.functions.invoke('fetch-news-image', {
+          body: { 
+            topic: article.title,
+            category: article.category || 'news'
+          }
+        });
+
+        if (imageError || !imageData?.success) {
+          console.error(`❌ Failed to fetch image for "${article.title}"`);
+          results.failed.push({
+            id: article.id,
+            title: article.title,
+            reason: 'Image fetch failed'
+          });
+          continue;
+        }
+
+        const imageUrl = imageData.imageUrl;
+        const imageCredit = imageData.imageCredit;
+
+        console.log(`✓ Found image: ${imageCredit}`);
+
+        // Validate the image matches the article
+        const { data: validationData, error: validationError } = await supabase.functions.invoke('validate-article-image', {
+          body: {
+            articleTitle: article.title,
+            imageCredit: imageCredit,
+            imageUrl: imageUrl,
+            articleContent: article.content?.substring(0, 1000)
+          }
+        });
+
+        if (!validationError && validationData && !validationData.valid && validationData.confidence > 70) {
+          console.log(`⚠️ Image validation failed for "${article.title}" - trying again`);
+          
+          // Try one more time with a different search
+          const { data: retryImageData, error: retryError } = await supabase.functions.invoke('fetch-news-image', {
+            body: { 
+              topic: `${article.category} ${article.excerpt?.substring(0, 100)}`,
+              category: article.category || 'news'
+            }
+          });
+
+          if (!retryError && retryImageData?.success) {
+            // Update article with the retry image
+            const { error: updateError } = await supabase
+              .from('articles')
+              .update({
+                featured_image: retryImageData.imageUrl,
+                image_url: retryImageData.imageUrl,
+                og_image: retryImageData.imageUrl,
+                image_credit: retryImageData.imageCredit,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', article.id);
+
+            if (updateError) {
+              throw new Error(`Failed to update article: ${updateError.message}`);
+            }
+
+            console.log(`✅ Updated "${article.title}" with retry image`);
+            results.success.push({
+              id: article.id,
+              title: article.title,
+              imageCredit: retryImageData.imageCredit
+            });
+            continue;
+          }
+        }
+
+        // Update article with validated image
+        const { error: updateError } = await supabase
+          .from('articles')
+          .update({
+            featured_image: imageUrl,
+            image_url: imageUrl,
+            og_image: imageUrl,
+            image_credit: imageCredit,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', article.id);
+
+        if (updateError) {
+          throw new Error(`Failed to update article: ${updateError.message}`);
+        }
+
+        console.log(`✅ Updated "${article.title}" successfully`);
+        results.success.push({
+          id: article.id,
+          title: article.title,
+          imageCredit: imageCredit
+        });
+
+        // Add a small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+      } catch (error) {
+        console.error(`❌ Error processing article "${article.title}":`, error);
+        results.failed.push({
+          id: article.id,
+          title: article.title,
+          reason: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+
+    console.log('\n📈 Final Results:');
+    console.log(`✅ Successfully updated: ${results.success.length}`);
+    console.log(`❌ Failed: ${results.failed.length}`);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        summary: {
+          total: articlesToFix.length,
+          successful: results.success.length,
+          failed: results.failed.length
+        },
+        details: results
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('❌ Critical error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        details: error instanceof Error ? error.toString() : String(error)
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+});

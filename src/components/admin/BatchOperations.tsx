@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FixAllImages } from "./FixAllImages";
 
 export const BatchOperations = () => {
   const { data: articles } = useArticles();
@@ -131,6 +132,9 @@ export const BatchOperations = () => {
           <p className="text-muted-foreground">Manage multiple articles efficiently</p>
         </div>
       </div>
+
+      {/* Image Fix Tool */}
+      <FixAllImages />
 
       {/* Filters & Actions Bar */}
       <Card>
