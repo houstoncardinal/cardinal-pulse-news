@@ -295,14 +295,24 @@ serve(async (req) => {
     }
 
     else if (type === 'profile') {
+      // Use either symbol or first item from symbols array
+      const profileSymbol = symbol || (symbols && symbols[0]);
+      
+      if (!profileSymbol) {
+        return new Response(
+          JSON.stringify({ error: 'Symbol is required for profile data' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // For now, return mock profile data
       const profile = {
-        name: symbol,
-        ticker: symbol,
+        name: profileSymbol,
+        ticker: profileSymbol,
         marketCapitalization: Math.floor(Math.random() * 1000000000000),
         shareOutstanding: Math.floor(Math.random() * 1000000000),
-        logo: `https://logo.clearbit.com/${symbol.toLowerCase()}.com`,
-        weburl: `https://${symbol.toLowerCase()}.com`,
+        logo: `https://logo.clearbit.com/${profileSymbol.toLowerCase()}.com`,
+        weburl: `https://${profileSymbol.toLowerCase()}.com`,
         exchange: 'NASDAQ',
         ipo: '1990-01-01',
         country: 'US',
