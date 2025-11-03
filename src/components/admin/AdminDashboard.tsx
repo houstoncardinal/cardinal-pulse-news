@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { updateCometArticleImages } from "@/utils/updateCometImages";
 import { fixChipotleArticle } from "@/utils/fixChipotleArticle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -46,7 +45,6 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fixImages = async () => {
       try {
-        await updateCometArticleImages();
         await fixChipotleArticle();
         console.log('✓ Critical article images fixed');
       } catch (error) {
