@@ -46,7 +46,10 @@ serve(async (req) => {
 
     console.log(`📊 Found ${articlesToFix.length} articles to fix`);
 
-    const results = {
+    const results: {
+      success: Array<{ id: string; title: string; imageCredit: string }>;
+      failed: Array<{ id: string; title: string; reason: string }>;
+    } = {
       success: [],
       failed: []
     };
@@ -63,8 +66,8 @@ serve(async (req) => {
           }
         });
 
-        let imageUrl: string;
-        let imageCredit: string;
+        let imageUrl = '';
+        let imageCredit = '';
 
         // If fetch fails, fall back to AI generation
         if (imageError || !imageData?.success) {

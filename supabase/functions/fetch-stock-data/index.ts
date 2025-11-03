@@ -230,7 +230,7 @@ serve(async (req) => {
             if (quote) console.log(`✅ Alpha Vantage success for ${sym}`);
           }
         } catch (error) {
-          console.log(`❌ Alpha Vantage failed for ${sym}:`, error.message);
+          console.log(`❌ Alpha Vantage failed for ${sym}:`, error instanceof Error ? error.message : String(error));
         }
 
         // Try Twelve Data if Alpha Vantage failed
@@ -241,7 +241,7 @@ serve(async (req) => {
               if (quote) console.log(`✅ Twelve Data success for ${sym}`);
             }
           } catch (error) {
-            console.log(`❌ Twelve Data failed for ${sym}:`, error.message);
+            console.log(`❌ Twelve Data failed for ${sym}:`, error instanceof Error ? error.message : String(error));
           }
         }
 
@@ -268,7 +268,7 @@ serve(async (req) => {
           candles = await fetchAlphaVantageCandles(symbol, outputsize === 'full' ? 'full' : 'compact');
         }
       } catch (error) {
-        console.log(`Alpha Vantage candles failed for ${symbol}:`, error.message);
+        console.log(`Alpha Vantage candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
       }
 
       // Try Twelve Data if Alpha Vantage failed
@@ -279,7 +279,7 @@ serve(async (req) => {
             candles = await fetchTwelveDataCandles(symbol, interval, outputsize === 'full' ? 2500 : 365);
           }
         } catch (error) {
-          console.log(`Twelve Data candles failed for ${symbol}:`, error.message);
+          console.log(`Twelve Data candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
         }
       }
 
