@@ -258,11 +258,11 @@ const Article = () => {
         </div>
 
         {/* Featured Image */}
-        {article.featured_image && (
+        {(article.featured_image || article.image_url) && (
           <div className="mb-8">
             <div className="rounded-lg overflow-hidden">
               <img 
-                src={article.featured_image} 
+                src={article.featured_image || article.image_url} 
                 alt={article.title}
                 className="w-full h-auto object-cover"
               />
