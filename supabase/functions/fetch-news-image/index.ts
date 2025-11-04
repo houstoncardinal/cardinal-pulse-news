@@ -19,9 +19,11 @@ serve(async (req) => {
     }
 
     console.log(`🔍 Searching for real news images for: ${topic}`);
+    console.log(`📂 Category: ${category || 'general'}`);
 
     const SERPER_API_KEY = Deno.env.get('SERPER_API_KEY');
     if (!SERPER_API_KEY) {
+      console.error('❌ SERPER_API_KEY not configured');
       throw new Error('SERPER_API_KEY not configured');
     }
 
@@ -98,38 +100,95 @@ serve(async (req) => {
       searchQuery = `${topic} ${selectedTerms.join(' ')} official authentic`;
     }
     
-    console.log(`📸 Image search query: ${searchQuery}`);
+    console.log(`📸 Primary image search query: "${searchQuery}"`);
 
-    const imageSearchResponse = await fetch('https://google.serper.dev/images', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': SERPER_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: searchQuery,
-        num: 100, // Fetch more images for better diversity
-        gl: 'us',
-        hl: 'en',
-        safe: 'active',
-        // Don't restrict to news type - get more diverse results
-      }),
-    });
+    // Function to perform image search with retry logic
+    const performImageSearch = async (query: string, attempt: number = 1): Promise<any> => {
+      console.log(`🔄 Search attempt ${attempt} with query: "${query}"`);
+      
+      const response = await fetch('https://google.serper.dev/images', {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': SERPER_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: query,
+          num: 100,
+          gl: 'us',
+          hl: 'en',
+          safe: 'active',
+        }),
+      });
 
-    if (!imageSearchResponse.ok) {
-      console.error('Image search failed:', imageSearchResponse.status);
+      if (!response.ok) {
+        console.error(`❌ Search attempt ${attempt} failed with status: ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      
+      if (!data.images || data.images.length === 0) {
+        console.log(`⚠️ Search attempt ${attempt} returned no images`);
+        return null;
+      }
+
+      console.log(`✅ Search attempt ${attempt} returned ${data.images.length} images`);
+      return data;
+    };
+
+    // Try primary search
+    let imageSearchData = await performImageSearch(searchQuery, 1);
+
+    // If primary search fails, try alternative queries
+    if (!imageSearchData || !imageSearchData.images || imageSearchData.images.length === 0) {
+      console.log('🔄 Primary search failed, trying alternative queries...');
+      
+      // Try search with just the main topic
+      const fallbackQuery1 = `${topic} news official`;
+      imageSearchData = await performImageSearch(fallbackQuery1, 2);
+      
+      // If still no results, try broader search
+      if (!imageSearchData || !imageSearchData.images || imageSearchData.images.length === 0) {
+        const fallbackQuery2 = `${topic} official`;
+        imageSearchData = await performImageSearch(fallbackQuery2, 3);
+      }
+    }
+
+    // Final check - if all searches failed, use AI generation
+    if (!imageSearchData || !imageSearchData.images || imageSearchData.images.length === 0) {
+      console.log('❌ All image search attempts failed, falling back to AI generation');
+      
+      try {
+        const aiImageResponse = await supabaseClient.functions.invoke('generate-ai-image', {
+          body: { title: topic, category }
+        });
+
+        if (!aiImageResponse.error && aiImageResponse.data?.success) {
+          console.log('✅ AI image generated successfully as fallback');
+          return new Response(
+            JSON.stringify({
+              ...aiImageResponse.data,
+              imageCredit: 'AI Generated Image',
+              sourceUrl: null
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (aiError) {
+        console.error('❌ AI fallback also failed:', aiError);
+      }
+      
       return new Response(
         JSON.stringify({ 
           success: false,
           imageUrl: null,
           imageCredit: null,
-          message: 'No image found'
+          message: 'All image fetching methods failed'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const imageSearchData = await imageSearchResponse.json();
     
     if (!imageSearchData.images || imageSearchData.images.length === 0) {
       console.log('No images found in search results');
@@ -324,20 +383,32 @@ serve(async (req) => {
     console.log(`🎯 Selected unique image ${selectedIndex + 1} of ${imagePool.length} (hash: ${topicHash % 1000})`);
 
     const imageUrl = selectedImage.imageUrl;
+    const sourceLink = selectedImage.link || imageUrl;
     
-    // Extract source name from URL
+    // Extract detailed source information
     let sourceName = 'Unknown Source';
+    let sourceDomain = '';
     try {
-      const urlObj = new URL(selectedImage.link || imageUrl);
-      sourceName = urlObj.hostname.replace('www.', '').split('.')[0];
+      const urlObj = new URL(sourceLink);
+      sourceDomain = urlObj.hostname.replace('www.', '');
+      sourceName = sourceDomain.split('.')[0];
       sourceName = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
     } catch (e) {
-      console.error('Error parsing source URL:', e);
+      console.error('⚠️ Error parsing source URL:', e);
     }
 
-    const imageCredit = `${sourceName} ${selectedImage.link ? `(${selectedImage.link})` : ''}`;
+    // Create comprehensive image credit with proper attribution
+    const imageCredit = `Photo: ${sourceName} | Source: ${sourceDomain}`;
+    const imageCitation = {
+      source: sourceName,
+      domain: sourceDomain,
+      url: sourceLink,
+      title: selectedImage.title || topic,
+      timestamp: new Date().toISOString()
+    };
 
-    console.log(`✓ Found image from: ${sourceName}`);
+    console.log(`✅ Selected image from: ${sourceName} (${sourceDomain})`);
+    console.log(`📝 Full citation: ${JSON.stringify(imageCitation)}`);
 
     // Download and upload the image to Supabase storage
     try {
@@ -390,31 +461,36 @@ serve(async (req) => {
         .from('article-images')
         .getPublicUrl(filename);
 
-      console.log(`✓ Image uploaded successfully: ${publicUrl}`);
+      console.log(`✅ Image uploaded successfully to storage: ${publicUrl}`);
 
       return new Response(
         JSON.stringify({
           success: true,
           imageUrl: publicUrl,
           imageCredit,
-          sourceUrl: selectedImage.link,
+          sourceUrl: sourceLink,
           originalImageUrl: imageUrl,
+          citation: imageCitation,
+          storedInSupabase: true
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
     } catch (downloadError) {
-      console.error('Error downloading/uploading image:', downloadError);
+      console.error('⚠️ Error downloading/uploading image:', downloadError);
+      console.log('📎 Falling back to direct image URL');
       
-      // Return the original URL as fallback
+      // Return the original URL as fallback with full citation
       return new Response(
         JSON.stringify({
           success: true,
           imageUrl: imageUrl,
           imageCredit,
-          sourceUrl: selectedImage.link,
+          sourceUrl: sourceLink,
           originalImageUrl: imageUrl,
-          note: 'Using direct image URL (upload failed)'
+          citation: imageCitation,
+          storedInSupabase: false,
+          note: 'Using direct image URL (storage upload failed)'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

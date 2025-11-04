@@ -158,6 +158,109 @@ const fetchAlphaVantageCandles = async (symbol: string, outputsize: string = 'co
   return null;
 };
 
+// Finnhub API functions
+const fetchFinnhubQuote = async (symbol: string) => {
+  const config = API_CONFIGS.finnhub;
+  if (!config.apiKey) return null;
+  
+  const url = `${config.baseUrl}${config.functions.quote}?symbol=${symbol}&token=${config.apiKey}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data && data.c && data.c !== 0) {
+      return {
+        symbol,
+        price: parseFloat(data.c),
+        change: parseFloat(data.d),
+        changePercent: parseFloat(data.dp),
+        high: parseFloat(data.h),
+        low: parseFloat(data.l),
+        open: parseFloat(data.o),
+        previousClose: parseFloat(data.pc),
+        volume: 0, // Finnhub doesn't provide volume in quote endpoint
+        timestamp: Date.now()
+      };
+    }
+  } catch (error) {
+    console.log(`Finnhub quote error for ${symbol}:`, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+};
+
+const fetchFinnhubCandles = async (symbol: string, resolution: string = 'D', from?: number, to?: number) => {
+  const config = API_CONFIGS.finnhub;
+  if (!config.apiKey) return null;
+  
+  // Default to last year if not specified
+  const toTimestamp = to || Math.floor(Date.now() / 1000);
+  const fromTimestamp = from || toTimestamp - (365 * 24 * 60 * 60);
+  
+  const url = `${config.baseUrl}${config.functions.candles}?symbol=${symbol}&resolution=${resolution}&from=${fromTimestamp}&to=${toTimestamp}&token=${config.apiKey}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.s === 'ok' && data.t && data.t.length > 0) {
+      return {
+        s: 'ok',
+        t: data.t,
+        o: data.o,
+        h: data.h,
+        l: data.l,
+        c: data.c,
+        v: data.v
+      };
+    }
+  } catch (error) {
+    console.log(`Finnhub candles error for ${symbol}:`, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+};
+
+const fetchFinnhubProfile = async (symbol: string) => {
+  const config = API_CONFIGS.finnhub;
+  if (!config.apiKey) return null;
+  
+  const url = `${config.baseUrl}${config.functions.profile}?symbol=${symbol}&token=${config.apiKey}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data && data.ticker) {
+      return data;
+    }
+  } catch (error) {
+    console.log(`Finnhub profile error for ${symbol}:`, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+};
+
+const fetchFinnhubNews = async (symbol: string, from?: string, to?: string) => {
+  const config = API_CONFIGS.finnhub;
+  if (!config.apiKey) return null;
+  
+  const today = new Date().toISOString().split('T')[0];
+  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const url = `${config.baseUrl}${config.functions.news}?symbol=${symbol}&from=${from || lastWeek}&to=${to || today}&token=${config.apiKey}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+  } catch (error) {
+    console.log(`Finnhub news error for ${symbol}:`, error instanceof Error ? error.message : String(error));
+  }
+  return null;
+};
+
 // Twelve Data API functions
 const fetchTwelveDataQuote = async (symbol: string) => {
   const config = API_CONFIGS.twelveData;
@@ -223,17 +326,29 @@ serve(async (req) => {
       for (const sym of symbols) {
         let quote = null;
 
-        // Try Alpha Vantage first
+        // Try Finnhub first (most reliable for real-time data)
         try {
-          if (API_CONFIGS.alphaVantage.apiKey && API_CONFIGS.alphaVantage.apiKey !== 'demo') {
-            quote = await fetchAlphaVantageQuote(sym);
-            if (quote) console.log(`✅ Alpha Vantage success for ${sym}`);
+          if (API_CONFIGS.finnhub.apiKey) {
+            quote = await fetchFinnhubQuote(sym);
+            if (quote) console.log(`✅ Finnhub success for ${sym}`);
           }
         } catch (error) {
-          console.log(`❌ Alpha Vantage failed for ${sym}:`, error instanceof Error ? error.message : String(error));
+          console.log(`❌ Finnhub failed for ${sym}:`, error instanceof Error ? error.message : String(error));
         }
 
-        // Try Twelve Data if Alpha Vantage failed
+        // Try Alpha Vantage if Finnhub failed
+        if (!quote) {
+          try {
+            if (API_CONFIGS.alphaVantage.apiKey && API_CONFIGS.alphaVantage.apiKey !== 'demo') {
+              quote = await fetchAlphaVantageQuote(sym);
+              if (quote) console.log(`✅ Alpha Vantage success for ${sym}`);
+            }
+          } catch (error) {
+            console.log(`❌ Alpha Vantage failed for ${sym}:`, error instanceof Error ? error.message : String(error));
+          }
+        }
+
+        // Try Twelve Data if both failed
         if (!quote) {
           try {
             if (API_CONFIGS.twelveData.apiKey) {
@@ -245,9 +360,9 @@ serve(async (req) => {
           }
         }
 
-        // Fall back to mock data
+        // Fall back to mock data only as last resort
         if (!quote) {
-          console.log(`📊 Using mock data for ${sym}`);
+          console.log(`⚠️ Using mock data for ${sym} (all APIs unavailable)`);
           quote = generateMockQuote(sym);
         }
 
@@ -262,30 +377,44 @@ serve(async (req) => {
     else if (type === 'candles') {
       let candles = null;
 
-      // Try Alpha Vantage first
+      // Try Finnhub first
       try {
-        if (API_CONFIGS.alphaVantage.apiKey && API_CONFIGS.alphaVantage.apiKey !== 'demo') {
-          candles = await fetchAlphaVantageCandles(symbol, outputsize === 'full' ? 'full' : 'compact');
+        if (API_CONFIGS.finnhub.apiKey) {
+          candles = await fetchFinnhubCandles(symbol, resolution, from, to);
+          if (candles) console.log(`✅ Finnhub candles success for ${symbol}`);
         }
       } catch (error) {
-        console.log(`Alpha Vantage candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
+        console.log(`❌ Finnhub candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
       }
 
-      // Try Twelve Data if Alpha Vantage failed
+      // Try Alpha Vantage if Finnhub failed
+      if (!candles) {
+        try {
+          if (API_CONFIGS.alphaVantage.apiKey && API_CONFIGS.alphaVantage.apiKey !== 'demo') {
+            candles = await fetchAlphaVantageCandles(symbol, outputsize === 'full' ? 'full' : 'compact');
+            if (candles) console.log(`✅ Alpha Vantage candles success for ${symbol}`);
+          }
+        } catch (error) {
+          console.log(`❌ Alpha Vantage candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
+        }
+      }
+
+      // Try Twelve Data if both failed
       if (!candles) {
         try {
           if (API_CONFIGS.twelveData.apiKey) {
             const interval = resolution === 'D' ? '1day' : resolution === 'W' ? '1week' : '1day';
             candles = await fetchTwelveDataCandles(symbol, interval, outputsize === 'full' ? 2500 : 365);
+            if (candles) console.log(`✅ Twelve Data candles success for ${symbol}`);
           }
         } catch (error) {
-          console.log(`Twelve Data candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
+          console.log(`❌ Twelve Data candles failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
         }
       }
 
-      // Fall back to mock data
+      // Fall back to mock data only as last resort
       if (!candles) {
-        console.log(`Using mock candle data for ${symbol}`);
+        console.log(`⚠️ Using mock candle data for ${symbol} (all APIs unavailable)`);
         candles = generateMockCandles(symbol, 365);
       }
 
@@ -295,7 +424,6 @@ serve(async (req) => {
     }
 
     else if (type === 'profile') {
-      // Use either symbol or first item from symbols array
       const profileSymbol = symbol || (symbols && symbols[0]);
       
       if (!profileSymbol) {
@@ -305,20 +433,35 @@ serve(async (req) => {
         );
       }
 
-      // For now, return mock profile data
-      const profile = {
-        name: profileSymbol,
-        ticker: profileSymbol,
-        marketCapitalization: Math.floor(Math.random() * 1000000000000),
-        shareOutstanding: Math.floor(Math.random() * 1000000000),
-        logo: `https://logo.clearbit.com/${profileSymbol.toLowerCase()}.com`,
-        weburl: `https://${profileSymbol.toLowerCase()}.com`,
-        exchange: 'NASDAQ',
-        ipo: '1990-01-01',
-        country: 'US',
-        currency: 'USD',
-        finnhubIndustry: 'Technology'
-      };
+      let profile = null;
+
+      // Try Finnhub for real company profile
+      try {
+        if (API_CONFIGS.finnhub.apiKey) {
+          profile = await fetchFinnhubProfile(profileSymbol);
+          if (profile) console.log(`✅ Finnhub profile success for ${profileSymbol}`);
+        }
+      } catch (error) {
+        console.log(`❌ Finnhub profile failed for ${profileSymbol}:`, error instanceof Error ? error.message : String(error));
+      }
+
+      // Fall back to mock data if Finnhub fails
+      if (!profile) {
+        console.log(`⚠️ Using mock profile data for ${profileSymbol}`);
+        profile = {
+          name: profileSymbol,
+          ticker: profileSymbol,
+          marketCapitalization: Math.floor(Math.random() * 1000000000000),
+          shareOutstanding: Math.floor(Math.random() * 1000000000),
+          logo: `https://logo.clearbit.com/${profileSymbol.toLowerCase()}.com`,
+          weburl: `https://${profileSymbol.toLowerCase()}.com`,
+          exchange: 'NASDAQ',
+          ipo: '1990-01-01',
+          country: 'US',
+          currency: 'USD',
+          finnhubIndustry: 'Technology'
+        };
+      }
 
       return new Response(JSON.stringify({ profile }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -326,15 +469,41 @@ serve(async (req) => {
     }
 
     else if (type === 'news') {
-      // Return mock news data
-      const news = Array.from({ length: 10 }, (_, i) => ({
-        headline: `${symbol} Reports ${['Strong Q4 Earnings', 'Strategic Partnership', 'Product Launch', 'Market Expansion'][i % 4]}`,
-        summary: `Latest developments from ${symbol} show positive momentum in the market.`,
-        source: ['Bloomberg', 'Reuters', 'CNBC', 'WSJ'][i % 4],
-        url: `https://example.com/news/${symbol}-${i}`,
-        datetime: Date.now() - (i * 24 * 60 * 60 * 1000),
-        image: `https://images.unsplash.com/photo-${150000000000 + i}?q=80&w=400`
-      }));
+      let news = null;
+
+      // Try Finnhub for real company news
+      try {
+        if (API_CONFIGS.finnhub.apiKey) {
+          news = await fetchFinnhubNews(symbol);
+          if (news && news.length > 0) {
+            console.log(`✅ Finnhub news success for ${symbol} (${news.length} articles)`);
+            // Transform Finnhub news format
+            news = news.map((item: any) => ({
+              headline: item.headline,
+              summary: item.summary,
+              source: item.source,
+              url: item.url,
+              datetime: item.datetime * 1000, // Convert to milliseconds
+              image: item.image
+            }));
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Finnhub news failed for ${symbol}:`, error instanceof Error ? error.message : String(error));
+      }
+
+      // Fall back to mock data if no real news
+      if (!news || news.length === 0) {
+        console.log(`⚠️ Using mock news data for ${symbol}`);
+        news = Array.from({ length: 10 }, (_, i) => ({
+          headline: `${symbol} Reports ${['Strong Q4 Earnings', 'Strategic Partnership', 'Product Launch', 'Market Expansion'][i % 4]}`,
+          summary: `Latest developments from ${symbol} show positive momentum in the market.`,
+          source: ['Bloomberg', 'Reuters', 'CNBC', 'WSJ'][i % 4],
+          url: `https://example.com/news/${symbol}-${i}`,
+          datetime: Date.now() - (i * 24 * 60 * 60 * 1000),
+          image: `https://images.unsplash.com/photo-${150000000000 + i}?q=80&w=400`
+        }));
+      }
 
       return new Response(JSON.stringify({ news }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
