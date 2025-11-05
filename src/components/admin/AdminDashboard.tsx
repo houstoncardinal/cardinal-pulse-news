@@ -34,6 +34,7 @@ import { TrendingCoverage } from "./TrendingCoverage";
 import { WipeArticles } from "./WipeArticles";
 import { AIAssistant } from "./AIAssistant";
 import { ImageValidationTool } from "./ImageValidationTool";
+import { AutoFixImages } from "./AutoFixImages";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -100,6 +101,7 @@ export const AdminDashboard = () => {
 
         {/* Quick Actions - Responsive */}
         <div className="space-y-3 md:space-y-4 max-w-full overflow-hidden">
+          <AutoFixImages />
           <WipeArticles />
           
           {/* New Creative Tools Section */}
