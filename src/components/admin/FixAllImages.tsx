@@ -65,8 +65,8 @@ export const FixAllImages = () => {
           Fix All Article Images
         </CardTitle>
         <CardDescription>
-          Automatically finds and replaces duplicate or missing images with unique, properly sourced images for each article.
-          Each image will include proper citation credits.
+          Scans ALL articles and replaces fallback/duplicate images with unique, real images from news sources or AI-generated images.
+          Every image includes proper source attribution and credits. This may take several minutes.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -95,14 +95,19 @@ export const FixAllImages = () => {
         </Button>
 
         <div className="text-sm text-muted-foreground space-y-2">
-          <p className="font-semibold">This will:</p>
+          <p className="font-semibold">This powerful tool will:</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Find all articles with missing images</li>
-            <li>Find all articles using duplicate images</li>
-            <li>Fetch unique, relevant images for each article</li>
-            <li>Add proper image credits and citations</li>
+            <li>Scan ALL articles in your database</li>
+            <li>Detect missing, duplicate, and fallback images</li>
+            <li>Fetch unique news images from credible sources</li>
+            <li>Generate AI images when real photos aren't available</li>
+            <li>Add proper source attribution and credits</li>
             <li>Validate images match article content</li>
+            <li>Update all image fields (featured, og_image, etc.)</li>
           </ul>
+          <p className="mt-4 text-xs bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 p-3 rounded border border-yellow-500/20">
+            ⚠️ This process may take 10-30 minutes depending on the number of articles. Please be patient.
+          </p>
         </div>
       </CardContent>
     </Card>
