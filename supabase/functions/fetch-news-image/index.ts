@@ -86,18 +86,15 @@ serve(async (req) => {
       }
     }
     
-    // Build highly targeted search query
-    // PRIORITY: If specific brand detected, use ONLY that brand name for maximum precision
+    // Build simplified search query - avoid overly complex queries that cause 400 errors
     if (brandKeywords.length > 0) {
-      // For brand-specific articles, search ONLY for that brand to prevent confusion
-      const primaryBrand = brandKeywords[0];
-      searchQuery = `${primaryBrand} official ${visualTerms[0] || 'news'}`;
+      const primaryBrand = brandKeywords[0].replace(/"/g, ''); // Remove quotes
+      searchQuery = `${primaryBrand} official`;
       console.log(`🎯 BRAND-SPECIFIC search for: ${primaryBrand}`);
     } else {
-      // For general topics, use broader search
-      const numTerms = Math.min(2, visualTerms.length);
-      const selectedTerms = visualTerms.slice(0, numTerms);
-      searchQuery = `${topic} ${selectedTerms.join(' ')} official authentic`;
+      // Simple search with just the main topic
+      const simpleTopic = topic.split(':')[0].trim(); // Take first part before colon
+      searchQuery = `${simpleTopic}`;
     }
     
     console.log(`📸 Primary image search query: "${searchQuery}"`);
@@ -106,6 +103,15 @@ serve(async (req) => {
     const performImageSearch = async (query: string, attempt: number = 1): Promise<any> => {
       console.log(`🔄 Search attempt ${attempt} with query: "${query}"`);
       
+      // Simplify query to avoid 400 errors - remove special characters and excessive terms
+      const cleanQuery = query
+        .replace(/[^\w\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 100); // Limit query length
+      
+      console.log(`🧹 Cleaned query: "${cleanQuery}"`);
+      
       const response = await fetch('https://google.serper.dev/images', {
         method: 'POST',
         headers: {
@@ -113,11 +119,8 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          q: query,
-          num: 100,
-          gl: 'us',
-          hl: 'en',
-          safe: 'active',
+          q: cleanQuery,
+          num: 50, // Reduce from 100 to avoid overload
         }),
       });
 
@@ -144,14 +147,14 @@ serve(async (req) => {
     if (!imageSearchData || !imageSearchData.images || imageSearchData.images.length === 0) {
       console.log('🔄 Primary search failed, trying alternative queries...');
       
-      // Try search with just the main topic
-      const fallbackQuery1 = `${topic} news official`;
-      imageSearchData = await performImageSearch(fallbackQuery1, 2);
+      // Try search with simplified topic (first few words)
+      const topicWords = topic.split(/\s+/).slice(0, 3).join(' ');
+      imageSearchData = await performImageSearch(topicWords, 2);
       
-      // If still no results, try broader search
+      // If still no results, try just first word
       if (!imageSearchData || !imageSearchData.images || imageSearchData.images.length === 0) {
-        const fallbackQuery2 = `${topic} official`;
-        imageSearchData = await performImageSearch(fallbackQuery2, 3);
+        const firstWord = topic.split(/\s+/)[0];
+        imageSearchData = await performImageSearch(firstWord, 3);
       }
     }
 

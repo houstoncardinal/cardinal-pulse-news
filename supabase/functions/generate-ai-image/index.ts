@@ -20,9 +20,9 @@ serve(async (req) => {
 
     console.log(`🎨 Generating AI image for: ${title}`);
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Create detailed, photorealistic prompt based on article
@@ -61,36 +61,40 @@ serve(async (req) => {
 
     console.log(`📝 Image prompt: ${prompt.substring(0, 200)}...`);
 
-    // Generate image using OpenAI gpt-image-1
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    // Generate image using Lovable AI (Google Gemini Flash Image)
+    const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: prompt,
-        n: 1,
-        size: '1536x1024', // Wide format for hero images
-        quality: 'high',
-        output_format: 'png',
-        output_compression: 85,
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        modalities: ['image', 'text']
       }),
     });
 
     if (!imageResponse.ok) {
       const errorText = await imageResponse.text();
-      console.error('OpenAI API error:', imageResponse.status, errorText);
+      console.error('Lovable AI API error:', imageResponse.status, errorText);
       throw new Error(`Failed to generate image: ${errorText}`);
     }
 
     const imageData = await imageResponse.json();
-    const base64Image = imageData.data?.[0]?.b64_json;
+    const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!base64Image) {
-      throw new Error('No image data received from OpenAI');
+    if (!imageUrl || !imageUrl.startsWith('data:image')) {
+      throw new Error('No image data received from Lovable AI');
     }
+
+    // Extract base64 from data URL
+    const base64Image = imageUrl.split(',')[1];
 
     console.log('✓ Image generated successfully, uploading to storage...');
 
