@@ -25,8 +25,24 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // Check if content is about a specific person (avoid AI-generated human images)
+    const personIndicators = [
+      /\b[A-Z][a-z]+ [A-Z][a-z]+\b/, // Name patterns (e.g., "John Smith")
+      /\b(CEO|artist|singer|rapper|actor|actress|politician|president|minister|director)\b/i,
+      /\b(died|death|obituary|biography|portrait|interview)\b/i,
+    ];
+    
+    const isAboutPerson = personIndicators.some(pattern => 
+      pattern.test(title) || pattern.test(excerpt || '')
+    );
+
+    if (isAboutPerson) {
+      console.log('⚠️ Article appears to be about a person - skipping AI generation to avoid offensive imagery');
+      throw new Error('Cannot generate AI images for person-focused articles. Please use real news images instead.');
+    }
+
     // Create detailed, photorealistic prompt based on article
-    let styleModifier = 'photorealistic news photography, high quality, professional journalism';
+    let styleModifier = 'photorealistic news photography, high quality, professional journalism, NO PEOPLE, NO FACES, NO PORTRAITS';
     let sceneDescription = '';
 
     // Category-specific visual descriptions
@@ -57,7 +73,7 @@ serve(async (req) => {
       .slice(0, 5)
       .join(', ');
 
-    const prompt = `${styleModifier}: ${sceneDescription}. Scene elements: ${titleConcepts}. ${excerpt ? 'Context: ' + excerpt.substring(0, 100) : ''}. Vibrant, engaging, editorial quality photograph suitable for news article hero image. No text, no watermarks, no labels.`;
+    const prompt = `${styleModifier}: ${sceneDescription}. Scene elements: ${titleConcepts}. ${excerpt ? 'Context: ' + excerpt.substring(0, 100) : ''}. Vibrant, engaging, editorial quality photograph suitable for news article hero image. Focus on objects, scenes, environments, concepts - absolutely no human faces or people. No text, no watermarks, no labels.`;
 
     console.log(`📝 Image prompt: ${prompt.substring(0, 200)}...`);
 
