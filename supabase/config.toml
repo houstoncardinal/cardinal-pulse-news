@@ -95,3 +95,9 @@ verify_jwt = true
 
 [functions.admin-ai-assistant]
 verify_jwt = false
+
+[functions.verify-and-publish-article]
+verify_jwt = true
+
+[functions.fix-duplicate-and-missing-images]
+verify_jwt = true

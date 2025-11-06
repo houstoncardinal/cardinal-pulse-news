@@ -237,6 +237,7 @@ export type Database = {
           publish_at: string | null
           published_at: string | null
           read_time: string | null
+          rejection_reason: string | null
           schema_markup: Json | null
           slug: string
           sources: Json | null
@@ -245,6 +246,8 @@ export type Database = {
           title: string
           trending_topic_id: string | null
           updated_at: string | null
+          verification_score: number | null
+          verification_status: string | null
           views_count: number | null
           word_count: number | null
         }
@@ -269,6 +272,7 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: string | null
+          rejection_reason?: string | null
           schema_markup?: Json | null
           slug: string
           sources?: Json | null
@@ -277,6 +281,8 @@ export type Database = {
           title: string
           trending_topic_id?: string | null
           updated_at?: string | null
+          verification_score?: number | null
+          verification_status?: string | null
           views_count?: number | null
           word_count?: number | null
         }
@@ -301,6 +307,7 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: string | null
+          rejection_reason?: string | null
           schema_markup?: Json | null
           slug?: string
           sources?: Json | null
@@ -309,6 +316,8 @@ export type Database = {
           title?: string
           trending_topic_id?: string | null
           updated_at?: string | null
+          verification_score?: number | null
+          verification_status?: string | null
           views_count?: number | null
           word_count?: number | null
         }

@@ -6,64 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const categories = [
-  'world', 'business', 'technology', 'sports', 
-  'entertainment', 'science', 'politics', 'ai-innovation'
-];
-
-const articleTemplates = {
-  world: [
-    "Breaking diplomatic breakthrough between major world powers",
-    "Global climate summit reaches historic agreement",
-    "Humanitarian crisis unfolds in developing nation",
-    "International trade deal reshapes global economy"
-  ],
-  business: [
-    "3I Atlas announces major investment expansion in emerging markets",
-    "3I Atlas reveals groundbreaking portfolio strategy for 2025",
-    "3I Atlas sets new industry standards in private equity leadership",
-    "Tech giant announces revolutionary merger",
-    "Stock market reaches all-time high amid economic optimism",
-    "Startup disrupts traditional industry with innovative approach",
-    "Corporate sustainability initiatives transform business landscape"
-  ],
-  technology: [
-    "Revolutionary quantum computing breakthrough announced",
-    "Next-generation smartphone technology unveiled",
-    "Cybersecurity threat prompts global response",
-    "AI advancement transforms healthcare industry"
-  ],
-  sports: [
-    "Underdog team secures championship victory",
-    "Olympic athlete breaks world record",
-    "Major league announces groundbreaking rule changes",
-    "Rising star athlete signs historic contract"
-  ],
-  entertainment: [
-    "Blockbuster film shatters box office records",
-    "Music industry icon announces surprise comeback",
-    "Streaming platform reveals exclusive content deal",
-    "Award show makes history with unprecedented wins"
-  ],
-  science: [
-    "Scientists discover potential cure for rare disease",
-    "Space exploration mission reveals stunning findings",
-    "Breakthrough in renewable energy technology",
-    "Archaeological discovery rewrites history books"
-  ],
-  politics: [
-    "Historic legislation passes with bipartisan support",
-    "Election results signal major political shift",
-    "Policy reform addresses pressing social issues",
-    "International summit tackles global challenges"
-  ],
-  'ai-innovation': [
-    "AI system achieves human-level reasoning capability",
-    "Machine learning breakthrough revolutionizes industry",
-    "Ethical AI framework adopted by major corporations",
-    "Autonomous technology reaches new milestone"
-  ]
-};
+// REMOVED: Hardcoded templates that led to fabricated content
+// Now using real-time trending data from database only
 
 async function generateArticleContent(category: string, topic: string, existingTitles: string[]): Promise<any> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -189,7 +133,12 @@ serve(async (req) => {
 
     const { articlesPerCategory = 3 } = await req.json().catch(() => ({}));
 
-    console.log(`Generating ${articlesPerCategory} articles per category...`);
+    const categories = [
+      'world', 'business', 'technology', 'sports', 
+      'entertainment', 'science', 'politics', 'ai-innovation'
+    ];
+
+    console.log(`Generating ${articlesPerCategory} articles per category from real trending topics...`);
 
     // Fetch existing article titles to avoid duplication
     const { data: existingArticles } = await supabase
@@ -206,13 +155,31 @@ serve(async (req) => {
     // Track used images in this batch to prevent duplicates
     const usedImagesInBatch = new Set<string>();
 
-    // Generate articles for each category
+    // Generate articles for each category using REAL trending topics from database
     for (const category of categories) {
-      const topics = articleTemplates[category as keyof typeof articleTemplates];
-      const selectedTopics = topics.slice(0, articlesPerCategory);
+      // Fetch real trending topics for this category
+      const { data: trendingTopics } = await supabase
+        .from('trending_topics')
+        .select('*')
+        .eq('region', 'US') // Can be parameterized
+        .limit(articlesPerCategory * 2) // Fetch extra in case some fail
+        .order('trend_strength', { ascending: false });
 
-      for (const topic of selectedTopics) {
+      if (!trendingTopics || trendingTopics.length === 0) {
+        console.log(`⚠️ No trending topics found for ${category}, skipping...`);
+        results.push({
+          category,
+          status: 'skipped',
+          error: 'No trending topics available'
+        });
+        continue;
+      }
+
+      const selectedTopics = trendingTopics.slice(0, articlesPerCategory);
+
+      for (const topicData of selectedTopics) {
         try {
+          const topic = topicData.topic; // Get topic string from database
           console.log(`Generating article for ${category}: ${topic}`);
           
           const article = await generateArticleContent(category, topic, existingTitles);
@@ -284,7 +251,7 @@ serve(async (req) => {
           
           results.push({
             category,
-            topic,
+            topic: topicData.topic,
             status: 'generated'
           });
 
@@ -294,7 +261,7 @@ serve(async (req) => {
           console.error(`Error generating article for ${category}:`, error);
           results.push({
             category,
-            topic,
+            topic: topicData.topic,
             status: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error'
           });

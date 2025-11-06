@@ -144,7 +144,7 @@ serve(async (req) => {
             Return ONLY valid JSON, no additional text.`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.3, // Lower for factual accuracy
         max_tokens: 4000,
       }),
     });
@@ -281,7 +281,7 @@ serve(async (req) => {
       throw new Error(`Article title too similar to existing: "${similarTitle}"`);
     }
 
-    // Insert article into database - AUTO-PUBLISH
+    // Insert article into database - DRAFT STATUS (requires verification)
     const now = new Date().toISOString();
     const { data: article, error: insertError } = await supabaseClient
       .from('articles')
@@ -301,8 +301,7 @@ serve(async (req) => {
         og_description: articleData.metaDescription,
         og_image: imageUrl,
         trending_topic_id: trendingTopicId,
-        status: 'published',
-        published_at: now,
+        status: 'draft', // Changed: Now requires verification before publishing
         read_time: readTime,
         image_url: imageUrl,
         image_credit: imageCredit,
@@ -313,7 +312,44 @@ serve(async (req) => {
       .select()
       .single();
 
-    console.log(`✓ Article published successfully: "${articleData.title}" (ID: ${article?.id})`);
+    console.log(`✓ Article created (draft): "${articleData.title}" (ID: ${article?.id})`);
+
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      throw insertError;
+    }
+
+    // NEW: Automatic verification pipeline
+    console.log(`🔍 Starting verification pipeline for article: ${article.id}`);
+    try {
+      const { data: verificationResult, error: verifyError } = await supabaseClient.functions.invoke(
+        'verify-and-publish-article',
+        {
+          body: { articleId: article.id }
+        }
+      );
+
+      if (verifyError) {
+        console.error('Verification failed:', verifyError);
+        console.log('⚠️ Article saved as draft - requires manual review');
+      } else {
+        console.log(`✓ Verification complete: ${verificationResult.decision}`);
+        console.log(`✓ Final score: ${verificationResult.verification.score}/100`);
+        
+        if (verificationResult.decision === 'publish') {
+          console.log(`✅ Article AUTO-PUBLISHED: "${articleData.title}"`);
+        } else if (verificationResult.decision === 'reject') {
+          console.log(`❌ Article REJECTED: ${verificationResult.verification.reasons.join(', ')}`);
+        } else {
+          console.log(`⚠️ Article NEEDS REVIEW - saved as draft`);
+        }
+      }
+    } catch (verifyError) {
+      console.error('Verification pipeline error:', verifyError);
+      console.log('⚠️ Article saved as draft - verification failed');
+    }
+
+    console.log(`✓ Article generation complete: "${articleData.title}" (ID: ${article?.id})`);
 
     if (insertError) {
       console.error('Database insert error:', insertError);
