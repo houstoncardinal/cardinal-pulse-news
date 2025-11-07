@@ -90,7 +90,7 @@ Return ONLY valid JSON (no markdown):
               { role: "system", content: "You are a breaking news journalist. Return ONLY valid JSON without markdown." },
               { role: "user", content: articlePrompt }
             ],
-            temperature: 0.9,
+            temperature: 0.3, // Low temperature for factual accuracy
           }),
         });
 
@@ -177,7 +177,7 @@ Return ONLY valid JSON (no markdown):
           console.error('Image fetch failed:', imageError);
         }
 
-        // Insert and publish article
+        // Insert article as DRAFT for verification
         const now = new Date().toISOString();
         const { data: article, error: insertError } = await supabaseClient
           .from("articles")
@@ -188,8 +188,8 @@ Return ONLY valid JSON (no markdown):
             excerpt: articleData.excerpt,
             category,
             author: "Hunain Qureshi",
-            status: "published",
-            published_at: now,
+            status: "draft", // Start as draft for verification
+            published_at: null, // Will be set after verification
             featured_image: imageUrl,
             image_url: imageUrl,
             image_credit: imageCredit,
@@ -206,16 +206,36 @@ Return ONLY valid JSON (no markdown):
           .select()
           .single();
 
-        if (!insertError) {
-          console.log(`✓ Published: "${articleData.title}"`);
-          generatedArticles.push({
-            topic,
-            title: articleData.title,
-            category
-          });
-          successCount++;
-        } else {
+        if (insertError) {
           console.error("Insert error:", insertError);
+          failCount++;
+          continue;
+        }
+
+        console.log(`✓ Draft created: "${articleData.title}", now verifying...`);
+
+        // Run verification and auto-publish pipeline
+        try {
+          const { data: verificationData, error: verifyError } = await supabaseClient.functions.invoke('verify-and-publish-article', {
+            body: { articleId: article.id }
+          });
+
+          if (!verifyError && verificationData?.decision === 'publish') {
+            console.log(`✓ PUBLISHED after verification: "${articleData.title}"`);
+            generatedArticles.push({
+              topic,
+              title: articleData.title,
+              category,
+              verificationStatus: 'published'
+            });
+            successCount++;
+          } else {
+            const status = verificationData?.decision || 'verification_failed';
+            console.log(`✗ ${status.toUpperCase()}: "${articleData.title}"`);
+            failCount++;
+          }
+        } catch (verifyError) {
+          console.error("Verification error:", verifyError);
           failCount++;
         }
 

@@ -134,7 +134,7 @@ This must be distinctive, original, and demonstrate exceptional journalistic qua
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.8,
+      temperature: 0.3, // Low temperature for factual accuracy
       max_tokens: 4000,
     }),
   });
@@ -224,8 +224,8 @@ This must be distinctive, original, and demonstrate exceptional journalistic qua
     word_count: wordCount,
     read_time: readTime,
     author: 'Hunain Qureshi',
-    status: 'published',
-    published_at: new Date().toISOString(),
+    status: 'draft', // Start as draft for verification
+    published_at: null, // Will be set after verification
     featured_image: imageUrl,
     image_url: imageUrl,
     image_credit: imageCredit,
@@ -338,16 +338,44 @@ serve(async (req) => {
       }
     }
 
-    // Bulk insert articles
+    // Bulk insert articles as drafts
     if (allArticles.length > 0) {
-      const { data, error } = await supabase
+      const { data: insertedArticles, error } = await supabase
         .from('articles')
         .insert(allArticles)
         .select();
 
       if (error) throw error;
 
-      console.log(`✅ Successfully inserted ${data.length} articles`);
+      console.log(`✅ Successfully inserted ${insertedArticles.length} draft articles, now verifying...`);
+      
+      // Verify and publish each article
+      let publishedCount = 0;
+      let rejectedCount = 0;
+      
+      for (const article of insertedArticles) {
+        try {
+          const { data: verificationData, error: verifyError } = await supabase.functions.invoke('verify-and-publish-article', {
+            body: { articleId: article.id }
+          });
+
+          if (!verifyError && verificationData?.decision === 'publish') {
+            publishedCount++;
+            console.log(`✓ Published: ${article.title}`);
+          } else {
+            rejectedCount++;
+            console.log(`✗ Rejected/Review: ${article.title}`);
+          }
+        } catch (verifyError) {
+          console.error(`Verification failed for ${article.title}:`, verifyError);
+          rejectedCount++;
+        }
+        
+        // Small delay between verifications
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      console.log(`✅ Verification complete: ${publishedCount} published, ${rejectedCount} rejected/review`);
     }
 
     return new Response(

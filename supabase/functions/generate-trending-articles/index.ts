@@ -99,6 +99,7 @@ Return ONLY a JSON object with this exact structure:
               { role: "system", content: "You are a professional journalist. Always return valid JSON." },
               { role: "user", content: contentPrompt }
             ],
+            temperature: 0.3, // Low temperature for factual accuracy
           }),
         });
 
@@ -247,7 +248,7 @@ Return ONLY a JSON object with this exact structure:
         const wordCount = articleData.content.split(/\s+/).length;
         const readTime = Math.max(1, Math.round(wordCount / 200)) + " min read";
 
-        // Insert article - AUTO-PUBLISH
+        // Insert article as DRAFT for verification
         const now = new Date().toISOString();
         const { data: article, error: insertError } = await supabaseClient
           .from("articles")
@@ -258,8 +259,8 @@ Return ONLY a JSON object with this exact structure:
             excerpt: articleData.excerpt,
             category: articleData.category,
             author: "Hunain Qureshi",
-            status: "published",
-            published_at: now,
+            status: "draft", // Start as draft for verification
+            published_at: null, // Will be set after verification
             featured_image: imageUrl,
             image_url: imageUrl,
             image_credit: imageCredit,
@@ -276,21 +277,49 @@ Return ONLY a JSON object with this exact structure:
           .select()
           .single();
 
-        console.log(`✓ Published article by Hunain Qureshi: "${articleData.title}"`);
-
         if (insertError) {
           console.error(`Failed to insert article for ${topic}:`, insertError);
           throw insertError;
         }
 
-        console.log(`Successfully created article: ${articleData.title}`);
-        results.push({
-          topic,
-          success: true,
-          articleId: article.id,
-          title: articleData.title,
-          slug,
-        });
+        console.log(`✓ Draft created: "${articleData.title}", now verifying...`);
+
+        // Run verification and auto-publish pipeline
+        try {
+          const { data: verificationData, error: verifyError } = await supabaseClient.functions.invoke('verify-and-publish-article', {
+            body: { articleId: article.id }
+          });
+
+          if (verifyError) {
+            console.error('Verification failed:', verifyError);
+            results.push({
+              topic,
+              success: false,
+              error: 'Verification failed',
+              articleId: article.id
+            });
+          } else {
+            const decision = verificationData?.decision || 'unknown';
+            console.log(`✓ Verification complete: ${decision}`);
+            
+            results.push({
+              topic,
+              success: decision === 'publish',
+              articleId: article.id,
+              title: articleData.title,
+              slug,
+              verificationStatus: decision
+            });
+          }
+        } catch (verifyError) {
+          console.error('Verification error:', verifyError);
+          results.push({
+            topic,
+            success: false,
+            error: 'Verification error',
+            articleId: article.id
+          });
+        }
       } catch (topicError) {
         console.error(`Error generating article for ${topic}:`, topicError);
         results.push({
