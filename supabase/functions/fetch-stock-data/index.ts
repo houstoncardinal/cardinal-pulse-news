@@ -40,58 +40,139 @@ const API_CONFIGS = {
 };
 
 // Generate realistic mock data
+// ENHANCED: Advanced algorithmic stock price generation with realistic patterns
 const generateMockQuote = (symbol: string) => {
   const basePrices: { [key: string]: number } = {
     'AAPL': 180, 'GOOGL': 140, 'MSFT': 380, 'AMZN': 155, 'TSLA': 250,
     'META': 350, 'NVDA': 850, 'AMD': 120, 'NFLX': 450, 'DIS': 95,
-    'JPM': 180, 'V': 280, 'WMT': 160, 'BA': 220, 'INTC': 45
+    'JPM': 180, 'V': 280, 'WMT': 160, 'BA': 220, 'INTC': 45,
+    'SPY': 450, 'QQQ': 380, 'DIA': 340, 'IWM': 190
   };
 
   const basePrice = basePrices[symbol] || 100;
-  const volatility = basePrice * 0.02; // 2% daily volatility
-  const change = (Math.random() - 0.5) * volatility * 2;
-  const price = basePrice + change;
+  
+  // Advanced volatility model based on market conditions
+  const time = Date.now();
+  const dayOfWeek = new Date().getDay();
+  const hour = new Date().getHours();
+  
+  // Simulate market hours volatility (higher during trading hours)
+  const isMarketHours = hour >= 9 && hour <= 16 && dayOfWeek >= 1 && dayOfWeek <= 5;
+  const volatilityMultiplier = isMarketHours ? 1.5 : 0.7;
+  
+  // Base volatility with sector-specific adjustments
+  let sectorVolatility = 0.02; // 2% default
+  if (['TSLA', 'NVDA', 'AMD'].includes(symbol)) sectorVolatility = 0.035; // High growth tech
+  if (['DIS', 'WMT', 'JPM'].includes(symbol)) sectorVolatility = 0.015; // More stable
+  
+  const volatility = basePrice * sectorVolatility * volatilityMultiplier;
+  
+  // Add trend component (simulates momentum)
+  const trendStrength = 0.0005 * basePrice;
+  const trend = Math.sin(time / 100000) * trendStrength;
+  
+  // Random walk with mean reversion
+  const randomChange = (Math.random() - 0.5) * volatility * 2;
+  const meanReversion = (basePrice - (basePrice + randomChange)) * 0.1;
+  const change = randomChange + trend + meanReversion;
+  
+  const price = Math.max(0.01, basePrice + change);
   const changePercent = (change / basePrice) * 100;
+  
+  // Realistic high/low based on intraday volatility
+  const intradayVolatility = volatility * 0.6;
+  const high = Math.round((price + Math.random() * intradayVolatility) * 100) / 100;
+  const low = Math.round((price - Math.random() * intradayVolatility) * 100) / 100;
+  
+  // Opening price with gap modeling
+  const gapSize = (Math.random() - 0.5) * volatility * 0.5;
+  const open = Math.round((price - change * 0.7 + gapSize) * 100) / 100;
+  
+  // Volume with realistic distribution
+  const baseVolume = ['AAPL', 'TSLA', 'NVDA'].includes(symbol) ? 50000000 : 10000000;
+  const volumeVariation = 1 + (Math.random() - 0.5) * 0.6;
+  const volume = Math.floor(baseVolume * volumeVariation * (isMarketHours ? 1.5 : 0.3));
 
   return {
     symbol,
     price: Math.round(price * 100) / 100,
     change: Math.round(change * 100) / 100,
     changePercent: Math.round(changePercent * 100) / 100,
-    high: Math.round((price + Math.random() * volatility) * 100) / 100,
-    low: Math.round((price - Math.random() * volatility) * 100) / 100,
-    open: Math.round((price - change * 0.3) * 100) / 100,
+    high,
+    low,
+    open,
     previousClose: Math.round((price - change) * 100) / 100,
-    volume: Math.floor(Math.random() * 10000000) + 1000000,
-    timestamp: Date.now()
+    volume,
+    timestamp: Date.now(),
+    marketCap: Math.floor(basePrice * 10000000000), // Realistic market cap
+    pe_ratio: Math.round((15 + Math.random() * 20) * 100) / 100,
+    dividend_yield: Math.round(Math.random() * 3 * 100) / 100
   };
 };
 
+// ENHANCED: Advanced historical data generation with realistic market patterns
 const generateMockCandles = (symbol: string, days: number = 365) => {
   const candles = [];
-  let currentPrice = 150;
+  
+  // Set realistic starting price based on symbol
+  const startingPrices: { [key: string]: number } = {
+    'AAPL': 150, 'GOOGL': 120, 'MSFT': 320, 'AMZN': 130, 'TSLA': 200,
+    'META': 280, 'NVDA': 600, 'AMD': 100, 'NFLX': 380, 'DIS': 85,
+    'SPY': 400, 'QQQ': 340, 'DIA': 310, 'IWM': 170
+  };
+  
+  let currentPrice = startingPrices[symbol] || 120;
+  
+  // Simulate long-term trend (bull/bear market)
+  const longTermTrend = (Math.random() - 0.3) * 0.0015; // Slight bullish bias
+  
+  // Sector-specific volatility
+  let baseVolatility = 0.025;
+  if (['TSLA', 'NVDA', 'AMD'].includes(symbol)) baseVolatility = 0.035;
+  if (['DIS', 'WMT', 'JPM'].includes(symbol)) baseVolatility = 0.018;
 
   for (let i = days; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const timeString = date.toISOString().split('T')[0];
 
-    const volatility = currentPrice * 0.03; // 3% daily volatility
-    const change = (Math.random() - 0.5) * volatility;
-    currentPrice += change;
+    // Advanced volatility clustering (periods of high/low volatility)
+    const volatilityCycle = Math.sin(i / 30) * 0.5 + 1; // 30-day cycle
+    const volatility = currentPrice * baseVolatility * volatilityCycle;
+    
+    // Add momentum and mean reversion
+    const momentum = currentPrice * longTermTrend;
+    const meanReversion = (startingPrices[symbol] - currentPrice) * 0.001;
+    
+    // Random shock events (earnings, news)
+    const shockProbability = 0.05; // 5% chance of significant event
+    const shock = Math.random() < shockProbability ? (Math.random() - 0.5) * volatility * 3 : 0;
+    
+    const change = (Math.random() - 0.5) * volatility + momentum + meanReversion + shock;
+    currentPrice = Math.max(0.01, currentPrice + change);
 
-    const high = currentPrice + Math.abs(change) * 0.5;
-    const low = currentPrice - Math.abs(change) * 0.5;
-    const open = currentPrice - change * 0.7;
-    const close = currentPrice;
-    const volume = Math.floor(Math.random() * 50000000) + 1000000;
+    // Realistic intraday price action
+    const intradayVolatility = volatility * 0.8;
+    const openGap = (Math.random() - 0.5) * volatility * 0.3;
+    const open = Math.max(0.01, currentPrice - change + openGap);
+    
+    // High and low reflect intraday extremes
+    const dayRange = Math.abs(change) + intradayVolatility;
+    const high = currentPrice + dayRange * (0.3 + Math.random() * 0.4);
+    const low = currentPrice - dayRange * (0.3 + Math.random() * 0.4);
+    
+    // Volume increases with volatility and on shock days
+    const baseVolume = ['AAPL', 'TSLA', 'NVDA'].includes(symbol) ? 60000000 : 15000000;
+    const volumeMultiplier = 1 + Math.abs(change / currentPrice) * 5; // Higher volume on big moves
+    const shockVolume = shock !== 0 ? 2 : 1;
+    const volume = Math.floor(baseVolume * volumeMultiplier * shockVolume * (0.7 + Math.random() * 0.6));
 
     candles.push({
       time: timeString,
       open: Math.max(0.01, Math.round(open * 100) / 100),
       high: Math.max(0.01, Math.round(high * 100) / 100),
-      low: Math.max(0.01, Math.round(low * 100) / 100),
-      close: Math.max(0.01, Math.round(close * 100) / 100),
+      low: Math.max(0.01, Math.round(Math.min(open, currentPrice, low) * 100) / 100),
+      close: Math.max(0.01, Math.round(currentPrice * 100) / 100),
       volume
     });
   }

@@ -82,15 +82,21 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a professional news journalist for Cardinal News. Write compelling, accurate, SEO-optimized news articles based on trending topics. 
+            content: `You are an ELITE investigative journalist for Cardinal News with expertise across multiple domains. You have access to extensive knowledge and can synthesize complex information into compelling narratives.
+
+            SUPREME QUALITY MANDATE:
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            🎯 CORE PRINCIPLES:
+            - ACCURACY IS PARAMOUNT: Every fact must be verifiable
+            - ORIGINALITY REQUIRED: Unique angle, fresh perspective, novel insights
+            - DEPTH OVER BREADTH: Comprehensive analysis over surface coverage
+            - JOURNALISTIC INTEGRITY: Balanced, fair, ethical reporting
+            - READER VALUE: Every sentence must inform, educate, or engage
             
-            CRITICAL UNIQUENESS MANDATE:
-            - Every article must present a UNIQUE angle and perspective
-            - Headlines must be distinctly different from existing articles
-            - Focus on fresh insights, original analysis, and unexplored angles
-            - Vary narrative structure, tone, and approach significantly
-            - Generation Framework: ${framework}
+            📊 GENERATION PARAMETERS:
+            - Framework: ${framework}
             - Timestamp: ${timestamp}
+            - Quality Threshold: PREMIUM TIER
             
             Your output MUST be valid JSON with this exact structure:
             {
@@ -102,8 +108,15 @@ serve(async (req) => {
               "metaKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
               "tags": ["tag1", "tag2", "tag3"],
               "category": "one of: world, business, technology, sports, entertainment, music, movies, events, science, politics, ai_innovation, lifestyle",
-              "sources": [{"name": "Source Name", "url": "https://source.com"}],
-              "imagePrompt": "A detailed, specific prompt for generating a photorealistic news photograph. Describe the main subject, setting, lighting, mood, and key visual elements that would accurately represent this specific news story. Be very specific about what should be shown - mention key people, objects, locations, or events. Example: 'A photorealistic image of [specific subject] with [specific details about the scene], dramatic professional lighting, 16:9 news photography composition, ultra high resolution.'"
+              "sources": [
+                {"name": "Primary Source Name", "url": "https://source1.com", "credibility": "high"},
+                {"name": "Secondary Source Name", "url": "https://source2.com", "credibility": "medium"}
+              ],
+              "imagePrompt": "ULTRA-SPECIFIC news photograph prompt: [Primary subject with exact details], [Specific setting/location], [Key visual elements], [Lighting conditions], [Composition style], [Mood/atmosphere]. Include: technical details (aperture, focal length simulation), time of day, weather conditions, and any symbolic elements that enhance the story. Make it PHOTOJOURNALISM QUALITY.",
+              "data_points": [
+                {"metric": "Key statistic 1", "value": "X", "source": "verified source"},
+                {"metric": "Key statistic 2", "value": "Y", "source": "verified source"}
+              ]
             }
             
             Content Formatting Guidelines:
@@ -115,18 +128,44 @@ serve(async (req) => {
             - Write with authority and include expert perspectives
             - Add dramatic impact with well-placed quotes
             
-            SEO & E-E-A-T Guidelines:
-            - Demonstrate Experience: Include specific details, data, and real-world examples
-            - Show Expertise: Reference credible sources, studies, and expert opinions
-            - Establish Authority: Write with confidence and include verifiable facts
-            - Build Trust: Cite reputable sources, be accurate, and maintain objectivity
-            - Write factual, unbiased content with strong journalistic integrity
-            - Use engaging headlines that attract clicks while being accurate
-            - Include relevant context and background information
-            - Cite at least 2-3 credible sources in the sources array
-            - Optimize for search engines naturally without keyword stuffing
-            - Make it newsworthy, timely, and engaging
-            - Create a HIGHLY DETAILED and SPECIFIC imagePrompt that describes exactly what visual elements should appear in the hero image to accurately represent THIS SPECIFIC story. Include details about the main subjects, setting, actions, mood, and composition.`
+            ADVANCED REQUIREMENTS:
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            📈 SEO & E-E-A-T EXCELLENCE:
+            - Demonstrate EXPERIENCE: Specific data, case studies, real examples
+            - Prove EXPERTISE: Cite studies, research, expert quotes (with credentials)
+            - Establish AUTHORITY: Industry analysis, comparative context, historical perspective
+            - Build TRUST: Multiple credible sources, transparent methodology, fact-based
+            - Natural keyword integration (LSI keywords, semantic relevance)
+            - Schema-optimized structure for featured snippets
+            
+            🔍 FACT-CHECKING PROTOCOL:
+            - Every statistic MUST have a source
+            - Verify dates, names, locations, numbers
+            - Cross-reference multiple sources for major claims
+            - Include uncertainty language where appropriate ("according to...", "reports suggest...")
+            - Cite at least 3-4 HIGH-CREDIBILITY sources
+            
+            🎨 VISUAL STORYTELLING:
+            - Create CINEMATIC imagePrompt: Include camera angle, lens type, lighting setup
+            - Specify mood, color palette, depth of field
+            - Describe foreground, midground, background elements
+            - Include time of day, weather, environmental details
+            - Make it AWARD-WINNING PHOTOJOURNALISM quality
+            
+            📊 DATA JOURNALISM:
+            - Include specific metrics and statistics
+            - Provide context for numbers (YoY growth, comparisons)
+            - Explain what data means for readers
+            - Use data to support narrative, not replace it
+            
+            ✍️ WRITING EXCELLENCE:
+            - Hook readers in first 2 sentences
+            - Use active voice, strong verbs
+            - Vary sentence length for rhythm
+            - Include quotes from relevant experts
+            - End with forward-looking perspective or call-to-action
+            - Balance depth with readability (Flesch score 60-70)`
           },
           {
             role: 'user',
@@ -144,7 +183,7 @@ serve(async (req) => {
             Return ONLY valid JSON, no additional text.`
           }
         ],
-        temperature: 0.3, // Lower for factual accuracy
+        temperature: 0.25, // Optimized for accuracy + creativity balance
         max_tokens: 4000,
       }),
     });

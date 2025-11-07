@@ -39,68 +39,159 @@ serve(async (req) => {
 
     console.log(`📰 Analyzing: "${article.title}"`);
 
-    // AI-powered fact-checking
-    const verificationPrompt = `You are Hector, Cardinal News's AI fact-checker and legal compliance officer. Analyze this article for accuracy, credibility, and legal risks.
+    // ENHANCED: Multi-stage AI-powered fact-checking with cross-validation
+    const verificationPrompt = `You are Hector, Cardinal News's ADVANCED AI fact-checker, legal compliance officer, and journalistic integrity guardian. Perform COMPREHENSIVE multi-dimensional analysis.
 
-ARTICLE TITLE: "${article.title}"
+ARTICLE DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TITLE: "${article.title}"
 CATEGORY: ${article.category}
-CONTENT (first 2000 chars): "${article.content?.substring(0, 2000)}"
 AUTHOR: ${article.author}
+WORD COUNT: ${article.content?.split(/\s+/).length || 0}
 SOURCES: ${JSON.stringify(article.sources || [])}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-COMPREHENSIVE ANALYSIS REQUIRED:
+FULL CONTENT:
+${article.content}
 
-1. FACT-CHECK ACCURACY (Rate 0-100):
-   - Verify key claims and statistics
-   - Check for factual errors or misrepresentations
-   - Assess logical consistency
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-2. SOURCE CREDIBILITY:
-   - Evaluate source reliability and reputation
-   - Check for proper attribution
-   - Identify missing sources for major claims
+PERFORM EXHAUSTIVE 12-STAGE VERIFICATION:
 
-3. LEGAL RISK ASSESSMENT:
-   - Defamation risks (libel/slander)
-   - Copyright violations
-   - Privacy concerns
-   - Misleading/false advertising claims
-   - Regulatory compliance issues
+1. FACT-CHECK ACCURACY (0-100):
+   - Cross-reference ALL statistics with known data
+   - Verify dates, numbers, percentages
+   - Check historical accuracy
+   - Validate technical/scientific claims
+   - Assess logical consistency and causation
+   - Identify contradictions or inconsistencies
 
-4. MISINFORMATION DETECTION:
-   - Identify unverified claims
-   - Flag sensationalism or clickbait
-   - Detect bias or partisan framing
+2. SOURCE CREDIBILITY AUDIT:
+   - Rate each source (0-100): reputation, bias, reliability
+   - Check for primary vs secondary sources
+   - Verify source citations are specific and relevant
+   - Flag missing sources for major claims
+   - Assess source diversity (avoid single-source dependency)
+   - Check for circular reporting
 
-5. RECOMMENDATIONS:
-   - Specific improvements needed
-   - Additional sources to cite
-   - Legal disclaimers to add
-   - Content corrections required
+3. LEGAL RISK MATRIX:
+   - Defamation/libel exposure (public figures vs private individuals)
+   - Privacy violations (PII, medical info, financial data)
+   - Copyright/trademark infringement
+   - False advertising/misleading claims
+   - Securities law compliance (if financial content)
+   - Regulatory compliance (FTC, FDA, etc.)
+   - Right to publicity violations
 
-Respond in JSON format ONLY:
+4. MISINFORMATION & PROPAGANDA DETECTION:
+   - Identify unverified/unverifiable claims
+   - Detect selective omission of context
+   - Flag emotional manipulation techniques
+   - Assess for partisan framing or bias
+   - Check for conspiracy theories or pseudoscience
+   - Identify clickbait or sensationalism
+
+5. JOURNALISTIC ETHICS CHECK:
+   - Verify proper attribution and quotes
+   - Check for conflicts of interest
+   - Assess balanced reporting
+   - Verify correction policy compliance
+   - Check for plagiarism indicators
+
+6. SENTIMENT & TONE ANALYSIS:
+   - Assess objectivity vs opinion
+   - Check for inflammatory language
+   - Evaluate fairness to all parties
+   - Detect potential bias indicators
+
+7. CONTEXTUAL COMPLETENESS:
+   - Check for missing background/context
+   - Verify all sides of controversial issues presented
+   - Assess if article provides full picture
+
+8. TECHNICAL ACCURACY:
+   - Verify specialized terminology usage
+   - Check industry-specific claims
+   - Validate scientific/technical data
+
+9. TEMPORAL RELEVANCE:
+   - Confirm information is current
+   - Flag outdated statistics or references
+   - Check for breaking news updates needed
+
+10. CREDIBILITY SIGNALS:
+    - Expert quotes properly attributed
+    - Data visualization accuracy
+    - Transparent methodology
+    - Clear disclaimers where needed
+
+11. AUDIENCE SAFETY:
+    - Check for harmful advice
+    - Verify medical/health claims
+    - Assess financial advice safety
+    - Flag potentially dangerous content
+
+12. CROSS-REFERENCE VALIDATION:
+    - Compare with other reputable sources
+    - Verify consensus on controversial topics
+    - Check for outlier claims
+
+RESPOND IN JSON (BE THOROUGH & SPECIFIC):
 {
   "accuracy_score": 0-100,
   "verification_status": "verified" | "flagged" | "needs_review" | "rejected",
+  "confidence_level": 0-100,
   "fact_check_results": [
     {
-      "claim": "specific claim from article",
-      "verdict": "true" | "false" | "unverified" | "misleading",
-      "explanation": "detailed reasoning",
-      "confidence": 0-100
+      "claim": "exact claim from article",
+      "verdict": "true" | "false" | "unverified" | "misleading" | "partially_true",
+      "explanation": "detailed reasoning with evidence",
+      "confidence": 0-100,
+      "severity": "critical" | "high" | "medium" | "low"
     }
   ],
   "source_credibility": {
     "overall_rating": 0-100,
-    "sources_evaluated": ["source names"],
-    "missing_sources": ["topics needing citations"],
-    "red_flags": ["credibility concerns"]
+    "sources_evaluated": [
+      {
+        "name": "source name",
+        "credibility_score": 0-100,
+        "bias_assessment": "left|center|right|unknown",
+        "reliability": "high|medium|low"
+      }
+    ],
+    "missing_sources": ["topics requiring additional citation"],
+    "red_flags": ["specific credibility concerns"],
+    "recommendation": "add more diverse sources" | "acceptable" | "needs major sourcing overhaul"
   },
   "legal_risk_assessment": "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
-  "legal_concerns": ["specific legal issues"],
+  "legal_concerns": [
+    {
+      "type": "defamation|privacy|copyright|etc",
+      "severity": "critical|high|medium|low",
+      "description": "detailed explanation",
+      "recommendation": "specific action needed"
+    }
+  ],
+  "journalistic_integrity_score": 0-100,
   "misinformation_detected": true/false,
-  "recommendations": ["specific actionable steps"],
-  "compliance_status": "APPROVED" | "NEEDS_REVISION" | "REJECTED"
+  "misinformation_details": ["specific instances of misinformation"],
+  "bias_analysis": {
+    "bias_detected": true/false,
+    "bias_type": "political|commercial|ideological|none",
+    "bias_severity": "high|medium|low|none"
+  },
+  "recommendations": [
+    {
+      "priority": "critical|high|medium|low",
+      "action": "specific actionable step",
+      "rationale": "why this is needed"
+    }
+  ],
+  "compliance_status": "APPROVED" | "NEEDS_REVISION" | "REJECTED",
+  "rejection_reasons": ["specific reasons if rejected"],
+  "strengths": ["what the article does well"],
+  "weaknesses": ["areas for improvement"]
 }`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -112,10 +203,10 @@ Respond in JSON format ONLY:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are Hector, a meticulous AI fact-checker and legal compliance officer. Always respond with valid JSON only.' },
+          { role: 'system', content: 'You are Hector, Cardinal News\'s ADVANCED AI fact-checker and legal compliance officer with expertise in journalism ethics, law, and data verification. You have access to extensive knowledge across multiple domains. ALWAYS respond with valid JSON only. Be thorough, precise, and uncompromising in your analysis.' },
           { role: 'user', content: verificationPrompt }
         ],
-        temperature: 0.3,
+        temperature: 0.2, // Lower for maximum accuracy
       }),
     });
 

@@ -83,11 +83,16 @@ nuggets vs timberwolves`;
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Bulk Article Generator
+              ⚡ ELITE Article Generator
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Auto-generate & publish articles by Hunain Qureshi with AI-powered images
+              🚀 Premium AI-Powered Content Engine • Multi-Stage Verification • Auto-Publish • Real News Images
             </p>
+            <div className="flex gap-2 mt-2 text-xs">
+              <span className="px-2 py-1 bg-green-500/10 text-green-700 dark:text-green-400 rounded">✓ Fact-Checked</span>
+              <span className="px-2 py-1 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded">✓ Legal Verified</span>
+              <span className="px-2 py-1 bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded">✓ SEO Optimized</span>
+            </div>
           </div>
           <Zap className="h-8 w-8 text-primary animate-pulse" />
         </div>

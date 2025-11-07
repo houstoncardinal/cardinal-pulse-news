@@ -101,3 +101,12 @@ verify_jwt = true
 
 [functions.fix-duplicate-and-missing-images]
 verify_jwt = true
+
+[functions.enhanced-stock-analytics]
+verify_jwt = false
+
+[functions.fetch-stock-data]
+verify_jwt = false
+
+[functions.generate-category-articles]
+verify_jwt = true
