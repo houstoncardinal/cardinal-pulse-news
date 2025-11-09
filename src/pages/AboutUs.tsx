@@ -9,7 +9,7 @@ const AboutUs = () => {
     <>
       <Helmet>
         <title>About Us - Cardinal News</title>
-        <meta name="description" content="Learn about Cardinal News, our mission, values, and commitment to delivering quality journalism powered by AI." />
+        <meta name="description" content="Learn about Cardinal News, our mission, values, and commitment to delivering quality independent journalism." />
       </Helmet>
       
       <div className="min-h-screen bg-background">
@@ -40,7 +40,7 @@ const AboutUs = () => {
                 <Users className="h-12 w-12 text-primary mb-4" />
                 <h3 className="font-display text-xl font-bold mb-3">Expert Team</h3>
                 <p className="text-muted-foreground">
-                  Our AI-powered platform is backed by experienced journalists and tech innovators.
+                  Our platform is backed by experienced journalists and tech innovators.
                 </p>
               </div>
               

@@ -11,7 +11,7 @@ const Careers = () => {
     <>
       <Helmet>
         <title>Careers - Cardinal News</title>
-        <meta name="description" content="Join the Cardinal News team and help shape the future of AI-powered journalism." />
+        <meta name="description" content="Join the Cardinal News team and help shape the future of independent journalism." />
       </Helmet>
       
       <div className="min-h-screen bg-background">

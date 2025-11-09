@@ -15,7 +15,7 @@ const HelpCenter = () => {
   const faqs = [
     {
       question: "What is Cardinal News?",
-      answer: "Cardinal News is an AI-powered news platform that delivers high-quality journalism across multiple categories including world news, business, technology, sports, and more. We use advanced AI technology to aggregate, analyze, and present news while maintaining the highest standards of journalistic excellence."
+      answer: "Cardinal News is a modern news platform that delivers high-quality journalism across multiple categories including world news, business, technology, sports, and more. We use advanced technology to aggregate, analyze, and present news while maintaining the highest standards of journalistic excellence."
     },
     {
       question: "How does Cardinal News ensure article quality?",

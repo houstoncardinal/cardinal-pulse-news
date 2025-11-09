@@ -97,14 +97,14 @@ export function NewsQueryEngine() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                   </span>
-                  POWERED BY AI • REAL-TIME
+                  REAL-TIME INTELLIGENCE • GLOBAL COVERAGE
                 </p>
               </div>
             </div>
             
             <p className="text-zinc-300 text-lg max-w-lg leading-relaxed">
               Ask anything about world news, breaking stories, trends, or topics. 
-              Get instant, comprehensive intelligence powered by AI.
+              Get instant, comprehensive intelligence on any news topic worldwide.
             </p>
           </div>
 

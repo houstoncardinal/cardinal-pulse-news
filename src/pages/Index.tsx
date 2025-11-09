@@ -197,7 +197,7 @@ const Index = () => {
           <div className="mb-8">
             <h2 className="font-display text-4xl font-bold mb-4">Ask Anything About World News</h2>
             <p className="text-muted-foreground text-lg">
-              Powered by AI, get instant intelligence on any news topic worldwide
+              Get instant intelligence on any news topic worldwide
             </p>
           </div>
           <NewsQueryEngine />

@@ -46,7 +46,7 @@ export const Hero = () => {
             </Badge>
             
             <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 md:mb-6 leading-tight animate-reveal-from-bottom text-wrap glow-text">
-              {featuredArticle?.title || 'AI-Powered Global News Network Launches Worldwide'}
+              {featuredArticle?.title || 'Independent Global News Network Launches Worldwide'}
             </h2>
             
             <p className="text-base sm:text-lg md:text-xl text-platinum-silver mb-6 md:mb-8 leading-relaxed animate-reveal-from-bottom text-wrap" style={{ animationDelay: '0.2s' }}>

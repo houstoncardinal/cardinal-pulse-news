@@ -141,7 +141,7 @@ export const QuickCreate = () => {
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-base md:text-lg group-hover:text-primary transition-colors duration-300">⚡ Quick Article Generator</h3>
-            <p className="text-xs md:text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Enter any topic to instantly create an AI-powered article</p>
+            <p className="text-xs md:text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Enter any topic to instantly create a news article</p>
           </div>
         </div>
         

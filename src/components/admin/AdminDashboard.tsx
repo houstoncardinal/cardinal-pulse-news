@@ -383,7 +383,7 @@ export const AdminDashboard = () => {
                   <div className="p-6 border-t border-white/10 bg-gradient-to-t from-background/80 to-transparent backdrop-blur-xl">
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                       <Zap className="h-3 w-3 text-primary" />
-                      <span>Powered by Cardinal AI</span>
+                      <span>News Control Center</span>
                     </div>
                   </div>
                 </div>

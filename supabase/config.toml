@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.generate-category-articles]
 verify_jwt = true
+
+[functions.auto-populate-article-fields]
+verify_jwt = true

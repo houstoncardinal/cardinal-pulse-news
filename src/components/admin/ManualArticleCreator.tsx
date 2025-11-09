@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileEdit, Upload, X, Plus, Save, Eye } from "lucide-react";
+import { FileEdit, Upload, X, Plus, Save, Eye, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactQuill from "react-quill";
@@ -23,6 +23,7 @@ type ArticleCategory = typeof categories[number];
 export const ManualArticleCreator = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoPopulating, setIsAutoPopulating] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   
@@ -94,6 +95,44 @@ export const ManualArticleCreator = () => {
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleAutoPopulate = async () => {
+    if (!title.trim() || !content.trim()) {
+      toast.error("Please provide both title and content first");
+      return;
+    }
+
+    setIsAutoPopulating(true);
+    const loadingToast = toast.loading("Auto-populating article fields...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('auto-populate-article-fields', {
+        body: { title, content }
+      });
+
+      if (error) throw error;
+
+      // Populate all fields
+      setSlug(data.slug);
+      setCategory(data.category as ArticleCategory);
+      setExcerpt(data.excerpt);
+      setTags(data.tags || []);
+      setMetaTitle(data.metaTitle);
+      setMetaDescription(data.metaDescription);
+      setMetaKeywords(data.metaKeywords);
+      setNewsKeywords(data.newsKeywords);
+      setOgTitle(data.ogTitle);
+      setOgDescription(data.ogDescription);
+      setSchemaMarkup(data.schemaMarkup);
+
+      toast.success("All fields auto-populated successfully!", { id: loadingToast });
+    } catch (error) {
+      console.error('Auto-populate error:', error);
+      toast.error('Failed to auto-populate fields: ' + (error instanceof Error ? error.message : 'Unknown error'), { id: loadingToast });
+    } finally {
+      setIsAutoPopulating(false);
+    }
   };
 
   const calculateReadTime = (text: string) => {
@@ -250,6 +289,19 @@ export const ManualArticleCreator = () => {
       </div>
 
       <div className="space-y-6">
+        {/* Auto-populate Button */}
+        {title.trim() && content.trim() && (
+          <Button
+            onClick={handleAutoPopulate}
+            disabled={isAutoPopulating}
+            variant="outline"
+            className="w-full border-primary/50 hover:bg-primary/10"
+          >
+            <Sparkles className={`h-4 w-4 mr-2 ${isAutoPopulating ? 'animate-spin' : ''}`} />
+            {isAutoPopulating ? "Auto-populating..." : "Auto-populate All Fields"}
+          </Button>
+        )}
+
         {/* Basic Information */}
         <div className="space-y-4">
           <div>
