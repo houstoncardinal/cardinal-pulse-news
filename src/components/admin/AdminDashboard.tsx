@@ -35,6 +35,7 @@ import { WipeArticles } from "./WipeArticles";
 import { AIAssistant } from "./AIAssistant";
 import { ImageValidationTool } from "./ImageValidationTool";
 import { AutoFixImages } from "./AutoFixImages";
+import { ManualArticleCreator } from "./ManualArticleCreator";
 import { TrendingUp, FileText, Clock, Settings, MoreHorizontal, Sparkles, Zap, BarChart3, Bell, Users, Globe, Activity, Calendar, Search, Radio, GitBranch, Target, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +112,9 @@ export const AdminDashboard = () => {
           </div>
           
           <CreativeBurstGenerator />
+          
+          {/* Manual Article Creator */}
+          <ManualArticleCreator />
           
           {/* Original Tools */}
           <TrendingBatchGenerator />
