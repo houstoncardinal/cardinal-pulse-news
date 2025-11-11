@@ -26,13 +26,14 @@ export const ManualArticleCreator = () => {
   const [isAutoPopulating, setIsAutoPopulating] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [isFetchingImage, setIsFetchingImage] = useState(false);
   
   // Article Fields
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
   const [excerpt, setExcerpt] = useState("");
-  const [author, setAuthor] = useState("Cardinal AI");
+  const [author, setAuthor] = useState("Hunain Qureshi");
   const [category, setCategory] = useState<ArticleCategory>("world");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [imageCredit, setImageCredit] = useState("");
@@ -95,6 +96,40 @@ export const ManualArticleCreator = () => {
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleFetchImage = async () => {
+    if (!title.trim()) {
+      toast.error("Please provide a title first");
+      return;
+    }
+
+    setIsFetchingImage(true);
+    const loadingToast = toast.loading("Fetching professional image from news sources...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-news-image', {
+        body: { 
+          topic: title,
+          category: category 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data?.imageUrl) {
+        setImagePreview(data.imageUrl);
+        setImageCredit(data.imageCredit || 'Professional News Source');
+        toast.success("Image sourced from professional news outlet!", { id: loadingToast });
+      } else {
+        toast.error("No suitable image found. Please upload manually.", { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Image fetch error:', error);
+      toast.error('Failed to fetch image: ' + (error instanceof Error ? error.message : 'Unknown error'), { id: loadingToast });
+    } finally {
+      setIsFetchingImage(false);
+    }
   };
 
   const handleAutoPopulate = async () => {
@@ -161,8 +196,12 @@ export const ManualArticleCreator = () => {
     try {
       let imageUrl = "";
       
-      // Upload image if provided
-      if (imageFile) {
+      // Use preview image if it's from fetch-news-image, otherwise upload file
+      if (imagePreview && !imageFile) {
+        // Image from news sources
+        imageUrl = imagePreview;
+      } else if (imageFile) {
+        // Upload manually selected image
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -237,7 +276,7 @@ export const ManualArticleCreator = () => {
       setSlug("");
       setContent("");
       setExcerpt("");
-      setAuthor("Cardinal AI");
+      setAuthor("Hunain Qureshi");
       setCategory("world");
       setStatus("draft");
       setImageFile(null);
@@ -401,6 +440,20 @@ export const ManualArticleCreator = () => {
         <div>
           <Label htmlFor="image">Featured Image</Label>
           <div className="mt-1.5 space-y-3">
+            {/* Auto-fetch Image Button */}
+            {title.trim() && !imagePreview && (
+              <Button
+                onClick={handleFetchImage}
+                disabled={isFetchingImage}
+                variant="outline"
+                className="w-full border-primary/50 hover:bg-primary/10"
+                type="button"
+              >
+                <Sparkles className={`h-4 w-4 mr-2 ${isFetchingImage ? 'animate-spin' : ''}`} />
+                {isFetchingImage ? "Fetching Professional Image..." : "Auto-Fetch Image from News Sources"}
+              </Button>
+            )}
+
             {imagePreview ? (
               <div className="relative">
                 <img src={imagePreview} alt="Preview" className="w-full h-64 object-cover rounded-lg" />
@@ -412,10 +465,16 @@ export const ManualArticleCreator = () => {
                   onClick={() => {
                     setImageFile(null);
                     setImagePreview("");
+                    setImageCredit("");
                   }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
+                {imageCredit && (
+                  <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                    {imageCredit}
+                  </div>
+                )}
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
@@ -436,7 +495,7 @@ export const ManualArticleCreator = () => {
               </label>
             )}
             <Input
-              placeholder="Image credit (optional)"
+              placeholder="Image credit (auto-filled if using news source)"
               value={imageCredit}
               onChange={(e) => setImageCredit(e.target.value)}
             />

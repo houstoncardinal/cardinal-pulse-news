@@ -57,9 +57,9 @@ export const AdminDashboard = () => {
   }, []);
   
   const mainTabs = [
+    { value: "articles", label: "Manage Articles", icon: FileText, mobileLabel: "Manage" },
     { value: "trends", label: "Trends", icon: TrendingUp, mobileLabel: "Trends" },
     { value: "review", label: "Review Queue", icon: Clock, mobileLabel: "Review" },
-    { value: "articles", label: "Articles", icon: FileText, mobileLabel: "Articles" },
     { value: "batch", label: "Batch Operations", icon: Zap, mobileLabel: "Batch" },
     { value: "jobs", label: "Jobs", icon: Clock, mobileLabel: "Jobs" },
   ];
@@ -94,7 +94,7 @@ export const AdminDashboard = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                AI Newsroom • Real-time • Powered by Trends
+                Professional Newsroom • Verified Sources • High Accuracy
               </p>
             </div>
           </div>
